@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/1-introduction.md" />
+    <File Path="docs/2-getting-started.md" />
+    <File Path="docs/3-decorators.md" />
+  </Folder>
+  <Folder Name="/samples/" />
+  <Folder Name="/samples/DecoratorEmailSample/">
+    <File Path="samples/DecoratorEmailSample/DecoratorEmailSample.slnx" />
+    <File Path="samples/DecoratorEmailSample/README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ZCrew.Extensions.DependencyInjection.IntegrationTests/ZCrew.Extensions.DependencyInjection.IntegrationTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.DependencyInjection.UnitTests/ZCrew.Extensions.DependencyInjection.UnitTests.csproj" />
+  </Folder>
+</Solution>
