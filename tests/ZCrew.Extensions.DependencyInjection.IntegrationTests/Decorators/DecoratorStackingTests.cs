@@ -1,8 +1,8 @@
+using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ZCrew.Extensions.DependencyInjection.IntegrationTests.Fixtures;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests;
+namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Decorators;
 
 public class DecoratorStackingTests : DecoratorTestBase
 {
@@ -16,25 +16,25 @@ public class DecoratorStackingTests : DecoratorTestBase
         // Arrange
         var serviceCollection = new ServiceCollection();
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            typeof(DecoratorService),
+            typeof(IAuditService),
+            typeof(AuditServiceDecorator),
             decoratorLifetime
         );
 
         // Act
-        serviceCollection.AddSingleton<IService>(new ConcreteService());
+        serviceCollection.AddSingleton<IAuditService>(new AuditService());
         serviceCollection.AddDecorator(decoratorServiceDescriptor);
         serviceCollection.AddDecorator(decoratorServiceDescriptor);
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredService<IService>();
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         var instanceData = service.GetInstanceData().ToArray();
         Assert.Collection(
             instanceData,
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
         // The two decorators should be separate instances
         Assert.NotEqual(instanceData[0].InstanceId, instanceData[1].InstanceId);
@@ -57,10 +57,10 @@ public class DecoratorStackingTests : DecoratorTestBase
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(typeof(IService), typeof(ConcreteService), serviceLifetime);
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), typeof(AuditService), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            typeof(DecoratorService),
+            typeof(IAuditService),
+            typeof(AuditServiceDecorator),
             decoratorLifetime
         );
 
@@ -71,18 +71,18 @@ public class DecoratorStackingTests : DecoratorTestBase
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var services = serviceProvider.GetRequiredService<IEnumerable<IService>>().ToArray();
+        var services = serviceProvider.GetRequiredService<IEnumerable<IAuditService>>().ToArray();
         var instanceData = services.Select(service => service.GetInstanceData().ToArray()).ToArray();
         Assert.Equal(2, services.Length);
         Assert.Collection(
             instanceData[0],
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
         Assert.Collection(
             instanceData[1],
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
         // The two decorators should be separate instances
         Assert.NotEqual(instanceData[0][0].InstanceId, instanceData[1][0].InstanceId);

@@ -1,8 +1,8 @@
+using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ZCrew.Extensions.DependencyInjection.IntegrationTests.Fixtures;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests;
+namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Decorators;
 
 public class FactoryDecoratorTests : DecoratorTestBase
 {
@@ -18,22 +18,22 @@ public class FactoryDecoratorTests : DecoratorTestBase
         // Arrange
         var serviceCollection = new ServiceCollection();
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
         // Act
-        serviceCollection.AddSingleton<IService>(new ConcreteService());
+        serviceCollection.AddSingleton<IAuditService>(new AuditService());
         serviceCollection.AddDecorator(decoratorServiceDescriptor);
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredService<IService>();
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         Assert.Collection(
             service.GetInstanceData(),
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
     }
 
@@ -49,13 +49,13 @@ public class FactoryDecoratorTests : DecoratorTestBase
         // Arrange
         var serviceCollection = new ServiceCollection();
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
         // Act
-        serviceCollection.AddKeyedSingleton<IService>("service-key", new ConcreteService());
+        serviceCollection.AddKeyedSingleton<IAuditService>("service-key", new AuditService());
         var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
 
         // Assert
@@ -71,10 +71,10 @@ public class FactoryDecoratorTests : DecoratorTestBase
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(typeof(IService), typeof(ConcreteService), serviceLifetime);
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), typeof(AuditService), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
@@ -84,11 +84,11 @@ public class FactoryDecoratorTests : DecoratorTestBase
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredService<IService>();
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         Assert.Collection(
             service.GetInstanceData(),
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
     }
 
@@ -101,10 +101,10 @@ public class FactoryDecoratorTests : DecoratorTestBase
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(typeof(IService), typeof(ConcreteService), serviceLifetime);
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), typeof(AuditService), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
@@ -126,14 +126,14 @@ public class FactoryDecoratorTests : DecoratorTestBase
         // Arrange
         var serviceCollection = new ServiceCollection();
         var serviceDescriptor = new ServiceDescriptor(
-            typeof(IService),
+            typeof(IAuditService),
             "service-key",
-            typeof(ConcreteService),
+            typeof(AuditService),
             serviceLifetime
         );
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
@@ -154,10 +154,10 @@ public class FactoryDecoratorTests : DecoratorTestBase
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(typeof(IService), _ => new ConcreteService(), serviceLifetime);
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), _ => new AuditService(), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
@@ -167,11 +167,11 @@ public class FactoryDecoratorTests : DecoratorTestBase
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredService<IService>();
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         Assert.Collection(
             service.GetInstanceData(),
-            instance => Assert.Equal(typeof(DecoratorService), instance.InstanceType),
-            instance => Assert.Equal(typeof(ConcreteService), instance.InstanceType)
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
         );
     }
 
@@ -184,10 +184,10 @@ public class FactoryDecoratorTests : DecoratorTestBase
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(typeof(IService), _ => new ConcreteService(), serviceLifetime);
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), _ => new AuditService(), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 
@@ -209,14 +209,14 @@ public class FactoryDecoratorTests : DecoratorTestBase
         // Arrange
         var serviceCollection = new ServiceCollection();
         var serviceDescriptor = new ServiceDescriptor(
-            typeof(IService),
+            typeof(IAuditService),
             "service-key",
-            (_, _) => new ConcreteService(),
+            (_, _) => new AuditService(),
             serviceLifetime
         );
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IService),
-            (_, service) => new DecoratorService((IService)service),
+            typeof(IAuditService),
+            (_, service) => new AuditServiceDecorator((IAuditService)service),
             decoratorLifetime
         );
 

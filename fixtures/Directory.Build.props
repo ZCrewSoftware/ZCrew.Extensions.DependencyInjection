@@ -1,0 +1,20 @@
+<Project>
+  <!-- Import Directory.Build.props from above folder -->
+  <PropertyGroup>
+    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
+  </PropertyGroup>
+  <ImportGroup>
+    <Import Condition="'$(ParentDirectoryBuildPropsPath)' != ''" Project="$(ParentDirectoryBuildPropsPath)" />
+  </ImportGroup>
+
+  <!-- Common properties for all fixture projects -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Exclude fixture projects from code coverage -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage" />
+  </ItemGroup>
+</Project>

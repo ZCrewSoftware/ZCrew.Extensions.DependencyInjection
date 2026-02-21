@@ -1,3 +1,4 @@
+using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
@@ -8,8 +9,8 @@ public class EnumerableServiceDescriptorExtensionsTests
     public void AsServiceCollection_WhenCalled_ShouldReturnServiceCollectionContainingAllDescriptors()
     {
         // Arrange
-        var descriptor1 = new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Singleton);
-        var descriptor2 = new ServiceDescriptor(typeof(IServiceB), typeof(ServiceB), ServiceLifetime.Transient);
+        var descriptor1 = new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton);
+        var descriptor2 = new ServiceDescriptor(typeof(IOrderService), typeof(OrderService), ServiceLifetime.Transient);
         var descriptors = new[] { descriptor1, descriptor2 }.AsEnumerable();
 
         // Act
@@ -38,7 +39,7 @@ public class EnumerableServiceDescriptorExtensionsTests
     public void AsServiceCollection_WhenCalled_ShouldReturnServiceCollectionType()
     {
         // Arrange
-        var descriptors = new[] { new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Singleton) }.AsEnumerable();
+        var descriptors = new[] { new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton) }.AsEnumerable();
 
         // Act
         var result = descriptors.AsServiceCollection();
@@ -46,12 +47,4 @@ public class EnumerableServiceDescriptorExtensionsTests
         // Assert
         Assert.IsType<ServiceCollection>(result);
     }
-
-    private interface IServiceA;
-
-    private interface IServiceB;
-
-    private class ServiceA : IServiceA;
-
-    private class ServiceB : IServiceB;
 }

@@ -1,3 +1,6 @@
+using Fixtures.SmallProject.Application.Ports;
+using Fixtures.SmallProject.Application.Services;
+using Fixtures.SmallProject.Infrastructure.External;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
@@ -11,7 +14,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -19,7 +22,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Singleton, added.Lifetime);
     }
 
@@ -30,7 +33,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -38,7 +41,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Scoped, added.Lifetime);
     }
 
@@ -49,7 +52,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Singleton),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Singleton),
         };
 
         // Act
@@ -57,7 +60,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Transient, added.Lifetime);
     }
 
@@ -68,7 +71,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.AddSingleton((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.AddSingleton(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -81,7 +84,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.AddScoped((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.AddScoped(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -94,7 +97,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.AddTransient((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.AddTransient(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -107,8 +110,8 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
-            new ServiceDescriptor(typeof(IServiceB), typeof(ServiceB), ServiceLifetime.Scoped),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IOrderService), typeof(OrderService), ServiceLifetime.Scoped),
         };
 
         // Act
@@ -126,7 +129,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -134,7 +137,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Singleton, added.Lifetime);
     }
 
@@ -145,7 +148,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -153,7 +156,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Scoped, added.Lifetime);
     }
 
@@ -164,7 +167,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Singleton),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Singleton),
         };
 
         // Act
@@ -172,7 +175,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var added = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), added.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), added.ServiceType);
         Assert.Equal(ServiceLifetime.Transient, added.Lifetime);
     }
 
@@ -181,10 +184,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
+        services.AddSingleton<IPaymentGateway, PayPalPaymentGateway>();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -201,7 +204,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.TryAddSingleton((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.TryAddSingleton(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -214,7 +217,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.TryAddScoped((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.TryAddScoped(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -227,7 +230,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.TryAddTransient((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.TryAddTransient(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -240,7 +243,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(ServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(PayPalPaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -255,10 +258,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
+        services.AddSingleton<IPaymentGateway, PayPalPaymentGateway>();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(AlternateServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(StripePaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -266,8 +269,8 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var replaced = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), replaced.ServiceType);
-        Assert.Equal(typeof(AlternateServiceA), replaced.ImplementationType);
+        Assert.Equal(typeof(IPaymentGateway), replaced.ServiceType);
+        Assert.Equal(typeof(StripePaymentGateway), replaced.ImplementationType);
         Assert.Equal(ServiceLifetime.Transient, replaced.Lifetime);
     }
 
@@ -278,7 +281,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.Replace((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.Replace(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -289,10 +292,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddTransient<IServiceA, ServiceA>();
+        services.AddTransient<IPaymentGateway, PayPalPaymentGateway>();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(AlternateServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(StripePaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -300,7 +303,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var replaced = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), replaced.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), replaced.ServiceType);
         Assert.Equal(ServiceLifetime.Singleton, replaced.Lifetime);
     }
 
@@ -309,10 +312,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
+        services.AddSingleton<IPaymentGateway, PayPalPaymentGateway>();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(AlternateServiceA), ServiceLifetime.Transient),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(StripePaymentGateway), ServiceLifetime.Transient),
         };
 
         // Act
@@ -320,7 +323,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var replaced = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), replaced.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), replaced.ServiceType);
         Assert.Equal(ServiceLifetime.Scoped, replaced.Lifetime);
     }
 
@@ -329,10 +332,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
+        services.AddSingleton<IPaymentGateway, PayPalPaymentGateway>();
         var descriptors = new[]
         {
-            new ServiceDescriptor(typeof(IServiceA), typeof(AlternateServiceA), ServiceLifetime.Singleton),
+            new ServiceDescriptor(typeof(IPaymentGateway), typeof(StripePaymentGateway), ServiceLifetime.Singleton),
         };
 
         // Act
@@ -340,7 +343,7 @@ public class ServiceCollectionExtensionsTests
 
         // Assert
         var replaced = Assert.Single(services);
-        Assert.Equal(typeof(IServiceA), replaced.ServiceType);
+        Assert.Equal(typeof(IPaymentGateway), replaced.ServiceType);
         Assert.Equal(ServiceLifetime.Transient, replaced.Lifetime);
     }
 
@@ -351,19 +354,9 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.ReplaceSingleton((IEnumerable<ServiceDescriptor>)null!);
+        var act = () => services.ReplaceSingleton(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
     }
-
-    private interface IServiceA;
-
-    private interface IServiceB;
-
-    private class ServiceA : IServiceA;
-
-    private class ServiceB : IServiceB;
-
-    private class AlternateServiceA : IServiceA;
 }

@@ -1,3 +1,4 @@
+using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
@@ -9,8 +10,8 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddTransient<IServiceA, ServiceA>();
-        services.AddScoped<IServiceB, ServiceB>();
+        services.AddTransient<ICustomerService, CustomerService>();
+        services.AddScoped<IOrderService, OrderService>();
 
         // Act
         var result = services.AsSingleton();
@@ -25,8 +26,8 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
-        services.AddTransient<IServiceB, ServiceB>();
+        services.AddSingleton<ICustomerService, CustomerService>();
+        services.AddTransient<IOrderService, OrderService>();
 
         // Act
         var result = services.AsScoped();
@@ -41,8 +42,8 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA, ServiceA>();
-        services.AddScoped<IServiceB, ServiceB>();
+        services.AddSingleton<ICustomerService, CustomerService>();
+        services.AddScoped<IOrderService, OrderService>();
 
         // Act
         var result = services.AsTransient();
@@ -57,7 +58,7 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddTransient<IServiceA, ServiceA>();
+        services.AddTransient<ICustomerService, CustomerService>();
 
         // Act
         var result = services.AsLifetime(ServiceLifetime.Singleton);
@@ -71,7 +72,7 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddTransient<IServiceA, ServiceA>();
+        services.AddTransient<ICustomerService, CustomerService>();
 
         // Act
         services.AsLifetime(ServiceLifetime.Singleton);
@@ -85,8 +86,8 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var instance = new ServiceA();
-        services.AddSingleton<IServiceA>(instance);
+        var instance = new CustomerService();
+        services.AddSingleton<ICustomerService>(instance);
 
         // Act
         var result = services.AsLifetime(ServiceLifetime.Transient);
@@ -102,7 +103,7 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA>(new ServiceA());
+        services.AddSingleton<ICustomerService>(new CustomerService());
 
         // Act
         var act = () => services.AsLifetime(ServiceLifetime.Transient, ignoreSingletonImplementations: false);
@@ -116,19 +117,19 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var instance = new ServiceA();
-        services.AddSingleton<IServiceA>(instance);
-        services.AddSingleton<IServiceB, ServiceB>();
+        var instance = new CustomerService();
+        services.AddSingleton<ICustomerService>(instance);
+        services.AddSingleton<IOrderService, OrderService>();
 
         // Act
         var result = services.AsScoped(ignoreSingletonImplementations: true);
 
         // Assert
         Assert.Equal(2, result.Count);
-        var instanceDescriptor = result.First(d => d.ServiceType == typeof(IServiceA));
+        var instanceDescriptor = result.First(d => d.ServiceType == typeof(ICustomerService));
         Assert.Equal(ServiceLifetime.Singleton, instanceDescriptor.Lifetime);
         Assert.Same(instance, instanceDescriptor.ImplementationInstance);
-        var typeDescriptor = result.First(d => d.ServiceType == typeof(IServiceB));
+        var typeDescriptor = result.First(d => d.ServiceType == typeof(IOrderService));
         Assert.Equal(ServiceLifetime.Scoped, typeDescriptor.Lifetime);
     }
 
@@ -137,18 +138,18 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        var instance = new ServiceA();
-        services.AddSingleton<IServiceA>(instance);
-        services.AddSingleton<IServiceB, ServiceB>();
+        var instance = new CustomerService();
+        services.AddSingleton<ICustomerService>(instance);
+        services.AddSingleton<IOrderService, OrderService>();
 
         // Act
         var result = services.AsTransient(ignoreSingletonImplementations: true);
 
         // Assert
         Assert.Equal(2, result.Count);
-        var instanceDescriptor = result.First(d => d.ServiceType == typeof(IServiceA));
+        var instanceDescriptor = result.First(d => d.ServiceType == typeof(ICustomerService));
         Assert.Equal(ServiceLifetime.Singleton, instanceDescriptor.Lifetime);
-        var typeDescriptor = result.First(d => d.ServiceType == typeof(IServiceB));
+        var typeDescriptor = result.First(d => d.ServiceType == typeof(IOrderService));
         Assert.Equal(ServiceLifetime.Transient, typeDescriptor.Lifetime);
     }
 
@@ -157,7 +158,7 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA>(new ServiceA());
+        services.AddSingleton<ICustomerService>(new CustomerService());
 
         // Act
         var act = () => services.AsScoped(ignoreSingletonImplementations: false);
@@ -171,7 +172,7 @@ public class ServiceCollectionExtensionsLifetimeTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.AddSingleton<IServiceA>(new ServiceA());
+        services.AddSingleton<ICustomerService>(new CustomerService());
 
         // Act
         var act = () => services.AsTransient(ignoreSingletonImplementations: false);
@@ -179,12 +180,4 @@ public class ServiceCollectionExtensionsLifetimeTests
         // Assert
         Assert.Throws<InvalidOperationException>(act);
     }
-
-    private interface IServiceA;
-
-    private interface IServiceB;
-
-    private class ServiceA : IServiceA;
-
-    private class ServiceB : IServiceB;
 }

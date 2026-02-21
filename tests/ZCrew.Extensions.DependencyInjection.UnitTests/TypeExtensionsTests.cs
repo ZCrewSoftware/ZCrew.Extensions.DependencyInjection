@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
 
 public class TypeExtensionsTests

@@ -16,4 +16,7 @@
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.IntegrationTests/ZCrew.Extensions.DependencyInjection.IntegrationTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.UnitTests/ZCrew.Extensions.DependencyInjection.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/fixtures/">
+    <Project Path="fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
+  </Folder>
 </Solution>
