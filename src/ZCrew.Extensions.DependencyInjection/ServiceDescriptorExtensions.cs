@@ -4,11 +4,100 @@ namespace ZCrew.Extensions.DependencyInjection;
 
 public static class ServiceDescriptorExtensions
 {
-    public static ServiceDescriptor WithServiceKey(this ServiceDescriptor serviceDescriptor, object? serviceKey)
+    extension(ServiceDescriptor serviceDescriptor)
     {
-        return serviceDescriptor.IsKeyedService
-            ? RecreateKeyedServiceDescriptor(serviceDescriptor, serviceKey)
-            : RecreateAsKeyedServiceDescriptor(serviceDescriptor, serviceKey);
+        public ServiceDescriptor WithServiceKey(object? serviceKey)
+        {
+            return serviceDescriptor.IsKeyedService
+                ? RecreateKeyedServiceDescriptor(serviceDescriptor, serviceKey)
+                : RecreateAsKeyedServiceDescriptor(serviceDescriptor, serviceKey);
+        }
+
+        public ServiceDescriptor WithLifetime(ServiceLifetime lifetime)
+        {
+            return serviceDescriptor.WithLifetime(lifetime, ignoreSingletonImplementations: false);
+        }
+
+        public ServiceDescriptor WithLifetime(ServiceLifetime lifetime, bool ignoreSingletonImplementations)
+        {
+            return serviceDescriptor.IsKeyedService
+                ? RecreateKeyedServiceDescriptor(serviceDescriptor, lifetime, ignoreSingletonImplementations)
+                : RecreateServiceDescriptor(serviceDescriptor, lifetime, ignoreSingletonImplementations);
+        }
+    }
+
+    private static ServiceDescriptor RecreateServiceDescriptor(
+        ServiceDescriptor serviceDescriptor,
+        ServiceLifetime lifetime,
+        bool ignoreSingletonImplementations
+    )
+    {
+        if (serviceDescriptor.ImplementationType != null)
+        {
+            return new ServiceDescriptor(
+                serviceDescriptor.ServiceType,
+                serviceDescriptor.ImplementationType,
+                lifetime
+            );
+        }
+
+        if (serviceDescriptor.ImplementationFactory != null)
+        {
+            return new ServiceDescriptor(
+                serviceDescriptor.ServiceType,
+                serviceDescriptor.ImplementationFactory,
+                lifetime
+            );
+        }
+
+        // Only singleton is acceptable for implementation service descriptors
+        if (serviceDescriptor.ImplementationInstance != null)
+        {
+            if (lifetime == ServiceLifetime.Singleton || ignoreSingletonImplementations)
+            {
+                return serviceDescriptor;
+            }
+        }
+
+        throw ServiceDescriptorLifetimeException(serviceDescriptor, lifetime);
+    }
+
+    private static ServiceDescriptor RecreateKeyedServiceDescriptor(
+        ServiceDescriptor serviceDescriptor,
+        ServiceLifetime lifetime,
+        bool ignoreSingletonImplementations
+    )
+    {
+        if (serviceDescriptor.KeyedImplementationType != null)
+        {
+            return new ServiceDescriptor(
+                serviceDescriptor.ServiceType,
+                serviceDescriptor.ServiceKey,
+                serviceDescriptor.KeyedImplementationType,
+                lifetime
+            );
+        }
+
+        if (serviceDescriptor.KeyedImplementationFactory != null)
+        {
+            return new ServiceDescriptor(
+                serviceDescriptor.ServiceType,
+                serviceDescriptor.ServiceKey,
+                serviceDescriptor.KeyedImplementationFactory,
+                lifetime
+            );
+        }
+
+        // Only singleton is acceptable for implementation service descriptors - it would be unchanged
+        if (serviceDescriptor.KeyedImplementationInstance != null)
+        {
+            if (lifetime == ServiceLifetime.Singleton || ignoreSingletonImplementations)
+            {
+                return serviceDescriptor;
+            }
+        }
+
+        throw ServiceDescriptorLifetimeException(serviceDescriptor, lifetime);
     }
 
     private static ServiceDescriptor RecreateAsKeyedServiceDescriptor(
@@ -44,7 +133,7 @@ public static class ServiceDescriptorExtensions
                 serviceDescriptor.ImplementationInstance
             );
         }
-        throw ServiceRecreationException(serviceDescriptor);
+        throw ToKeyedServiceException(serviceDescriptor);
     }
 
     private static ServiceDescriptor RecreateKeyedServiceDescriptor(
@@ -85,11 +174,16 @@ public static class ServiceDescriptorExtensions
                 serviceDescriptor.KeyedImplementationInstance
             );
         }
-        throw ServiceRecreationException(serviceDescriptor);
+        throw ToKeyedServiceException(serviceDescriptor);
     }
 
-    private static InvalidOperationException ServiceRecreationException(ServiceDescriptor serviceDescriptor)
+    private static InvalidOperationException ToKeyedServiceException(ServiceDescriptor serviceDescriptor)
     {
         throw new InvalidOperationException($"Failed to create keyed service descriptor for: {serviceDescriptor}");
+    }
+
+    private static InvalidOperationException ServiceDescriptorLifetimeException(ServiceDescriptor serviceDescriptor, ServiceLifetime lifetime)
+    {
+        throw new InvalidOperationException($"Failed to change service descriptor lifetime to {lifetime} for: {serviceDescriptor}");
     }
 }
