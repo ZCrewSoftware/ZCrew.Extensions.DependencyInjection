@@ -3,11 +3,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-public class LazyServiceCollection : IServiceCollection
+/// <summary>
+///     A read-only <see cref="IServiceCollection"/> that defers evaluation of its service descriptors until first
+///     access. Mutating operations throw <see cref="InvalidOperationException"/>.
+/// </summary>
+public sealed class LazyServiceCollection : IServiceCollection
 {
     private readonly Lazy<List<ServiceDescriptor>> descriptors;
 
-    public LazyServiceCollection(Func<IEnumerable<ServiceDescriptor>> serviceDescriptorsProvider)
+    internal LazyServiceCollection(Func<IEnumerable<ServiceDescriptor>> serviceDescriptorsProvider)
     {
         this.descriptors = new Lazy<List<ServiceDescriptor>>(() =>
         {
@@ -16,56 +20,68 @@ public class LazyServiceCollection : IServiceCollection
         });
     }
 
+    /// <inheritdoc />
     public ServiceDescriptor this[int index]
     {
         get => this.descriptors.Value[index];
         set => throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public int Count => this.descriptors.Value.Count;
 
+    /// <inheritdoc />
     public bool IsReadOnly => true;
 
+    /// <inheritdoc />
     public int IndexOf(ServiceDescriptor item)
     {
         return this.descriptors.Value.IndexOf(item);
     }
 
+    /// <inheritdoc />
     public bool Contains(ServiceDescriptor item)
     {
         return this.descriptors.Value.Contains(item);
     }
 
+    /// <inheritdoc />
     public void CopyTo(ServiceDescriptor[] array, int arrayIndex)
     {
         this.descriptors.Value.CopyTo(array, arrayIndex);
     }
 
+    /// <inheritdoc />
     public void Add(ServiceDescriptor item)
     {
         throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public void Clear()
     {
         throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public bool Remove(ServiceDescriptor item)
     {
         throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public void Insert(int index, ServiceDescriptor item)
     {
         throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public void RemoveAt(int index)
     {
         throw ReadonlyException();
     }
 
+    /// <inheritdoc />
     public IEnumerator<ServiceDescriptor> GetEnumerator()
     {
         return this.descriptors.Value.GetEnumerator();
@@ -78,6 +94,7 @@ public class LazyServiceCollection : IServiceCollection
 
     private static InvalidOperationException ReadonlyException()
     {
-        return new InvalidOperationException("The service collection cannot be modified because it is read-only.");
+        return new InvalidOperationException(
+            "The service collection cannot be modified because it is read-only.");
     }
 }

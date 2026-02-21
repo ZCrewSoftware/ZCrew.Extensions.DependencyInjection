@@ -2,10 +2,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection;
 
+/// <summary>
+///     Extension methods on <see cref="ServiceDescriptor"/> for recreating descriptors with a different service key
+///     or lifetime.
+/// </summary>
 public static class ServiceDescriptorExtensions
 {
     extension(ServiceDescriptor serviceDescriptor)
     {
+        /// <summary>
+        ///     Returns a new <see cref="ServiceDescriptor"/> registered under the specified
+        ///     <paramref name="serviceKey"/>. If the descriptor is already keyed, the key is replaced; otherwise the
+        ///     descriptor is converted to a keyed registration.
+        /// </summary>
+        /// <param name="serviceKey">
+        ///     The service key to assign, or <see langword="null"/> for the default key.
+        /// </param>
         public ServiceDescriptor WithServiceKey(object? serviceKey)
         {
             return serviceDescriptor.IsKeyedService
@@ -13,11 +25,24 @@ public static class ServiceDescriptorExtensions
                 : RecreateAsKeyedServiceDescriptor(serviceDescriptor, serviceKey);
         }
 
+        /// <summary>
+        ///     Returns a new <see cref="ServiceDescriptor"/> with the specified <paramref name="lifetime"/>.
+        ///     Instance-based descriptors that cannot change lifetime will throw.
+        /// </summary>
+        /// <param name="lifetime">The target service lifetime.</param>
         public ServiceDescriptor WithLifetime(ServiceLifetime lifetime)
         {
             return serviceDescriptor.WithLifetime(lifetime, ignoreSingletonImplementations: false);
         }
 
+        /// <summary>
+        ///     Returns a new <see cref="ServiceDescriptor"/> with the specified <paramref name="lifetime"/>.
+        /// </summary>
+        /// <param name="lifetime">The target service lifetime.</param>
+        /// <param name="ignoreSingletonImplementations">
+        ///     When <see langword="true"/>, instance-based descriptors that can only be singletons are returned
+        ///     unchanged instead of throwing.
+        /// </param>
         public ServiceDescriptor WithLifetime(ServiceLifetime lifetime, bool ignoreSingletonImplementations)
         {
             return serviceDescriptor.IsKeyedService

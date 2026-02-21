@@ -1,5 +1,9 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
+// Default interface implementations that bridge ITypeFilter to IServiceSelector.
+// When a service selector method is called on an ITypeFilter, the implementation
+// first calls AllTypes() to accept all remaining types, then delegates to the
+// corresponding IServiceSelector method.
 public partial interface ITypeFilter
 {
     IServiceSource IServiceSelector.AsAllInterfaces()

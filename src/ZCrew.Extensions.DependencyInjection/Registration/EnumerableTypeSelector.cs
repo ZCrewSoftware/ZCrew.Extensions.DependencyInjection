@@ -1,6 +1,9 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-public class EnumerableTypeSelector : TypeSelectorBase, ITypeSelector
+/// <summary>
+///     Selects types from an in-memory enumerable with an optional filter predicate.
+/// </summary>
+public sealed class EnumerableTypeSelector : TypeSelectorBase, ITypeSelector
 {
     private readonly IEnumerable<Type> types;
     private readonly Func<Type, bool>? filter;
@@ -17,6 +20,7 @@ public class EnumerableTypeSelector : TypeSelectorBase, ITypeSelector
         this.filter = filter;
     }
 
+    /// <inheritdoc />
     public override IEnumerable<Type> SelectTypes()
     {
         if (this.filter != null)

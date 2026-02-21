@@ -1,7 +1,11 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
+/// <summary>
+///     Selects types from an assembly with optional visibility scoping. By default, only publicly exported types
+///     are included; use <see cref="IncludeInternalTypes"/> or <see cref="IncludeAllTypes"/> to broaden the scope.
+/// </summary>
 public sealed class AssemblyTypeSelector : TypeSelectorBase, IAssemblyTypeSelector
 {
     private readonly Assembly assembly;
@@ -19,21 +23,25 @@ public sealed class AssemblyTypeSelector : TypeSelectorBase, IAssemblyTypeSelect
         this.filter = filter;
     }
 
+    /// <inheritdoc />
     public ITypeSelector IncludePublicTypes()
     {
         return new EnumerableTypeSelector(this.assembly.GetExportedTypes(), this.filter);
     }
 
+    /// <inheritdoc />
     public ITypeSelector IncludeInternalTypes()
     {
         return new EnumerableTypeSelector(this.assembly.GetTypes().Where(t => t.IsPublic || t.IsNotPublic), this.filter);
     }
 
+    /// <inheritdoc />
     public ITypeSelector IncludeAllTypes()
     {
         return new EnumerableTypeSelector(this.assembly.GetTypes(), this.filter);
     }
 
+    /// <inheritdoc />
     public override IEnumerable<Type> SelectTypes()
     {
         if (this.filter != null)
