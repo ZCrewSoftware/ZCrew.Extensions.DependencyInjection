@@ -3,6 +3,7 @@
     <File Path="docs/1-introduction.md" />
     <File Path="docs/2-getting-started.md" />
     <File Path="docs/3-decorators.md" />
+    <File Path="docs/4-registration.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/samples/DecoratorEmailSample/">
