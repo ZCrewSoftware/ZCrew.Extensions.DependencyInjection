@@ -4,10 +4,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace ZCrew.Extensions.DependencyInjection;
 
 /// <summary>
-///     Extension methods on <see cref="IEnumerable{ServiceDescriptor}"/> for converting descriptor sequences into an
-///     <see cref="IServiceCollection"/>.
+///     Extension methods on <see cref="IEnumerable{ServiceDescriptor}"/>.
 /// </summary>
-public static class ServiceCollectionEnumerableExtensions
+public static class EnumerableServiceDescriptorExtensions
 {
     extension(IEnumerable<ServiceDescriptor> descriptors)
     {

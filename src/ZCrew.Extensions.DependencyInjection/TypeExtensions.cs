@@ -125,6 +125,17 @@ public static class TypeExtensions
         ///     Returns the most-derived (top-level) interfaces implemented by the type, excluding interfaces that are
         ///     inherited by other interfaces the type implements.
         /// </summary>
+        /// <example>
+        ///     Given the following hierarchy:
+        ///     <code>
+        ///     interface IRepository { }
+        ///     interface IUserRepository : IRepository { }
+        ///     class UserRepository : IUserRepository { }
+        ///     </code>
+        ///     Calling <c>typeof(UserRepository).GetTopLevelInterfaces()</c> returns only
+        ///     <c>IUserRepository</c>, because <c>IRepository</c> is already inherited by
+        ///     <c>IUserRepository</c>.
+        /// </example>
         public IEnumerable<Type> GetTopLevelInterfaces()
         {
             var interfaces = type.GetInterfaces();
