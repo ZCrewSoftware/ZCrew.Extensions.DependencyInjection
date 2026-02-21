@@ -3,9 +3,8 @@ using Fixtures.SmallProject.Domain.Entities;
 using Fixtures.SmallProject.Domain.Services;
 using Fixtures.SmallProject.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Registration.TypesTests;
+namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.TypesTests;
 
 public class TypesEntryPointTests
 {

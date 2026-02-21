@@ -6,17 +6,16 @@ using Fixtures.SmallProject.Domain.Services;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Notifications;
 using Fixtures.SmallProject.Infrastructure.Persistence;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Registration.TypesTests;
+namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.ClassesTests;
 
-public class TypesEndToEndTests
+public class ClassesEndToEndTests
 {
     [Fact]
     public void RepositoryRegistration_FromAssembly_ShouldRegisterAllRepositoryImplementations()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<SqlCustomerRepository>()
             .BasedOn(typeof(IRepository<>))
             .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
@@ -41,7 +40,7 @@ public class TypesEndToEndTests
     public void ServiceRegistration_ByConvention_ShouldRegisterByNamingConvention()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
             .AsDefaultNonSystemInterfaces();
@@ -75,7 +74,7 @@ public class TypesEndToEndTests
     public void ValidatorRegistration_WithOpenGenericBase_ShouldRegisterClosedImplementations()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<OrderValidator>()
             .BasedOn(typeof(IValidator<>))
             .InNamespace("Fixtures.SmallProject.Domain.Services")
@@ -100,7 +99,7 @@ public class TypesEndToEndTests
     public void InfrastructureRegistration_MultipleInterfaces_ShouldRegisterAllNonSystemInterfaces()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<PayPalPaymentGateway>()
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
             .AsAllNonSystemInterfaces();
@@ -119,41 +118,5 @@ public class TypesEndToEndTests
                 && d.ServiceType == typeof(INotificationSender)
         );
         Assert.DoesNotContain(result, d => d.ServiceType == typeof(IDisposable));
-    }
-
-    [Fact]
-    public void InterfaceDiscovery_FromAssembly_ShouldRegisterAllInterfacesInNamespace()
-    {
-        // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .Where(t => t.IsInterface)
-            .InNamespace("Fixtures.SmallProject.Application.Services")
-            .AsSelf();
-
-        // Assert
-        var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
-        Assert.Contains(typeof(ICustomerService), registeredTypes);
-        Assert.Contains(typeof(IOrderService), registeredTypes);
-        Assert.Contains(typeof(IProductService), registeredTypes);
-        Assert.DoesNotContain(typeof(CustomerService), registeredTypes);
-    }
-
-    [Fact]
-    public void AllTypesInNamespace_FromAssembly_ShouldIncludeInterfacesAndStaticAndConcreteClasses()
-    {
-        // Act
-        var result = Types
-            .FromAssemblyContaining<OrderValidator>()
-            .InNamespace("Fixtures.SmallProject.Domain.Services")
-            .AsSelf();
-
-        // Assert
-        var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
-        Assert.Contains(typeof(IValidator<>), registeredTypes);
-        Assert.Contains(typeof(IPricingStrategy), registeredTypes);
-        Assert.Contains(typeof(PricingDefaults), registeredTypes);
-        Assert.Contains(typeof(OrderValidator), registeredTypes);
-        Assert.Contains(typeof(CustomerValidator), registeredTypes);
     }
 }

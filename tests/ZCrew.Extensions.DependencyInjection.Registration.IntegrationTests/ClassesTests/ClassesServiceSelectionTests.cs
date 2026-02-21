@@ -5,9 +5,8 @@ using Fixtures.SmallProject.Domain.Repositories;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Notifications;
 using Fixtures.SmallProject.Infrastructure.Persistence;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Registration.ClassesTests;
+namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.ClassesTests;
 
 public class ClassesServiceSelectionTests
 {

@@ -2,7 +2,7 @@ using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Decorators;
+namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.DecoratorTests;
 
 public class DecoratorStackingTests : DecoratorTestBase
 {

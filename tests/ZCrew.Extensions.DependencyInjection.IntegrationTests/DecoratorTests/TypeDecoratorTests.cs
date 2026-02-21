@@ -2,16 +2,16 @@ using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Decorators;
+namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.DecoratorTests;
 
-public class KeyedTypeDecoratorTests : DecoratorTestBase
+public class TypeDecoratorTests : DecoratorTestBase
 {
     [Theory]
     [InlineData(null)]
     [InlineData(ServiceLifetime.Singleton)]
     [InlineData(ServiceLifetime.Scoped)]
     [InlineData(ServiceLifetime.Transient)]
-    public void AddDecorator_WithKeyedDecoratorTypeAndKeyedServiceInstance_ShouldThrowInvalidOperationException(
+    public void AddDecorator_WithDecoratorTypeAndServiceInstance_ShouldApplyDecorator(
         ServiceLifetime? decoratorLifetime
     )
     {
@@ -19,18 +19,17 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
         var serviceCollection = new ServiceCollection();
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
             typeof(IAuditService),
-            "service-key",
             typeof(AuditServiceDecorator),
             decoratorLifetime
         );
 
         // Act
-        serviceCollection.AddKeyedSingleton<IAuditService>("service-key", new AuditService());
+        serviceCollection.AddSingleton<IAuditService>(new AuditService());
         serviceCollection.AddDecorator(decoratorServiceDescriptor);
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredKeyedService<IAuditService>("service-key");
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         Assert.Collection(
             service.GetInstanceData(),
             instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
@@ -43,7 +42,7 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
     [InlineData(ServiceLifetime.Singleton)]
     [InlineData(ServiceLifetime.Scoped)]
     [InlineData(ServiceLifetime.Transient)]
-    public void AddDecorator_WithKeyedDecoratorTypeAndServiceInstance_ShouldThrowInvalidOperationException(
+    public void AddDecorator_WithDecoratorTypeAndKeyedServiceInstance_ShouldThrowInvalidOperationException(
         ServiceLifetime? decoratorLifetime
     )
     {
@@ -51,13 +50,12 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
         var serviceCollection = new ServiceCollection();
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
             typeof(IAuditService),
-            "service-key",
             typeof(AuditServiceDecorator),
             decoratorLifetime
         );
 
         // Act
-        serviceCollection.AddSingleton<IAuditService>(new AuditService());
+        serviceCollection.AddKeyedSingleton<IAuditService>("service-key", new AuditService());
         var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
 
         // Assert
@@ -66,73 +64,7 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
 
     [Theory]
     [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeKeyedServiceTypeAndValidLifetimes_ShouldApplyDecorator(
-        ServiceLifetime serviceLifetime,
-        ServiceLifetime? decoratorLifetime
-    )
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            typeof(AuditService),
-            serviceLifetime
-        );
-        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            typeof(AuditServiceDecorator),
-            decoratorLifetime
-        );
-
-        // Act
-        serviceCollection.Add(serviceDescriptor);
-        serviceCollection.AddDecorator(decoratorServiceDescriptor);
-
-        // Assert
-        var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredKeyedService<IAuditService>("service-key");
-        Assert.Collection(
-            service.GetInstanceData(),
-            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
-            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
-        );
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeKeyedServiceTypeAndInvalidLifetimes_ShouldThrowInvalidOperationException(
-        ServiceLifetime serviceLifetime,
-        ServiceLifetime decoratorLifetime
-    )
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            typeof(AuditService),
-            serviceLifetime
-        );
-        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            typeof(AuditServiceDecorator),
-            decoratorLifetime
-        );
-
-        // Act
-        serviceCollection.Add(serviceDescriptor);
-        var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
-
-        // Assert
-        Assert.Throws<InvalidOperationException>(addDecorator);
-    }
-
-    [Theory]
-    [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeServiceType_ShouldThrowInvalidOperationException(
+    public void AddDecorator_WithDecoratorTypeServiceTypeAndValidLifetimes_ShouldApplyDecorator(
         ServiceLifetime serviceLifetime,
         ServiceLifetime? decoratorLifetime
     )
@@ -142,37 +74,6 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
         var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), typeof(AuditService), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
             typeof(IAuditService),
-            "service-key",
-            typeof(AuditServiceDecorator),
-            decoratorLifetime
-        );
-
-        // Act
-        serviceCollection.Add(serviceDescriptor);
-        var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
-
-        // Assert
-        Assert.Throws<InvalidOperationException>(addDecorator);
-    }
-
-    [Theory]
-    [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeKeyedServiceFactoryAndValidLifetimes_ShouldApplyDecorator(
-        ServiceLifetime serviceLifetime,
-        ServiceLifetime? decoratorLifetime
-    )
-    {
-        // Arrange
-        var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            (_, _) => new AuditService(),
-            serviceLifetime
-        );
-        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
             typeof(AuditServiceDecorator),
             decoratorLifetime
         );
@@ -183,7 +84,7 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
 
         // Assert
         var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        var service = serviceProvider.GetRequiredKeyedService<IAuditService>("service-key");
+        var service = serviceProvider.GetRequiredService<IAuditService>();
         Assert.Collection(
             service.GetInstanceData(),
             instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
@@ -192,60 +93,17 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
     }
 
     [Theory]
-    [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeKeyedServiceFactory_ShouldUseOriginalServiceKey(
-        ServiceLifetime serviceLifetime,
-        ServiceLifetime? decoratorLifetime
-    )
-    {
-        // Arrange
-        var concreteServiceKey = default(object?);
-        var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            (_, serviceKey) =>
-            {
-                concreteServiceKey = serviceKey;
-                return new AuditService();
-            },
-            serviceLifetime
-        );
-        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            typeof(AuditServiceDecorator),
-            decoratorLifetime
-        );
-
-        // Act
-        serviceCollection.Add(serviceDescriptor);
-        serviceCollection.AddDecorator(decoratorServiceDescriptor);
-
-        // Assert
-        var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
-        _ = serviceProvider.GetRequiredKeyedService<IAuditService>("service-key");
-        Assert.Equal("service-key", concreteServiceKey);
-    }
-
-    [Theory]
     [MemberData(nameof(InvalidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeKeyedServiceFactoryAndInvalidLifetimes_ShouldThrowInvalidOperationException(
+    public void AddDecorator_WithDecoratorTypeServiceTypeAndInvalidLifetimes_ShouldThrowInvalidOperationException(
         ServiceLifetime serviceLifetime,
         ServiceLifetime decoratorLifetime
     )
     {
         // Arrange
         var serviceCollection = new ServiceCollection();
-        var serviceDescriptor = new ServiceDescriptor(
-            typeof(IAuditService),
-            "service-key",
-            (_, _) => new AuditService(),
-            serviceLifetime
-        );
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), typeof(AuditService), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
             typeof(IAuditService),
-            "service-key",
             typeof(AuditServiceDecorator),
             decoratorLifetime
         );
@@ -260,7 +118,36 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
 
     [Theory]
     [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
-    public void AddDecorator_WithKeyedDecoratorTypeServiceFactory_ShouldThrowInvalidOperationException(
+    public void AddDecorator_WithDecoratorTypeKeyedServiceType_ShouldThrowInvalidOperationException(
+        ServiceLifetime serviceLifetime,
+        ServiceLifetime? decoratorLifetime
+    )
+    {
+        // Arrange
+        var serviceCollection = new ServiceCollection();
+        var serviceDescriptor = new ServiceDescriptor(
+            typeof(IAuditService),
+            "service-key",
+            typeof(AuditService),
+            serviceLifetime
+        );
+        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
+            typeof(IAuditService),
+            typeof(AuditServiceDecorator),
+            decoratorLifetime
+        );
+
+        // Act
+        serviceCollection.Add(serviceDescriptor);
+        var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(addDecorator);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
+    public void AddDecorator_WithDecoratorTypeServiceFactoryAndValidLifetimes_ShouldApplyDecorator(
         ServiceLifetime serviceLifetime,
         ServiceLifetime? decoratorLifetime
     )
@@ -270,7 +157,65 @@ public class KeyedTypeDecoratorTests : DecoratorTestBase
         var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), _ => new AuditService(), serviceLifetime);
         var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
             typeof(IAuditService),
+            typeof(AuditServiceDecorator),
+            decoratorLifetime
+        );
+
+        // Act
+        serviceCollection.Add(serviceDescriptor);
+        serviceCollection.AddDecorator(decoratorServiceDescriptor);
+
+        // Assert
+        var serviceProvider = ServiceProviderFactory.CreateServiceProvider(serviceCollection);
+        var service = serviceProvider.GetRequiredService<IAuditService>();
+        Assert.Collection(
+            service.GetInstanceData(),
+            instance => Assert.Equal(typeof(AuditServiceDecorator), instance.InstanceType),
+            instance => Assert.Equal(typeof(AuditService), instance.InstanceType)
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidServiceDecoratorLifetimePairs))]
+    public void AddDecorator_WithDecoratorTypeServiceFactoryAndInvalidLifetimes_ShouldThrowInvalidOperationException(
+        ServiceLifetime serviceLifetime,
+        ServiceLifetime decoratorLifetime
+    )
+    {
+        // Arrange
+        var serviceCollection = new ServiceCollection();
+        var serviceDescriptor = new ServiceDescriptor(typeof(IAuditService), _ => new AuditService(), serviceLifetime);
+        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
+            typeof(IAuditService),
+            typeof(AuditServiceDecorator),
+            decoratorLifetime
+        );
+
+        // Act
+        serviceCollection.Add(serviceDescriptor);
+        var addDecorator = () => serviceCollection.AddDecorator(decoratorServiceDescriptor);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(addDecorator);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidServiceDecoratorLifetimePairs))]
+    public void AddDecorator_WithDecoratorTypeKeyedServiceFactory_ShouldThrowInvalidOperationException(
+        ServiceLifetime serviceLifetime,
+        ServiceLifetime? decoratorLifetime
+    )
+    {
+        // Arrange
+        var serviceCollection = new ServiceCollection();
+        var serviceDescriptor = new ServiceDescriptor(
+            typeof(IAuditService),
             "service-key",
+            (_, _) => new AuditService(),
+            serviceLifetime
+        );
+        var decoratorServiceDescriptor = new DecoratorServiceDescriptor(
+            typeof(IAuditService),
             typeof(AuditServiceDecorator),
             decoratorLifetime
         );

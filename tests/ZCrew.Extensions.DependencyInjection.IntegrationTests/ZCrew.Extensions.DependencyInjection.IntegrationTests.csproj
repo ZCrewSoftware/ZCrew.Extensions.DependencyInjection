@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\..\fixtures\Fixtures.SmallProject\Fixtures.SmallProject.csproj" />
+    <ProjectReference Include="../../fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
   </ItemGroup>
 </Project>

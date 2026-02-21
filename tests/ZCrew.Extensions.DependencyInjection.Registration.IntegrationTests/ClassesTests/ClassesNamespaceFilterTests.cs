@@ -2,17 +2,16 @@ using Fixtures.SmallProject.Application.Services;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Notifications;
 using Fixtures.SmallProject.Infrastructure.Persistence;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Registration.TypesTests;
+namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.ClassesTests;
 
-public class TypesNamespaceFilterTests
+public class ClassesNamespaceFilterTests
 {
     [Fact]
     public void InNamespace_WithExactMatch_ShouldFilterToNamespace()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
             .AsSelf();
@@ -22,9 +21,6 @@ public class TypesNamespaceFilterTests
         Assert.Contains(typeof(CustomerService), registeredTypes);
         Assert.Contains(typeof(OrderService), registeredTypes);
         Assert.Contains(typeof(ProductService), registeredTypes);
-        Assert.Contains(typeof(ICustomerService), registeredTypes);
-        Assert.Contains(typeof(IOrderService), registeredTypes);
-        Assert.Contains(typeof(IProductService), registeredTypes);
         Assert.DoesNotContain(typeof(PayPalPaymentGateway), registeredTypes);
         Assert.DoesNotContain(typeof(SqlCustomerRepository), registeredTypes);
     }
@@ -33,7 +29,7 @@ public class TypesNamespaceFilterTests
     public void InNamespace_WithSubnamespaces_ShouldIncludeSubnamespaces()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
             .AsSelf();
@@ -50,7 +46,7 @@ public class TypesNamespaceFilterTests
     public void InNamespace_WithoutSubnamespaces_ShouldExcludeSubnamespaces()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Infrastructure")
             .AsSelf();
@@ -63,7 +59,7 @@ public class TypesNamespaceFilterTests
     public void InSameNamespaceAs_WithType_ShouldFilterToSameNamespace()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs(typeof(CustomerService))
             .AsSelf();
@@ -72,7 +68,6 @@ public class TypesNamespaceFilterTests
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
         Assert.Contains(typeof(CustomerService), registeredTypes);
         Assert.Contains(typeof(OrderService), registeredTypes);
-        Assert.Contains(typeof(ICustomerService), registeredTypes);
         Assert.DoesNotContain(typeof(SqlCustomerRepository), registeredTypes);
     }
 
@@ -80,7 +75,7 @@ public class TypesNamespaceFilterTests
     public void InSameNamespaceAs_WithGeneric_ShouldFilterToSameNamespace()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs<CustomerService>()
             .AsSelf();
@@ -89,7 +84,6 @@ public class TypesNamespaceFilterTests
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
         Assert.Contains(typeof(CustomerService), registeredTypes);
         Assert.Contains(typeof(OrderService), registeredTypes);
-        Assert.Contains(typeof(ICustomerService), registeredTypes);
         Assert.DoesNotContain(typeof(SqlCustomerRepository), registeredTypes);
     }
 
@@ -97,7 +91,7 @@ public class TypesNamespaceFilterTests
     public void InSameNamespaceAs_WithSubnamespaces_ShouldIncludeSubnamespaces()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs<CustomerService>(includeSubnamespaces: true)
             .AsSelf();
@@ -112,7 +106,7 @@ public class TypesNamespaceFilterTests
     public void InSameNamespaceAs_WithTypeAndSubnamespaces_ShouldIncludeSubnamespaces()
     {
         // Act
-        var result = Types
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs(typeof(PayPalPaymentGateway), includeSubnamespaces: true)
             .AsSelf();
@@ -127,8 +121,8 @@ public class TypesNamespaceFilterTests
     [Fact]
     public void InSameNamespaceAs_AfterWhere_WithGenericAndSubnamespaces_ShouldFilterCorrectly()
     {
-        // Act
-        var result = Types
+        // Act - .Where() produces a TypeFilter, ensuring TypeFilter.InSameNamespaceAs<T>(bool) is invoked
+        var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .Where(t => !t.Name.StartsWith("Stripe"))
             .InSameNamespaceAs<PayPalPaymentGateway>(includeSubnamespaces: true)

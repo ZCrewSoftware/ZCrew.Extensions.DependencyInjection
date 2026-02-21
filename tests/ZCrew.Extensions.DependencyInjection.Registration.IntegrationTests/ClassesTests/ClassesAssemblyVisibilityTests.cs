@@ -1,8 +1,7 @@
 using Fixtures.SmallProject.Application.Services;
 using Fixtures.SmallProject.Domain.Services;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.Registration.ClassesTests;
+namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.ClassesTests;
 
 public class ClassesAssemblyVisibilityTests
 {
