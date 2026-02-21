@@ -139,7 +139,7 @@ public static class TypeExtensions
         public IEnumerable<Type> GetTopLevelInterfaces()
         {
             var interfaces = type.GetInterfaces();
-            var topLevel = new List<Type>(interfaces);
+            var topLevel = new HashSet<Type>(interfaces);
 
             foreach (var @interface in interfaces)
             {

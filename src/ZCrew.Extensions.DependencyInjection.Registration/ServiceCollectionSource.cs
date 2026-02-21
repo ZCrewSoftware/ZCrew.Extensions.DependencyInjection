@@ -15,5 +15,6 @@ public sealed class ServiceCollectionSource : ServiceCollection, IServiceSource
         {
             collection.Add(descriptor);
         }
+        MakeReadOnly();
     }
 }
