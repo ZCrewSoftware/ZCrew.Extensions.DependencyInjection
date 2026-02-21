@@ -1,3 +1,4 @@
+using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
@@ -14,15 +15,15 @@ public class ServiceDescriptorExtensionsTests
     {
         // Arrange
         var serviceKey = new object();
-        var descriptor = new ServiceDescriptor(typeof(IService), typeof(ConcreteService), lifetime);
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), lifetime);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
-        Assert.Equal(typeof(ConcreteService), result.KeyedImplementationType);
+        Assert.Equal(typeof(CustomerService), result.KeyedImplementationType);
         Assert.Equal(lifetime, result.Lifetime);
     }
 
@@ -36,14 +37,14 @@ public class ServiceDescriptorExtensionsTests
     {
         // Arrange
         var serviceKey = new object();
-        var instance = new ConcreteService();
-        var descriptor = new ServiceDescriptor(typeof(IService), _ => instance, lifetime);
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), _ => instance, lifetime);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
         Assert.NotNull(result.KeyedImplementationFactory);
         Assert.Equal(lifetime, result.Lifetime);
@@ -54,8 +55,8 @@ public class ServiceDescriptorExtensionsTests
     {
         // Arrange
         var serviceKey = new object();
-        var instance = new ConcreteService();
-        var descriptor = new ServiceDescriptor(typeof(IService), _ => instance, ServiceLifetime.Singleton);
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), _ => instance, ServiceLifetime.Singleton);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
@@ -70,14 +71,14 @@ public class ServiceDescriptorExtensionsTests
     {
         // Arrange
         var serviceKey = new object();
-        var instance = new ConcreteService();
-        var descriptor = new ServiceDescriptor(typeof(IService), instance);
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), instance);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
         Assert.Same(instance, result.KeyedImplementationInstance);
     }
@@ -94,9 +95,9 @@ public class ServiceDescriptorExtensionsTests
         var serviceKey = new object();
         var originalKey = "original-key";
         var descriptor = new ServiceDescriptor(
-            typeof(IService),
+            typeof(ICustomerService),
             originalKey,
-            typeof(ConcreteService),
+            typeof(CustomerService),
             lifetime
         );
 
@@ -104,9 +105,9 @@ public class ServiceDescriptorExtensionsTests
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
-        Assert.Equal(typeof(ConcreteService), result.KeyedImplementationType);
+        Assert.Equal(typeof(CustomerService), result.KeyedImplementationType);
         Assert.Equal(lifetime, result.Lifetime);
     }
 
@@ -121,9 +122,9 @@ public class ServiceDescriptorExtensionsTests
         // Arrange
         var serviceKey = new object();
         var originalKey = "original-key";
-        var instance = new ConcreteService();
+        var instance = new CustomerService();
         var descriptor = new ServiceDescriptor(
-            typeof(IService),
+            typeof(ICustomerService),
             originalKey,
             (_, _) => instance,
             lifetime
@@ -133,7 +134,7 @@ public class ServiceDescriptorExtensionsTests
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
         Assert.NotNull(result.KeyedImplementationFactory);
         Assert.Equal(lifetime, result.Lifetime);
@@ -146,9 +147,9 @@ public class ServiceDescriptorExtensionsTests
         var serviceKey = new object();
         var originalKey = "original-key";
         object? capturedKey = null;
-        var instance = new ConcreteService();
+        var instance = new CustomerService();
         var descriptor = new ServiceDescriptor(
-            typeof(IService),
+            typeof(ICustomerService),
             originalKey,
             (_, key) =>
             {
@@ -173,19 +174,207 @@ public class ServiceDescriptorExtensionsTests
         // Arrange
         var serviceKey = new object();
         var originalKey = "original-key";
-        var instance = new ConcreteService();
-        var descriptor = new ServiceDescriptor(typeof(IService), originalKey, instance);
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), originalKey, instance);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
 
         // Assert
-        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
         Assert.Equal(serviceKey, result.ServiceKey);
         Assert.Same(instance, result.KeyedImplementationInstance);
     }
 
-    private interface IService;
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationType_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton);
 
-    private class ConcreteService : IService;
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
+        Assert.Equal(typeof(CustomerService), result.ImplementationType);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationFactory_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), _ => instance, ServiceLifetime.Singleton);
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
+        Assert.NotNull(result.ImplementationFactory);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Fact]
+    public void WithLifetime_WhenSourceHasImplementationInstance_AndTargetIsSingleton_ShouldReturnSameDescriptor()
+    {
+        // Arrange
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), instance);
+
+        // Act
+        var result = descriptor.WithLifetime(ServiceLifetime.Singleton);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationInstance_AndTargetIsNotSingleton_ShouldThrow(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), new CustomerService());
+
+        // Act
+        var act = () => descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenIgnoringAndSourceHasImplementationInstance_ShouldReturnSameDescriptor(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), new CustomerService());
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime, ignoreSingletonImplementations: true);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationType_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var serviceKey = "my-key";
+        var descriptor = new ServiceDescriptor(
+            typeof(ICustomerService),
+            serviceKey,
+            typeof(CustomerService),
+            ServiceLifetime.Singleton
+        );
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
+        Assert.Equal(serviceKey, result.ServiceKey);
+        Assert.Equal(typeof(CustomerService), result.KeyedImplementationType);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationFactory_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var serviceKey = "my-key";
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(
+            typeof(ICustomerService),
+            serviceKey,
+            (_, _) => instance,
+            ServiceLifetime.Singleton
+        );
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(ICustomerService), result.ServiceType);
+        Assert.Equal(serviceKey, result.ServiceKey);
+        Assert.NotNull(result.KeyedImplementationFactory);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Fact]
+    public void WithLifetime_WhenSourceHasKeyedImplementationInstance_AndTargetIsSingleton_ShouldReturnSameDescriptor()
+    {
+        // Arrange
+        var instance = new CustomerService();
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), "my-key", instance);
+
+        // Act
+        var result = descriptor.WithLifetime(ServiceLifetime.Singleton);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationInstance_AndTargetIsNotSingleton_ShouldThrow(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), "my-key", new CustomerService());
+
+        // Act
+        var act = () => descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenIgnoringAndSourceHasKeyedImplementationInstance_ShouldReturnSameDescriptor(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), "my-key", new CustomerService());
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime, ignoreSingletonImplementations: true);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
 }

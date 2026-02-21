@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ZCrew.Extensions.DependencyInjection.IntegrationTests;
+namespace ZCrew.Extensions.DependencyInjection.IntegrationTests.DecoratorTests;
 
 public abstract class DecoratorTestBase
 {

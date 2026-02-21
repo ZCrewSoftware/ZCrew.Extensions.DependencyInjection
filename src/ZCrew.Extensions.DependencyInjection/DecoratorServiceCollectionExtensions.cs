@@ -6,8 +6,7 @@ public static partial class DecoratorServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        internal void AddDecorator(DecoratorServiceDescriptor decoratorServiceDescriptor
-        )
+        internal void AddDecorator(DecoratorServiceDescriptor decoratorServiceDescriptor)
         {
             if (!services.TryAddDecorator(decoratorServiceDescriptor))
             {
@@ -15,8 +14,7 @@ public static partial class DecoratorServiceCollectionExtensions
             }
         }
 
-        internal bool TryAddDecorator(DecoratorServiceDescriptor decoratorServiceDescriptor
-        )
+        internal bool TryAddDecorator(DecoratorServiceDescriptor decoratorServiceDescriptor)
         {
             var serviceKey = decoratorServiceDescriptor.ServiceKey;
             var serviceType = decoratorServiceDescriptor.ServiceType;

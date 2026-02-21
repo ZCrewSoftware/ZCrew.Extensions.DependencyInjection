@@ -7,5 +7,8 @@
     <Compile Update="DecoratorServiceCollectionExtensions.*.cs">
       <DependentUpon>DecoratorServiceCollectionExtensions.cs</DependentUpon>
     </Compile>
+    <Compile Update="ServiceCollectionExtensions.Lifetime.cs">
+      <DependentUpon>ServiceCollectionExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

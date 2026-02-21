@@ -3,6 +3,7 @@
     <File Path="docs/1-introduction.md" />
     <File Path="docs/2-getting-started.md" />
     <File Path="docs/3-decorators.md" />
+    <File Path="docs/4-registration.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/samples/DecoratorEmailSample/">
@@ -10,10 +11,16 @@
     <File Path="samples/DecoratorEmailSample/README.md" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
     <Project Path="src/ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.IntegrationTests/ZCrew.Extensions.DependencyInjection.IntegrationTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests/ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.csproj" />
+    <Project Path="tests/ZCrew.Extensions.DependencyInjection.Registration.UnitTests/ZCrew.Extensions.DependencyInjection.Registration.UnitTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.UnitTests/ZCrew.Extensions.DependencyInjection.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/fixtures/">
+    <Project Path="fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
   </Folder>
 </Solution>

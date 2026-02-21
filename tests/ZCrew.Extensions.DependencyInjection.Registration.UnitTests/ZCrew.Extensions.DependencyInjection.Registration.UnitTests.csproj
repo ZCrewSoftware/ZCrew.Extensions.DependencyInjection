@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../../fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
+    <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
   </ItemGroup>
 </Project>
