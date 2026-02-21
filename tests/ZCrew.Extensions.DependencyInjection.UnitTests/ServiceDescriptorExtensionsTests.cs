@@ -185,6 +185,198 @@ public class ServiceDescriptorExtensionsTests
         Assert.Same(instance, result.KeyedImplementationInstance);
     }
 
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationType_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(IService), typeof(ConcreteService), ServiceLifetime.Singleton);
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(typeof(ConcreteService), result.ImplementationType);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationFactory_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var instance = new ConcreteService();
+        var descriptor = new ServiceDescriptor(typeof(IService), _ => instance, ServiceLifetime.Singleton);
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.NotNull(result.ImplementationFactory);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Fact]
+    public void WithLifetime_WhenSourceHasImplementationInstance_AndTargetIsSingleton_ShouldReturnSameDescriptor()
+    {
+        // Arrange
+        var instance = new ConcreteService();
+        var descriptor = new ServiceDescriptor(typeof(IService), instance);
+
+        // Act
+        var result = descriptor.WithLifetime(ServiceLifetime.Singleton);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasImplementationInstance_AndTargetIsNotSingleton_ShouldThrow(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(IService), new ConcreteService());
+
+        // Act
+        var act = () => descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenIgnoringAndSourceHasImplementationInstance_ShouldReturnSameDescriptor(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(IService), new ConcreteService());
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime, ignoreSingletonImplementations: true);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationType_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var serviceKey = "my-key";
+        var descriptor = new ServiceDescriptor(
+            typeof(IService),
+            serviceKey,
+            typeof(ConcreteService),
+            ServiceLifetime.Singleton
+        );
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(serviceKey, result.ServiceKey);
+        Assert.Equal(typeof(ConcreteService), result.KeyedImplementationType);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Singleton)]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationFactory_ShouldReturnDescriptorWithNewLifetime(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var serviceKey = "my-key";
+        var instance = new ConcreteService();
+        var descriptor = new ServiceDescriptor(
+            typeof(IService),
+            serviceKey,
+            (_, _) => instance,
+            ServiceLifetime.Singleton
+        );
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Equal(typeof(IService), result.ServiceType);
+        Assert.Equal(serviceKey, result.ServiceKey);
+        Assert.NotNull(result.KeyedImplementationFactory);
+        Assert.Equal(lifetime, result.Lifetime);
+    }
+
+    [Fact]
+    public void WithLifetime_WhenSourceHasKeyedImplementationInstance_AndTargetIsSingleton_ShouldReturnSameDescriptor()
+    {
+        // Arrange
+        var instance = new ConcreteService();
+        var descriptor = new ServiceDescriptor(typeof(IService), "my-key", instance);
+
+        // Act
+        var result = descriptor.WithLifetime(ServiceLifetime.Singleton);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenSourceHasKeyedImplementationInstance_AndTargetIsNotSingleton_ShouldThrow(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(IService), "my-key", new ConcreteService());
+
+        // Act
+        var act = () => descriptor.WithLifetime(lifetime);
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(act);
+    }
+
+    [Theory]
+    [InlineData(ServiceLifetime.Scoped)]
+    [InlineData(ServiceLifetime.Transient)]
+    public void WithLifetime_WhenIgnoringAndSourceHasKeyedImplementationInstance_ShouldReturnSameDescriptor(
+        ServiceLifetime lifetime
+    )
+    {
+        // Arrange
+        var descriptor = new ServiceDescriptor(typeof(IService), "my-key", new ConcreteService());
+
+        // Act
+        var result = descriptor.WithLifetime(lifetime, ignoreSingletonImplementations: true);
+
+        // Assert
+        Assert.Same(descriptor, result);
+    }
+
     private interface IService;
 
     private class ConcreteService : IService;
