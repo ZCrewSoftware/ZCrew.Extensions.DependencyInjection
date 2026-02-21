@@ -22,7 +22,7 @@ public class TypeFilter : ServiceSource, ITypeFilter
 
     public IServiceSelector AllTypes()
     {
-        return Where(_ => true);
+        return new ServiceSelector(this.types, this.baseTypes);
     }
 
     public IServiceSelector InNamespace(string @namespace)
@@ -57,7 +57,7 @@ public class TypeFilter : ServiceSource, ITypeFilter
 
     public ITypeFilter Where(Func<Type, bool> filter)
     {
-        return new TypeFilter(this.types.Where(filter));
+        return new TypeFilter(this.types.Where(filter), this.baseTypes);
     }
 
     public ITypeFilter BasedOn<T>()

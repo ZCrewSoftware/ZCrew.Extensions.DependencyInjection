@@ -43,7 +43,6 @@ public class LazyServiceCollection : IServiceCollection
 
     public void Add(ServiceDescriptor item)
     {
-
         throw ReadonlyException();
     }
 

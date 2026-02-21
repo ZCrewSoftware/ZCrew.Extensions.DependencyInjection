@@ -179,11 +179,11 @@ public static class ServiceDescriptorExtensions
 
     private static InvalidOperationException ToKeyedServiceException(ServiceDescriptor serviceDescriptor)
     {
-        throw new InvalidOperationException($"Failed to create keyed service descriptor for: {serviceDescriptor}");
+        return new InvalidOperationException($"Failed to create keyed service descriptor for: {serviceDescriptor}");
     }
 
     private static InvalidOperationException ServiceDescriptorLifetimeException(ServiceDescriptor serviceDescriptor, ServiceLifetime lifetime)
     {
-        throw new InvalidOperationException($"Failed to change service descriptor lifetime to {lifetime} for: {serviceDescriptor}");
+        return new InvalidOperationException($"Failed to change service descriptor lifetime to {lifetime} for: {serviceDescriptor}");
     }
 }

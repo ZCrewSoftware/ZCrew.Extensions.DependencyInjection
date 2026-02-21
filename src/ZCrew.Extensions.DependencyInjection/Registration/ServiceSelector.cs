@@ -43,7 +43,11 @@ public class ServiceSelector : ServiceSource, IServiceSelector
 
     public IServiceSource AsFirstInterface()
     {
-        return SelectFromType(type => [type.GetInterfaces().FirstOrDefault() ?? type]);
+        return SelectFromType(type =>
+        {
+            var firstInterface = type.GetInterfaces().FirstOrDefault();
+            return firstInterface != null ? [firstInterface] : [];
+        });
     }
 
     public IServiceSource As(Func<Type, Type[]> typeSelector)
@@ -132,7 +136,7 @@ public class ServiceSelector : ServiceSource, IServiceSelector
         {
             foreach (var interfaceType in potentialBasesArray)
             {
-                if (topLevelInterface.IsAssignableFrom(interfaceType))
+                if (interfaceType.IsAssignableFrom(topLevelInterface))
                 {
                     matches.Add(topLevelInterface);
                     break;

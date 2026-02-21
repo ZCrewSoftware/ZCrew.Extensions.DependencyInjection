@@ -7,29 +7,25 @@ public static class Types
 {
     public static ITypeSelector From(IEnumerable<Type> types)
     {
+        ArgumentNullException.ThrowIfNull(types);
         return new EnumerableTypeSelector(types);
     }
 
     public static ITypeSelector From(params Type[] types)
     {
+        ArgumentNullException.ThrowIfNull(types);
         return new EnumerableTypeSelector(types);
     }
 
     public static IAssemblyTypeSelector FromAssembly(Assembly assembly)
     {
-        if (assembly == null)
-        {
-            throw new ArgumentNullException(nameof(assembly));
-        }
+        ArgumentNullException.ThrowIfNull(assembly);
         return new AssemblyTypeSelector(assembly);
     }
 
     public static IAssemblyTypeSelector FromAssemblyContaining(Type type)
     {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
         return new AssemblyTypeSelector(type.Assembly);
     }
 

@@ -59,7 +59,7 @@ public static class ServiceCollectionExtensions
 
         public IServiceCollection AddTransient(IEnumerable<ServiceDescriptor> descriptors)
         {
-            return services.Add(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Scoped)));
+            return services.Add(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Transient)));
         }
 
         public IServiceCollection TryAddSingleton(IEnumerable<ServiceDescriptor> descriptors)
@@ -76,7 +76,7 @@ public static class ServiceCollectionExtensions
 
         public IServiceCollection TryAddTransient(IEnumerable<ServiceDescriptor> descriptors)
         {
-            services.TryAdd(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Scoped)));
+            services.TryAdd(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Transient)));
             return services;
         }
 
@@ -105,7 +105,7 @@ public static class ServiceCollectionExtensions
 
         public IServiceCollection ReplaceTransient(IEnumerable<ServiceDescriptor> descriptors)
         {
-            return services.Replace(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Scoped)));
+            return services.Replace(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Transient)));
         }
     }
 }
