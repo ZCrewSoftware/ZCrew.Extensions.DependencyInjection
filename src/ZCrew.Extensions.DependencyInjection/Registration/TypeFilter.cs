@@ -105,6 +105,10 @@ public sealed class TypeFilter : ServiceSource, ITypeFilter
     /// <inheritdoc />
     protected override IEnumerable<ServiceDescriptor> SelectServices()
     {
-        return this.types.Select(type => new ServiceDescriptor(type, type, ServiceLifetime.Singleton));
+        // Types have not yet been filtered by base types since new base types may be added
+        // At this point the filtering should be applied since the service descriptors are being resolved
+        return this.types
+            .Where(type => this.baseTypes.Any(baseType => baseType.IsAssignableFrom(type)))
+            .Select(type => new ServiceDescriptor(type, type, ServiceLifetime.Singleton));
     }
 }

@@ -172,6 +172,26 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
                     matches.Add(topLevelInterface);
                     break;
                 }
+
+                if (!interfaceType.IsGenericTypeDefinition)
+                {
+                    continue;
+                }
+
+                if (topLevelInterface.IsGenericType
+                    && topLevelInterface.GetGenericTypeDefinition() == interfaceType)
+                {
+                    matches.Add(topLevelInterface);
+                    break;
+                }
+
+                if (topLevelInterface.GetInterfaces().Any(i =>
+                        i.IsGenericType
+                        && i.GetGenericTypeDefinition() == interfaceType))
+                {
+                    matches.Add(topLevelInterface);
+                    break;
+                }
             }
         }
 

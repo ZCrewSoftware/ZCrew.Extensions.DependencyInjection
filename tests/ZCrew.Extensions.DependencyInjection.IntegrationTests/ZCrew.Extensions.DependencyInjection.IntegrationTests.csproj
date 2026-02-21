@@ -2,8 +2,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\fixtures\Fixtures.SmallProject\Fixtures.SmallProject.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Registration\Classes\" />
-    <Folder Include="Registration\Types\" />
-  </ItemGroup>
 </Project>

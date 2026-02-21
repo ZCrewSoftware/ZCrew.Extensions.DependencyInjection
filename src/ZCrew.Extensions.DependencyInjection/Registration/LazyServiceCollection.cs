@@ -7,7 +7,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     A read-only <see cref="IServiceCollection"/> that defers evaluation of its service descriptors until first
 ///     access. Mutating operations throw <see cref="InvalidOperationException"/>.
 /// </summary>
-public sealed class LazyServiceCollection : IServiceCollection
+internal sealed class LazyServiceCollection : IServiceCollection
 {
     private readonly Lazy<List<ServiceDescriptor>> descriptors;
 
