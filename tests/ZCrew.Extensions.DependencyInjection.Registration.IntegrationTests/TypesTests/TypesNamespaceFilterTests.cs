@@ -79,10 +79,7 @@ public class TypesNamespaceFilterTests
     public void InSameNamespaceAs_WithGeneric_ShouldFilterToSameNamespace()
     {
         // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .InSameNamespaceAs<CustomerService>()
-            .AsSelf();
+        var result = Types.FromAssemblyContaining<CustomerService>().InSameNamespaceAs<CustomerService>().AsSelf();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

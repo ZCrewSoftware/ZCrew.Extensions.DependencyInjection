@@ -14,12 +14,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(OrderService),
-                typeof(OrderValidator),
-                typeof(PayPalPaymentGateway)
-            )
+            .From(typeof(CustomerService), typeof(OrderService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .Where(t => t.Name.EndsWith("Service"))
             .AsSelf();
 
@@ -36,12 +31,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(OrderService),
-                typeof(ProductService),
-                typeof(OrderValidator)
-            )
+            .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(OrderValidator))
             .Where(t => t.Name.EndsWith("Service"))
             .Where(t => t.Name.StartsWith("Customer"))
             .AsSelf();
@@ -103,12 +93,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(Currency),
-                typeof(OrderStatus),
-                typeof(CustomerService),
-                typeof(ICustomerService)
-            )
+            .From(typeof(Currency), typeof(OrderStatus), typeof(CustomerService), typeof(ICustomerService))
             .Where(t => t.IsValueType)
             .AsSelf();
 
@@ -133,24 +118,13 @@ public class TypesWhereFilterTests
         ];
 
         // Act
-        var typesResult = Types
-            .From(types)
-            .Where(t => t is { IsClass: true, IsAbstract: false })
-            .AsSelf();
+        var typesResult = Types.From(types).Where(t => t is { IsClass: true, IsAbstract: false }).AsSelf();
 
-        var classesResult = Classes
-            .From(types)
-            .AsSelf();
+        var classesResult = Classes.From(types).AsSelf();
 
         // Assert
-        var typesRegistered = typesResult
-            .Select(d => d.ImplementationType!)
-            .OrderBy(t => t.Name)
-            .ToArray();
-        var classesRegistered = classesResult
-            .Select(d => d.ImplementationType!)
-            .OrderBy(t => t.Name)
-            .ToArray();
+        var typesRegistered = typesResult.Select(d => d.ImplementationType!).OrderBy(t => t.Name).ToArray();
+        var classesRegistered = classesResult.Select(d => d.ImplementationType!).OrderBy(t => t.Name).ToArray();
         Assert.Equal(classesRegistered, typesRegistered);
     }
 
@@ -159,12 +133,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(CachingCustomerService),
-                typeof(OrderService),
-                typeof(ProductService)
-            )
+            .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .BasedOn<ICustomerService>()
             .AsBase();
 
@@ -196,15 +165,11 @@ public class TypesWhereFilterTests
         Assert.Equal(2, descriptors.Length);
         Assert.Contains(
             descriptors,
-            d =>
-                d.ImplementationType == typeof(OrderValidator)
-                && d.ServiceType == typeof(IValidator<Order>)
+            d => d.ImplementationType == typeof(OrderValidator) && d.ServiceType == typeof(IValidator<Order>)
         );
         Assert.Contains(
             descriptors,
-            d =>
-                d.ImplementationType == typeof(CustomerValidator)
-                && d.ServiceType == typeof(IValidator<Customer>)
+            d => d.ImplementationType == typeof(CustomerValidator) && d.ServiceType == typeof(IValidator<Customer>)
         );
     }
 
@@ -213,12 +178,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(OrderService),
-                typeof(ProductService),
-                typeof(PayPalPaymentGateway)
-            )
+            .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(PayPalPaymentGateway))
             .BasedOn(typeof(ICustomerService), typeof(IOrderService))
             .AsBase();
 
@@ -235,12 +195,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(CachingCustomerService),
-                typeof(OrderService),
-                typeof(ProductService)
-            )
+            .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .Where(t => !t.Name.StartsWith("Caching"))
             .BasedOn<ICustomerService>()
             .AsBase();
@@ -274,11 +229,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(OrderService),
-                typeof(PayPalPaymentGateway)
-            )
+            .From(typeof(CustomerService), typeof(OrderService), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn<IOrderService>()
             .AsBase();
@@ -295,11 +246,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(CustomerService),
-                typeof(OrderValidator),
-                typeof(PayPalPaymentGateway)
-            )
+            .From(typeof(CustomerService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn(typeof(IValidator<>))
             .AsBase();
@@ -307,15 +254,11 @@ public class TypesWhereFilterTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(CustomerService)
-                && d.ServiceType == typeof(ICustomerService)
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(OrderValidator)
-                && d.ServiceType == typeof(IValidator<Order>)
+            d => d.ImplementationType == typeof(OrderValidator) && d.ServiceType == typeof(IValidator<Order>)
         );
         Assert.DoesNotContain(result, d => d.ImplementationType == typeof(PayPalPaymentGateway));
     }
@@ -324,9 +267,7 @@ public class TypesWhereFilterTests
     public void Where_WhenEnumeratedWithoutTerminalMethod_ShouldDefaultToSelfRegistration()
     {
         // Arrange
-        var filter = Types
-            .FromAssemblyContaining<CustomerService>()
-            .Where(t => t == typeof(CustomerService));
+        var filter = Types.FromAssemblyContaining<CustomerService>().Where(t => t == typeof(CustomerService));
 
         // Act
         var result = filter.AsServiceCollection();
@@ -342,9 +283,7 @@ public class TypesWhereFilterTests
     public void BasedOn_WhenEnumeratedWithoutTerminalMethod_ShouldDefaultToSelfRegistration()
     {
         // Arrange
-        var filter = Types
-            .From(typeof(CustomerService), typeof(OrderService))
-            .BasedOn<ICustomerService>();
+        var filter = Types.From(typeof(CustomerService), typeof(OrderService)).BasedOn<ICustomerService>();
 
         // Act
         var result = filter.AsServiceCollection();
@@ -361,11 +300,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(ICustomerService),
-                typeof(CustomerService),
-                typeof(OrderService)
-            )
+            .From(typeof(ICustomerService), typeof(CustomerService), typeof(OrderService))
             .BasedOn<ICustomerService>()
             .AsBase();
 
@@ -381,11 +316,7 @@ public class TypesWhereFilterTests
     {
         // Act
         var result = Types
-            .From(
-                typeof(RepositoryBase<Customer>),
-                typeof(SqlCustomerRepository),
-                typeof(CustomerService)
-            )
+            .From(typeof(RepositoryBase<Customer>), typeof(SqlCustomerRepository), typeof(CustomerService))
             .BasedOn<RepositoryBase<Customer>>()
             .AsBase();
 

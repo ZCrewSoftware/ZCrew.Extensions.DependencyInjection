@@ -59,11 +59,7 @@ public static class ServiceDescriptorExtensions
     {
         if (serviceDescriptor.ImplementationType != null)
         {
-            return new ServiceDescriptor(
-                serviceDescriptor.ServiceType,
-                serviceDescriptor.ImplementationType,
-                lifetime
-            );
+            return new ServiceDescriptor(serviceDescriptor.ServiceType, serviceDescriptor.ImplementationType, lifetime);
         }
 
         if (serviceDescriptor.ImplementationFactory != null)
@@ -207,8 +203,13 @@ public static class ServiceDescriptorExtensions
         return new InvalidOperationException($"Failed to create keyed service descriptor for: {serviceDescriptor}");
     }
 
-    private static InvalidOperationException ServiceDescriptorLifetimeException(ServiceDescriptor serviceDescriptor, ServiceLifetime lifetime)
+    private static InvalidOperationException ServiceDescriptorLifetimeException(
+        ServiceDescriptor serviceDescriptor,
+        ServiceLifetime lifetime
+    )
     {
-        return new InvalidOperationException($"Failed to change service descriptor lifetime to {lifetime} for: {serviceDescriptor}");
+        return new InvalidOperationException(
+            $"Failed to change service descriptor lifetime to {lifetime} for: {serviceDescriptor}"
+        );
     }
 }

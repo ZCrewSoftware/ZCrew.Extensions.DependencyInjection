@@ -187,7 +187,10 @@ public class ServiceSourceTests
         var source = new TestServiceSource([descriptor]);
 
         // Act
-        var act = () => { source.Remove(descriptor); };
+        var act = () =>
+        {
+            source.Remove(descriptor);
+        };
 
         // Assert
         Assert.Throws<InvalidOperationException>(act);
@@ -252,9 +255,7 @@ public class ServiceSourceTests
     public void SelectServices_WhenAccessedMultipleTimes_ShouldBeEvaluatedOnlyOnce()
     {
         // Arrange
-        var source = new TestServiceSource(
-            [ServiceDescriptor.Transient<IServiceProvider, ServiceProvider>()]
-        );
+        var source = new TestServiceSource([ServiceDescriptor.Transient<IServiceProvider, ServiceProvider>()]);
 
         // Act
         _ = source.Count;

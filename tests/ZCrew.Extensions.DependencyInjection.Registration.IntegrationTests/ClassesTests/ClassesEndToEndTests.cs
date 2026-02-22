@@ -24,15 +24,11 @@ public class ClassesEndToEndTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(SqlCustomerRepository)
-                && d.ServiceType == typeof(ICustomerRepository)
+            d => d.ImplementationType == typeof(SqlCustomerRepository) && d.ServiceType == typeof(ICustomerRepository)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(SqlOrderRepository)
-                && d.ServiceType == typeof(IOrderRepository)
+            d => d.ImplementationType == typeof(SqlOrderRepository) && d.ServiceType == typeof(IOrderRepository)
         );
     }
 
@@ -48,26 +44,17 @@ public class ClassesEndToEndTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(CustomerService)
-                && d.ServiceType == typeof(ICustomerService)
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(OrderService)
-                && d.ServiceType == typeof(IOrderService)
+            d => d.ImplementationType == typeof(OrderService) && d.ServiceType == typeof(IOrderService)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(ProductService)
-                && d.ServiceType == typeof(IProductService)
+            d => d.ImplementationType == typeof(ProductService) && d.ServiceType == typeof(IProductService)
         );
-        Assert.DoesNotContain(
-            result,
-            d => d.ImplementationType == typeof(LegacyOrderProcessor)
-        );
+        Assert.DoesNotContain(result, d => d.ImplementationType == typeof(LegacyOrderProcessor));
     }
 
     [Fact]
@@ -83,15 +70,11 @@ public class ClassesEndToEndTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(OrderValidator)
-                && d.ServiceType == typeof(IValidator<Order>)
+            d => d.ImplementationType == typeof(OrderValidator) && d.ServiceType == typeof(IValidator<Order>)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(CustomerValidator)
-                && d.ServiceType == typeof(IValidator<Customer>)
+            d => d.ImplementationType == typeof(CustomerValidator) && d.ServiceType == typeof(IValidator<Customer>)
         );
     }
 
@@ -107,15 +90,11 @@ public class ClassesEndToEndTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(PayPalPaymentGateway)
-                && d.ServiceType == typeof(IPaymentGateway)
+            d => d.ImplementationType == typeof(PayPalPaymentGateway) && d.ServiceType == typeof(IPaymentGateway)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(EmailNotificationSender)
-                && d.ServiceType == typeof(INotificationSender)
+            d => d.ImplementationType == typeof(EmailNotificationSender) && d.ServiceType == typeof(INotificationSender)
         );
         Assert.DoesNotContain(result, d => d.ServiceType == typeof(IDisposable));
     }

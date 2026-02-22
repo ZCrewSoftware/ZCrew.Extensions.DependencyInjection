@@ -28,9 +28,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     public IServiceSource AsAllNonSystemInterfaces()
     {
         return SelectFromType(type =>
-            type.GetInterfaces()
-                .Where(service => !service.IsInSameNamespaceAs<object>(
-                    includeSubnamespaces: true))
+            type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
         );
     }
 
@@ -38,8 +36,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     public IServiceSource AsDefaultInterfaces()
     {
         return SelectFromType(type =>
-            type.GetInterfaces()
-                .Where(service => type.Name.Contains(service.GetInterfaceName()))
+            type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
         );
     }
 
@@ -49,8 +46,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
         return SelectFromType(type =>
             type.GetInterfaces()
                 .Where(service => type.Name.Contains(service.GetInterfaceName()))
-                .Where(service => !service.IsInSameNamespaceAs<object>(
-                    includeSubnamespaces: true))
+                .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
         );
     }
 
@@ -122,8 +118,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
         return AsSelf();
     }
 
-    private ServiceCollectionSource SelectFromType(
-        Func<Type, IEnumerable<Type>> serviceSelector)
+    private ServiceCollectionSource SelectFromType(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         var descriptors = new LinkedList<ServiceDescriptor>();
         foreach (var type in this.types)
@@ -131,16 +126,14 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
             var services = serviceSelector(type);
             foreach (var service in services)
             {
-                var descriptor = new ServiceDescriptor(
-                    service, type, ServiceLifetime.Singleton);
+                var descriptor = new ServiceDescriptor(service, type, ServiceLifetime.Singleton);
                 descriptors.AddLast(descriptor);
             }
         }
         return new ServiceCollectionSource(descriptors);
     }
 
-    private ServiceCollectionSource SelectFromBase(
-        Func<Type, Type[], IEnumerable<Type>> serviceSelector)
+    private ServiceCollectionSource SelectFromBase(Func<Type, Type[], IEnumerable<Type>> serviceSelector)
     {
         var descriptors = new LinkedList<ServiceDescriptor>();
         foreach (var type in this.types)
@@ -149,8 +142,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
             var services = serviceSelector(type, assignableBaseTypes);
             foreach (var service in services)
             {
-                var descriptor = new ServiceDescriptor(
-                    service, type, ServiceLifetime.Singleton);
+                var descriptor = new ServiceDescriptor(service, type, ServiceLifetime.Singleton);
                 descriptors.AddLast(descriptor);
             }
         }
@@ -178,16 +170,17 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
                     continue;
                 }
 
-                if (topLevelInterface.IsGenericType
-                    && topLevelInterface.GetGenericTypeDefinition() == interfaceType)
+                if (topLevelInterface.IsGenericType && topLevelInterface.GetGenericTypeDefinition() == interfaceType)
                 {
                     matches.Add(topLevelInterface);
                     break;
                 }
 
-                if (topLevelInterface.GetInterfaces().Any(i =>
-                        i.IsGenericType
-                        && i.GetGenericTypeDefinition() == interfaceType))
+                if (
+                    topLevelInterface
+                        .GetInterfaces()
+                        .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType)
+                )
                 {
                     matches.Add(topLevelInterface);
                     break;
@@ -243,8 +236,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
                 continue;
             }
 
-            if (@interface.DeclaringType == null
-                && @interface.ContainsGenericParameters)
+            if (@interface.DeclaringType == null && @interface.ContainsGenericParameters)
             {
                 types.Add(genericInterface);
                 continue;
