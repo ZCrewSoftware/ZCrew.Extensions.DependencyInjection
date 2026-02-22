@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Castle.Windsor" />
+    <PackageReference Include="Scrutor" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
+    <ProjectReference Include="../../fixtures/Fixtures.LargeProject/Fixtures.LargeProject.csproj" />
+    <ProjectReference Include="../../fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
+  </ItemGroup>
+</Project>
