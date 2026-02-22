@@ -6,67 +6,67 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 // corresponding IServiceSelector method.
 public partial interface ITypeFilter
 {
-    IServiceSource IServiceSelector.AsAllInterfaces()
+    IKeyedServiceSelector IServiceSelector.AsAllInterfaces()
     {
         return AllTypes().AsAllInterfaces();
     }
 
-    IServiceSource IServiceSelector.AsAllNonSystemInterfaces()
+    IKeyedServiceSelector IServiceSelector.AsAllNonSystemInterfaces()
     {
         return AllTypes().AsAllNonSystemInterfaces();
     }
 
-    IServiceSource IServiceSelector.AsDefaultInterfaces()
+    IKeyedServiceSelector IServiceSelector.AsDefaultInterfaces()
     {
         return AllTypes().AsDefaultInterfaces();
     }
 
-    IServiceSource IServiceSelector.AsDefaultNonSystemInterfaces()
+    IKeyedServiceSelector IServiceSelector.AsDefaultNonSystemInterfaces()
     {
         return AllTypes().AsDefaultNonSystemInterfaces();
     }
 
-    IServiceSource IServiceSelector.AsFirstInterface()
+    IKeyedServiceSelector IServiceSelector.AsFirstInterface()
     {
         return AllTypes().AsFirstInterface();
     }
 
-    IServiceSource IServiceSelector.AsInterface()
+    IKeyedServiceSelector IServiceSelector.AsInterface()
     {
         return AllTypes().AsInterface();
     }
 
-    IServiceSource IServiceSelector.AsInterface<T>()
+    IKeyedServiceSelector IServiceSelector.AsInterface<T>()
     {
         return AllTypes().AsInterface<T>();
     }
 
-    IServiceSource IServiceSelector.AsInterface(Type interfaceType)
+    IKeyedServiceSelector IServiceSelector.AsInterface(Type interfaceType)
     {
         return AllTypes().AsInterface(interfaceType);
     }
 
-    IServiceSource IServiceSelector.AsInterfaces(params Type[] interfaceTypes)
+    IKeyedServiceSelector IServiceSelector.AsInterfaces(params Type[] interfaceTypes)
     {
         return AllTypes().AsInterfaces(interfaceTypes);
     }
 
-    IServiceSource IServiceSelector.As(Func<Type, Type[]> typeSelector)
+    IKeyedServiceSelector IServiceSelector.As(Func<Type, Type[]> typeSelector)
     {
         return AllTypes().As(typeSelector);
     }
 
-    IServiceSource IServiceSelector.As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector)
+    IKeyedServiceSelector IServiceSelector.As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector)
     {
         return AllTypes().As(typeWithBaseTypesSelector);
     }
 
-    IServiceSource IServiceSelector.AsSelf()
+    IKeyedServiceSelector IServiceSelector.AsSelf()
     {
         return AllTypes().AsSelf();
     }
 
-    IServiceSource IServiceSelector.AsBase()
+    IKeyedServiceSelector IServiceSelector.AsBase()
     {
         return AllTypes().AsBase();
     }

@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     A mutable <see cref="IServiceSource"/> backed by a concrete <see cref="ServiceCollection"/>. Used as the
 ///     terminal node produced by <see cref="ServiceSelector"/> methods.
 /// </summary>
-public sealed class ServiceCollectionSource : ServiceCollection, IServiceSource
+public class ServiceCollectionSource : ServiceCollection, IServiceSource
 {
     internal ServiceCollectionSource(IEnumerable<ServiceDescriptor> descriptors)
     {

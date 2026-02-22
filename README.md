@@ -122,6 +122,26 @@ Choose how implementation types map to service types:
 | `AsBase()`                       | The base types set via `BasedOn`                                                                    |
 | `As(type => ...)`                | Custom selection via delegate                                                                       |
 
+### Keyed services
+
+Optionally assign service keys after service selection using `Keyed`:
+
+```csharp
+services.Add(
+    Classes.FromAssemblyContaining<Startup>()
+        .BasedOn<IPaymentGateway>()
+        .AsInterface()
+        .Keyed()  // PayPalPaymentGateway → key "PayPal", StripePaymentGateway → key "Stripe"
+);
+```
+
+| Method                                      | Behavior                                                                   |
+|---------------------------------------------|----------------------------------------------------------------------------|
+| `Keyed()`                          | Auto-detect key by stripping the service name from the implementation name |
+| `Keyed(object?)`                   | Same key for all registrations (`null` = no service key)                   |
+| `Keyed(Func<Type, object?>)`       | Key per implementation type (`null` return = no service key)               |
+| `Keyed(Func<Type, Type, object?>)` | Key from both implementation and service type                              |
+
 ### Adding to `IServiceCollection`
 
 The result of the fluent chain is an `IServiceCollection`, so pass it directly to `services.Add()`:
@@ -148,3 +168,7 @@ See the [docs](docs) folder for detailed guides:
 - [Getting Started](docs/2-getting-started.md)
 - [Decorators](docs/3-decorators.md)
 - [Convention-Based Registration](docs/4-registration.md)
+- [Type Selectors](docs/5-type-selectors.md)
+- [Type Filters](docs/6-type-filters.md)
+- [Service Selectors](docs/7-service-selectors.md)
+- [Keyed Service Selectors](docs/8-keyed-service-selectors.md)

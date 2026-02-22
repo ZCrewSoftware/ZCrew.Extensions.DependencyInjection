@@ -19,13 +19,13 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource AsAllInterfaces()
+    public IKeyedServiceSelector AsAllInterfaces()
     {
         return SelectFromType(type => type.GetInterfaces());
     }
 
     /// <inheritdoc />
-    public IServiceSource AsAllNonSystemInterfaces()
+    public IKeyedServiceSelector AsAllNonSystemInterfaces()
     {
         return SelectFromType(type =>
             type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
@@ -33,7 +33,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource AsDefaultInterfaces()
+    public IKeyedServiceSelector AsDefaultInterfaces()
     {
         return SelectFromType(type =>
             type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
@@ -41,7 +41,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource AsDefaultNonSystemInterfaces()
+    public IKeyedServiceSelector AsDefaultNonSystemInterfaces()
     {
         return SelectFromType(type =>
             type.GetInterfaces()
@@ -51,7 +51,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource AsFirstInterface()
+    public IKeyedServiceSelector AsFirstInterface()
     {
         return SelectFromType(type =>
         {
@@ -61,53 +61,53 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource As(Func<Type, Type[]> typeSelector)
+    public IKeyedServiceSelector As(Func<Type, Type[]> typeSelector)
     {
         ArgumentNullException.ThrowIfNull(typeSelector);
         return SelectFromType(typeSelector);
     }
 
     /// <inheritdoc />
-    public IServiceSource AsSelf()
+    public IKeyedServiceSelector AsSelf()
     {
         return SelectFromType(type => [type]);
     }
 
     /// <inheritdoc />
-    public IServiceSource AsInterface()
+    public IKeyedServiceSelector AsInterface()
     {
         return SelectFromBase(GetDerivedTypes);
     }
 
     /// <inheritdoc />
-    public IServiceSource AsInterface<T>()
+    public IKeyedServiceSelector AsInterface<T>()
     {
         return SelectFromType(type => GetDerivedTypes(type, [typeof(T)]));
     }
 
     /// <inheritdoc />
-    public IServiceSource AsInterface(Type interfaceType)
+    public IKeyedServiceSelector AsInterface(Type interfaceType)
     {
         ArgumentNullException.ThrowIfNull(interfaceType);
         return SelectFromType(type => GetDerivedTypes(type, [interfaceType]));
     }
 
     /// <inheritdoc />
-    public IServiceSource AsInterfaces(params Type[] interfaceTypes)
+    public IKeyedServiceSelector AsInterfaces(params Type[] interfaceTypes)
     {
         ArgumentNullException.ThrowIfNull(interfaceTypes);
         return SelectFromType(type => GetDerivedTypes(type, interfaceTypes));
     }
 
     /// <inheritdoc />
-    public IServiceSource As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector)
+    public IKeyedServiceSelector As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector)
     {
         ArgumentNullException.ThrowIfNull(typeWithBaseTypesSelector);
         return SelectFromBase(typeWithBaseTypesSelector);
     }
 
     /// <inheritdoc />
-    public IServiceSource AsBase()
+    public IKeyedServiceSelector AsBase()
     {
         return SelectFromBase((_, basesTypes) => basesTypes);
     }
@@ -118,7 +118,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
         return AsSelf();
     }
 
-    private ServiceCollectionSource SelectFromType(Func<Type, IEnumerable<Type>> serviceSelector)
+    private KeyedServiceSelector SelectFromType(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         var descriptors = new LinkedList<ServiceDescriptor>();
         foreach (var type in this.types)
@@ -130,10 +130,10 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
                 descriptors.AddLast(descriptor);
             }
         }
-        return new ServiceCollectionSource(descriptors);
+        return new KeyedServiceSelector(descriptors);
     }
 
-    private ServiceCollectionSource SelectFromBase(Func<Type, Type[], IEnumerable<Type>> serviceSelector)
+    private KeyedServiceSelector SelectFromBase(Func<Type, Type[], IEnumerable<Type>> serviceSelector)
     {
         var descriptors = new LinkedList<ServiceDescriptor>();
         foreach (var type in this.types)
@@ -146,7 +146,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
                 descriptors.AddLast(descriptor);
             }
         }
-        return new ServiceCollectionSource(descriptors);
+        return new KeyedServiceSelector(descriptors);
     }
 
     private Type[] GetDerivedTypes(Type type, IEnumerable<Type> potentialBases)

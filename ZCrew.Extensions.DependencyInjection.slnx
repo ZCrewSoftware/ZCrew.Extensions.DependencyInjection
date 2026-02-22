@@ -10,6 +10,7 @@
     <File Path="docs/5-type-selectors.md" />
     <File Path="docs/6-type-filters.md" />
     <File Path="docs/7-service-selectors.md" />
+    <File Path="docs/8-keyed-service-selectors.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/samples/DecoratorEmailSample/">
