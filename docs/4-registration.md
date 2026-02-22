@@ -33,7 +33,7 @@ The API is a fluent chain with five stages:
 2. **Type selection** — Optionally control assembly visibility (`IncludeInternalTypes`, `IncludeAllTypes`)
 3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`)
 4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
-5. **Keyed service selection** — Optionally assign service keys via `WithServiceKey`
+5. **Keyed service selection** — Optionally assign service keys via `Keyed`
 
 The result is an `IServiceCollection` that you pass to `services.Add()`.
 
