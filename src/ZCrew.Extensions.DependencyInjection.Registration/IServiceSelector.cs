@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     the service selection stage of the registration fluent API, analogous to Castle Windsor's <c>WithService</c>
 ///     methods. Maintains an immutable chain: each select method returns a new instance.
 /// </summary>
-public interface IServiceSelector : IServiceSource
+public partial interface IServiceSelector : IKeyedServiceSelector
 {
     /// <summary>
     ///     Registers each type against all interfaces it implements.
@@ -18,7 +18,7 @@ public interface IServiceSelector : IServiceSource
     ///     // ICustomerRepository and IDisposable
     ///     </code>
     /// </example>
-    IServiceSource AsAllInterfaces();
+    IKeyedServiceSelector AsAllInterfaces();
 
     /// <summary>
     ///     Registers each type against all interfaces it implements, excluding interfaces in the <c>System</c>
@@ -32,7 +32,7 @@ public interface IServiceSelector : IServiceSource
     ///     // (IDisposable is in System and is excluded)
     ///     </code>
     /// </example>
-    IServiceSource AsAllNonSystemInterfaces();
+    IKeyedServiceSelector AsAllNonSystemInterfaces();
 
     /// <summary>
     ///     Registers each type against interfaces whose name matches the type name by convention.
@@ -46,7 +46,7 @@ public interface IServiceSelector : IServiceSource
     ///     // "ICustomerRepository", but not "Disposable")
     ///     </code>
     /// </example>
-    IServiceSource AsDefaultInterfaces();
+    IKeyedServiceSelector AsDefaultInterfaces();
 
     /// <summary>
     ///     Registers each type against convention-matching interfaces (see <see cref="AsDefaultInterfaces"/>),
@@ -57,7 +57,7 @@ public interface IServiceSelector : IServiceSource
     ///     Classes.From(types).AsDefaultNonSystemInterfaces()
     ///     </code>
     /// </example>
-    IServiceSource AsDefaultNonSystemInterfaces();
+    IKeyedServiceSelector AsDefaultNonSystemInterfaces();
 
     /// <summary>
     ///     Registers each type against the first interface it implements.
@@ -70,7 +70,7 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as ICustomerRepository
     ///     </code>
     /// </example>
-    IServiceSource AsFirstInterface();
+    IKeyedServiceSelector AsFirstInterface();
 
     /// <summary>
     ///     Registers each type against its top-level interfaces that derive from the base types specified via
@@ -85,7 +85,7 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as ICustomerRepository
     ///     </code>
     /// </example>
-    IServiceSource AsInterface();
+    IKeyedServiceSelector AsInterface();
 
     /// <summary>
     ///     Registers each type against its top-level interfaces that derive from <typeparamref name="T"/>.
@@ -98,7 +98,7 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as ICustomerRepository
     ///     </code>
     /// </example>
-    IServiceSource AsInterface<T>();
+    IKeyedServiceSelector AsInterface<T>();
 
     /// <summary>
     ///     Registers each type against its top-level interfaces that derive from <paramref name="interfaceType"/>.
@@ -111,7 +111,7 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as ICustomerRepository
     ///     </code>
     /// </example>
-    IServiceSource AsInterface(Type interfaceType);
+    IKeyedServiceSelector AsInterface(Type interfaceType);
 
     /// <summary>
     ///     Registers each type against its top-level interfaces that derive from any of the specified
@@ -128,7 +128,7 @@ public interface IServiceSelector : IServiceSource
     ///     //          OrderRepository as IOrderRepository
     ///     </code>
     /// </example>
-    IServiceSource AsInterfaces(params Type[] interfaceTypes);
+    IKeyedServiceSelector AsInterfaces(params Type[] interfaceTypes);
 
     /// <summary>
     ///     Registers each type against service types returned by the specified <paramref name="typeSelector"/> delegate.
@@ -143,7 +143,7 @@ public interface IServiceSelector : IServiceSource
     ///         .ToArray())
     ///     </code>
     /// </example>
-    IServiceSource As(Func<Type, Type[]> typeSelector);
+    IKeyedServiceSelector As(Func<Type, Type[]> typeSelector);
 
     /// <summary>
     ///     Registers each type against service types returned by the specified
@@ -160,7 +160,7 @@ public interface IServiceSelector : IServiceSource
     ///         .As((type, baseTypes) => baseTypes)
     ///     </code>
     /// </example>
-    IServiceSource As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector);
+    IKeyedServiceSelector As(Func<Type, Type[], Type[]> typeWithBaseTypesSelector);
 
     /// <summary>
     ///     Registers each type as itself (the implementation type is also the service type).
@@ -172,7 +172,7 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as CustomerRepository
     ///     </code>
     /// </example>
-    IServiceSource AsSelf();
+    IKeyedServiceSelector AsSelf();
 
     /// <summary>
     ///     Registers each type against the base types specified via <see cref="ITypeFilter.BasedOn{T}"/> or
@@ -187,5 +187,5 @@ public interface IServiceSelector : IServiceSource
     ///     // Registers CustomerRepository as IRepository
     ///     </code>
     /// </example>
-    IServiceSource AsBase();
+    IKeyedServiceSelector AsBase();
 }

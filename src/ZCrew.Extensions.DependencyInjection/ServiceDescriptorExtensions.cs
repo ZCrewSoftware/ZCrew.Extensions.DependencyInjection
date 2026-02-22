@@ -20,6 +20,12 @@ public static class ServiceDescriptorExtensions
         /// </param>
         public ServiceDescriptor WithServiceKey(object? serviceKey)
         {
+            // Return unchanged, small perf improvement
+            if (serviceKey == null)
+            {
+                return serviceDescriptor;
+            }
+
             return serviceDescriptor.IsKeyedService
                 ? RecreateKeyedServiceDescriptor(serviceDescriptor, serviceKey)
                 : RecreateAsKeyedServiceDescriptor(serviceDescriptor, serviceKey);
@@ -32,6 +38,12 @@ public static class ServiceDescriptorExtensions
         /// <param name="lifetime">The target service lifetime.</param>
         public ServiceDescriptor WithLifetime(ServiceLifetime lifetime)
         {
+            // Return unchanged, small perf improvement
+            if (serviceDescriptor.Lifetime == lifetime)
+            {
+                return serviceDescriptor;
+            }
+
             return serviceDescriptor.WithLifetime(lifetime, ignoreSingletonImplementations: false);
         }
 
@@ -45,6 +57,12 @@ public static class ServiceDescriptorExtensions
         /// </param>
         public ServiceDescriptor WithLifetime(ServiceLifetime lifetime, bool ignoreSingletonImplementations)
         {
+            // Return unchanged, small perf improvement
+            if (serviceDescriptor.Lifetime == lifetime)
+            {
+                return serviceDescriptor;
+            }
+
             return serviceDescriptor.IsKeyedService
                 ? RecreateKeyedServiceDescriptor(serviceDescriptor, lifetime, ignoreSingletonImplementations)
                 : RecreateServiceDescriptor(serviceDescriptor, lifetime, ignoreSingletonImplementations);
