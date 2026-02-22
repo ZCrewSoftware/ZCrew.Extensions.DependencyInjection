@@ -346,14 +346,15 @@ public class DisposableOrderHandler : IAuditable, IOrderHandler, IDisposable
 The type hierarchy at play:
 
 ```
-IAuditable                     (standalone — no sub-interfaces)
-IHandler
-└── IOrderHandler
-    └── DisposableOrderHandler
-IDisposable                    (System namespace)
+DisposableOrderHandler
+├── IAuditable
+├── IOrderHandler
+│   └── IHandler
+└── IDisposable (System)
 ```
 
 `DisposableOrderHandler` implements four interfaces in total: `IAuditable`, `IOrderHandler`, `IHandler` (inherited via `IOrderHandler`), and `IDisposable`.
+The top level interfaces are `IAuditable`, `IOrderHandler`, and `IDisposable`.
 
 ### Registration
 
