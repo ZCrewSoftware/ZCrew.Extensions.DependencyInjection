@@ -9,7 +9,11 @@ public class EnumerableServiceDescriptorExtensionsTests
     public void AsServiceCollection_WhenCalled_ShouldReturnServiceCollectionContainingAllDescriptors()
     {
         // Arrange
-        var descriptor1 = new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton);
+        var descriptor1 = new ServiceDescriptor(
+            typeof(ICustomerService),
+            typeof(CustomerService),
+            ServiceLifetime.Singleton
+        );
         var descriptor2 = new ServiceDescriptor(typeof(IOrderService), typeof(OrderService), ServiceLifetime.Transient);
         var descriptors = new[] { descriptor1, descriptor2 }.AsEnumerable();
 
@@ -39,7 +43,10 @@ public class EnumerableServiceDescriptorExtensionsTests
     public void AsServiceCollection_WhenCalled_ShouldReturnServiceCollectionType()
     {
         // Arrange
-        var descriptors = new[] { new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton) }.AsEnumerable();
+        var descriptors = new[]
+        {
+            new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton),
+        }.AsEnumerable();
 
         // Act
         var result = descriptors.AsServiceCollection();

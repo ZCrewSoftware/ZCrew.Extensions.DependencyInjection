@@ -101,7 +101,9 @@ public static partial class ServiceCollectionExtensions
         public IServiceCollection ReplaceSingleton(IEnumerable<ServiceDescriptor> descriptors)
         {
             ArgumentNullException.ThrowIfNull(descriptors);
-            return services.Replace(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Singleton)));
+            return services.Replace(
+                descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Singleton))
+            );
         }
 
         /// <summary>
@@ -121,7 +123,9 @@ public static partial class ServiceCollectionExtensions
         public IServiceCollection ReplaceTransient(IEnumerable<ServiceDescriptor> descriptors)
         {
             ArgumentNullException.ThrowIfNull(descriptors);
-            return services.Replace(descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Transient)));
+            return services.Replace(
+                descriptors.Select(descriptor => descriptor.WithLifetime(ServiceLifetime.Transient))
+            );
         }
     }
 }

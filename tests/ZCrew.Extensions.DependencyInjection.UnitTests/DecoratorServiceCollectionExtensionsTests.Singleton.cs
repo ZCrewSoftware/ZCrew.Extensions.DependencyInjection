@@ -38,10 +38,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddSingletonDecorator<IAuditService>(
-                null!
-            );
+        var act = () => services.AddSingletonDecorator<IAuditService>(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -68,10 +65,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
 
         // Act
         var act = () =>
-            services.AddSingletonDecorator(
-                typeof(IAuditService),
-                (Func<IServiceProvider, object, object>)null!
-            );
+            services.AddSingletonDecorator(typeof(IAuditService), (Func<IServiceProvider, object, object>)null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -84,8 +78,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedSingletonDecorator(null!, typeof(AuditServiceDecorator), "key");
+        var act = () => services.AddKeyedSingletonDecorator(null!, typeof(AuditServiceDecorator), "key");
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -98,8 +91,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedSingletonDecorator(typeof(IAuditService), null!, "key");
+        var act = () => services.AddKeyedSingletonDecorator(typeof(IAuditService), null!, "key");
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -112,11 +104,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedSingletonDecorator<IAuditService>(
-                "key",
-                null!
-            );
+        var act = () => services.AddKeyedSingletonDecorator<IAuditService>("key", null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -129,12 +117,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedSingletonDecorator(
-                null!,
-                "key",
-                (_, s, _) => s
-            );
+        var act = () => services.AddKeyedSingletonDecorator(null!, "key", (_, s, _) => s);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -147,12 +130,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedSingletonDecorator(
-                typeof(IAuditService),
-                "key",
-                null!
-            );
+        var act = () => services.AddKeyedSingletonDecorator(typeof(IAuditService), "key", null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -200,9 +178,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         services.AddSingleton<IAuditService, AuditService>();
 
         // Act
-        var result = services.AddSingletonDecorator<IAuditService>(
-            (_, s) => new AuditServiceDecorator(s)
-        );
+        var result = services.AddSingletonDecorator<IAuditService>((_, s) => new AuditServiceDecorator(s));
 
         // Assert
         Assert.Same(services, result);
@@ -256,11 +232,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         services.AddKeyedSingleton<IAuditService, AuditService>("key");
 
         // Act
-        var result = services.AddKeyedSingletonDecorator(
-            typeof(IAuditService),
-            typeof(AuditServiceDecorator),
-            "key"
-        );
+        var result = services.AddKeyedSingletonDecorator(typeof(IAuditService), typeof(AuditServiceDecorator), "key");
 
         // Assert
         Assert.Same(services, result);

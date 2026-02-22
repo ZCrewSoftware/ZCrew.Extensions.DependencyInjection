@@ -32,7 +32,10 @@ public sealed class AssemblyTypeSelector : TypeSelectorBase, IAssemblyTypeSelect
     /// <inheritdoc />
     public ITypeSelector IncludeInternalTypes()
     {
-        return new EnumerableTypeSelector(this.assembly.GetTypes().Where(t => t.IsPublic || t.IsNotPublic), this.filter);
+        return new EnumerableTypeSelector(
+            this.assembly.GetTypes().Where(t => t.IsPublic || t.IsNotPublic),
+            this.filter
+        );
     }
 
     /// <inheritdoc />

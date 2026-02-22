@@ -123,12 +123,7 @@ public class ServiceDescriptorExtensionsTests
         var serviceKey = new object();
         var originalKey = "original-key";
         var instance = new CustomerService();
-        var descriptor = new ServiceDescriptor(
-            typeof(ICustomerService),
-            originalKey,
-            (_, _) => instance,
-            lifetime
-        );
+        var descriptor = new ServiceDescriptor(typeof(ICustomerService), originalKey, (_, _) => instance, lifetime);
 
         // Act
         var result = descriptor.WithServiceKey(serviceKey);
@@ -195,7 +190,11 @@ public class ServiceDescriptorExtensionsTests
     )
     {
         // Arrange
-        var descriptor = new ServiceDescriptor(typeof(ICustomerService), typeof(CustomerService), ServiceLifetime.Singleton);
+        var descriptor = new ServiceDescriptor(
+            typeof(ICustomerService),
+            typeof(CustomerService),
+            ServiceLifetime.Singleton
+        );
 
         // Act
         var result = descriptor.WithLifetime(lifetime);

@@ -39,9 +39,7 @@ public class RegistrationBenchmarks
     {
         this.assembly = Size switch
         {
-            ProjectSize.Small => typeof(
-                Fixtures.SmallProject.Application.Services.ICustomerService
-            ).Assembly,
+            ProjectSize.Small => typeof(Fixtures.SmallProject.Application.Services.ICustomerService).Assembly,
             ProjectSize.Large => typeof(IService1).Assembly,
             _ => throw new ArgumentOutOfRangeException(),
         };
@@ -62,10 +60,7 @@ public class RegistrationBenchmarks
     {
         var services = new ServiceCollection();
         services.Scan(scan =>
-            scan.FromAssemblies(this.assembly)
-                .AddClasses()
-                .AsImplementedInterfaces()
-                .WithSingletonLifetime()
+            scan.FromAssemblies(this.assembly).AddClasses().AsImplementedInterfaces().WithSingletonLifetime()
         );
         return services.Count;
     }
@@ -74,9 +69,7 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_AllInterfaces()
     {
         var container = new WindsorContainer();
-        container.Register(
-            CastleClasses.FromAssembly(this.assembly).Pick().WithService.AllInterfaces()
-        );
+        container.Register(CastleClasses.FromAssembly(this.assembly).Pick().WithService.AllInterfaces());
         return container;
     }
 
@@ -108,9 +101,7 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_DefaultInterfaces()
     {
         var container = new WindsorContainer();
-        container.Register(
-            CastleClasses.FromAssembly(this.assembly).Pick().WithService.DefaultInterfaces()
-        );
+        container.Register(CastleClasses.FromAssembly(this.assembly).Pick().WithService.DefaultInterfaces());
         return container;
     }
 
@@ -128,9 +119,7 @@ public class RegistrationBenchmarks
     public int Scrutor_AsSelf()
     {
         var services = new ServiceCollection();
-        services.Scan(scan =>
-            scan.FromAssemblies(this.assembly).AddClasses().AsSelf().WithSingletonLifetime()
-        );
+        services.Scan(scan => scan.FromAssemblies(this.assembly).AddClasses().AsSelf().WithSingletonLifetime());
         return services.Count;
     }
 
@@ -138,9 +127,7 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_AsSelf()
     {
         var container = new WindsorContainer();
-        container.Register(
-            CastleClasses.FromAssembly(this.assembly).Pick().WithService.Self()
-        );
+        container.Register(CastleClasses.FromAssembly(this.assembly).Pick().WithService.Self());
         return container;
     }
 
@@ -150,10 +137,7 @@ public class RegistrationBenchmarks
     public int ZCrew_InternalTypes_AllInterfaces()
     {
         var services = new ServiceCollection();
-        services.AddSingleton(ZCrewClasses
-            .FromAssembly(this.assembly)
-            .IncludeInternalTypes()
-            .AsAllInterfaces());
+        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).IncludeInternalTypes().AsAllInterfaces());
         return services.Count;
     }
 
@@ -175,11 +159,7 @@ public class RegistrationBenchmarks
     {
         var container = new WindsorContainer();
         container.Register(
-            CastleClasses
-                .FromAssembly(this.assembly)
-                .IncludeNonPublicTypes()
-                .Pick()
-                .WithService.AllInterfaces()
+            CastleClasses.FromAssembly(this.assembly).IncludeNonPublicTypes().Pick().WithService.AllInterfaces()
         );
         return container;
     }
@@ -190,10 +170,7 @@ public class RegistrationBenchmarks
     public int ZCrew_BasedOn_AsInterface()
     {
         var services = new ServiceCollection();
-        services.AddSingleton(ZCrewClasses
-            .FromAssembly(this.assembly)
-            .BasedOn<IService1>()
-            .AsInterface());
+        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).BasedOn<IService1>().AsInterface());
         return services.Count;
     }
 
@@ -215,12 +192,7 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_BasedOn_AllInterfaces()
     {
         var container = new WindsorContainer();
-        container.Register(
-            CastleClasses
-                .FromAssembly(this.assembly)
-                .BasedOn<IService1>()
-                .WithService.AllInterfaces()
-        );
+        container.Register(CastleClasses.FromAssembly(this.assembly).BasedOn<IService1>().WithService.AllInterfaces());
         return container;
     }
 
@@ -239,10 +211,7 @@ public class RegistrationBenchmarks
     {
         var services = new ServiceCollection();
         services.Scan(scan =>
-            scan.FromAssemblies(this.assembly)
-                .AddClasses()
-                .As(t => t.GetInterfaces().Take(1))
-                .WithSingletonLifetime()
+            scan.FromAssemblies(this.assembly).AddClasses().As(t => t.GetInterfaces().Take(1)).WithSingletonLifetime()
         );
         return services.Count;
     }
@@ -251,9 +220,7 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_FirstInterface()
     {
         var container = new WindsorContainer();
-        container.Register(
-            CastleClasses.FromAssembly(this.assembly).Pick().WithService.FirstInterface()
-        );
+        container.Register(CastleClasses.FromAssembly(this.assembly).Pick().WithService.FirstInterface());
         return container;
     }
 }

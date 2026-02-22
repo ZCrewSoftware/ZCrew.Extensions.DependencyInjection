@@ -15,9 +15,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WhenCalled_ShouldRegisterAsImplementationType()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService))
-            .AsSelf();
+        var result = Types.From(typeof(CustomerService)).AsSelf();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -29,9 +27,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithInterface_ShouldRegisterInterfaceAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types
-            .From(typeof(ICustomerService))
-            .AsSelf();
+        var result = Types.From(typeof(ICustomerService)).AsSelf();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -43,9 +39,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithAbstractClass_ShouldRegisterAbstractClassAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types
-            .From(typeof(RepositoryBase<Customer>))
-            .AsSelf();
+        var result = Types.From(typeof(RepositoryBase<Customer>)).AsSelf();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -57,9 +51,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithStaticClass_ShouldRegisterStaticClassAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types
-            .From(typeof(PricingDefaults))
-            .AsSelf();
+        var result = Types.From(typeof(PricingDefaults)).AsSelf();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -71,9 +63,7 @@ public class TypesServiceSelectionTests
     public void AsAllInterfaces_WhenCalled_ShouldRegisterAllInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(PayPalPaymentGateway))
-            .AsAllInterfaces();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -86,9 +76,7 @@ public class TypesServiceSelectionTests
     public void AsAllInterfaces_WithInterfaceType_ShouldRegisterParentInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(ICustomerRepository))
-            .AsAllInterfaces();
+        var result = Types.From(typeof(ICustomerRepository)).AsAllInterfaces();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -103,9 +91,7 @@ public class TypesServiceSelectionTests
     public void AsAllNonSystemInterfaces_WhenCalled_ShouldExcludeSystemInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(PayPalPaymentGateway))
-            .AsAllNonSystemInterfaces();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -117,9 +103,7 @@ public class TypesServiceSelectionTests
     public void AsAllNonSystemInterfaces_WithInterfaceType_ShouldRegisterNonSystemParentInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(ICustomerRepository))
-            .AsAllNonSystemInterfaces();
+        var result = Types.From(typeof(ICustomerRepository)).AsAllNonSystemInterfaces();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -133,22 +117,16 @@ public class TypesServiceSelectionTests
     public void AsDefaultInterfaces_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService), typeof(EmailNotificationSender))
-            .AsDefaultInterfaces();
+        var result = Types.From(typeof(CustomerService), typeof(EmailNotificationSender)).AsDefaultInterfaces();
 
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(CustomerService)
-                && d.ServiceType == typeof(ICustomerService)
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(EmailNotificationSender)
-                && d.ServiceType == typeof(INotificationSender)
+            d => d.ImplementationType == typeof(EmailNotificationSender) && d.ServiceType == typeof(INotificationSender)
         );
     }
 
@@ -156,9 +134,7 @@ public class TypesServiceSelectionTests
     public void AsDefaultInterfaces_WhenNoConventionMatch_ShouldNotRegister()
     {
         // Act
-        var result = Types
-            .From(typeof(Customer))
-            .AsDefaultInterfaces();
+        var result = Types.From(typeof(Customer)).AsDefaultInterfaces();
 
         // Assert
         Assert.Empty(result);
@@ -168,9 +144,7 @@ public class TypesServiceSelectionTests
     public void AsDefaultNonSystemInterfaces_WhenCalled_ShouldCombineBothFilters()
     {
         // Act
-        var result = Types
-            .From(typeof(PayPalPaymentGateway))
-            .AsDefaultNonSystemInterfaces();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsDefaultNonSystemInterfaces();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -182,9 +156,7 @@ public class TypesServiceSelectionTests
     public void AsFirstInterface_WhenCalled_ShouldRegisterFirstInterface()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService))
-            .AsFirstInterface();
+        var result = Types.From(typeof(CustomerService)).AsFirstInterface();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -196,9 +168,7 @@ public class TypesServiceSelectionTests
     public void AsFirstInterface_WhenNoInterfaces_ShouldNotRegister()
     {
         // Act
-        var result = Types
-            .From(typeof(Customer))
-            .AsFirstInterface();
+        var result = Types.From(typeof(Customer)).AsFirstInterface();
 
         // Assert
         Assert.Empty(result);
@@ -208,10 +178,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithBasedOn_ShouldRegisterTopLevelDerivedInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(SqlCustomerRepository))
-            .BasedOn(typeof(IRepository<>))
-            .AsInterface();
+        var result = Types.From(typeof(SqlCustomerRepository)).BasedOn(typeof(IRepository<>)).AsInterface();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -223,9 +190,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithGenericTypeArg_ShouldRegisterDerivedInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(PayPalPaymentGateway))
-            .AsInterface<IPaymentGateway>();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface<IPaymentGateway>();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -237,9 +202,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithExplicitType_ShouldRegisterDerivedInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(PayPalPaymentGateway))
-            .AsInterface(typeof(IPaymentGateway));
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface(typeof(IPaymentGateway));
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -251,10 +214,7 @@ public class TypesServiceSelectionTests
     public void AsBase_WithBasedOn_ShouldRegisterAsBaseTypes()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService))
-            .BasedOn<ICustomerService>()
-            .AsBase();
+        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().AsBase();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -266,9 +226,7 @@ public class TypesServiceSelectionTests
     public void As_WithCustomSelector_ShouldUseProvidedFunction()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService))
-            .As(type => type.GetInterfaces());
+        var result = Types.From(typeof(CustomerService)).As(type => type.GetInterfaces());
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -280,10 +238,7 @@ public class TypesServiceSelectionTests
     public void As_WithBaseTypeContext_ShouldReceiveResolvedBaseTypes()
     {
         // Act
-        var result = Types
-            .From(typeof(CustomerService))
-            .BasedOn<ICustomerService>()
-            .As((_, bases) => bases);
+        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().As((_, bases) => bases);
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -302,15 +257,11 @@ public class TypesServiceSelectionTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(CustomerService)
-                && d.ServiceType == typeof(ICustomerService)
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(OrderService)
-                && d.ServiceType == typeof(IOrderService)
+            d => d.ImplementationType == typeof(OrderService) && d.ServiceType == typeof(IOrderService)
         );
     }
 
@@ -325,15 +276,11 @@ public class TypesServiceSelectionTests
         // Assert
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(SqlCustomerRepository)
-                && d.ServiceType == typeof(ICustomerRepository)
+            d => d.ImplementationType == typeof(SqlCustomerRepository) && d.ServiceType == typeof(ICustomerRepository)
         );
         Assert.Contains(
             result,
-            d =>
-                d.ImplementationType == typeof(SqlOrderRepository)
-                && d.ServiceType == typeof(IOrderRepository)
+            d => d.ImplementationType == typeof(SqlOrderRepository) && d.ServiceType == typeof(IOrderRepository)
         );
     }
 
@@ -341,9 +288,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithOpenGenericTypeArg_ShouldRegisterTopLevelDerivedInterfaces()
     {
         // Act
-        var result = Types
-            .From(typeof(SqlCustomerRepository))
-            .AsInterface(typeof(IRepository<>));
+        var result = Types.From(typeof(SqlCustomerRepository)).AsInterface(typeof(IRepository<>));
 
         // Assert
         var descriptor = Assert.Single(result);

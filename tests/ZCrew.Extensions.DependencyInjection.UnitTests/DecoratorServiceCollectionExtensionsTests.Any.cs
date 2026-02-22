@@ -9,8 +9,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
     public void AddDecorator_Type_WhenServiceTypeIsNull_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var services = new
-            ServiceCollection();
+        var services = new ServiceCollection();
 
         // Act
         var act = () => services.AddDecorator(null!, typeof(AuditServiceDecorator));
@@ -39,10 +38,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddDecorator<IAuditService>(
-                null!
-            );
+        var act = () => services.AddDecorator<IAuditService>(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -68,8 +64,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddDecorator(typeof(IAuditService), (Func<IServiceProvider, object, object>)null!);
+        var act = () => services.AddDecorator(typeof(IAuditService), (Func<IServiceProvider, object, object>)null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -108,11 +103,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedDecorator<IAuditService>(
-                "key",
-                null!
-            );
+        var act = () => services.AddKeyedDecorator<IAuditService>("key", null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -125,8 +116,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedDecorator(null!, "key", (_, s, _) => s);
+        var act = () => services.AddKeyedDecorator(null!, "key", (_, s, _) => s);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -139,12 +129,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act
-        var act = () =>
-            services.AddKeyedDecorator(
-                typeof(IAuditService),
-                "key",
-                null!
-            );
+        var act = () => services.AddKeyedDecorator(typeof(IAuditService), "key", null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -263,10 +248,7 @@ public partial class DecoratorServiceCollectionExtensionsTests
         services.AddKeyedTransient<IAuditService, AuditService>("key");
 
         // Act
-        var result = services.AddKeyedDecorator<IAuditService>(
-            "key",
-            (_, s, _) => new AuditServiceDecorator(s)
-        );
+        var result = services.AddKeyedDecorator<IAuditService>("key", (_, s, _) => new AuditServiceDecorator(s));
 
         // Assert
         Assert.Same(services, result);

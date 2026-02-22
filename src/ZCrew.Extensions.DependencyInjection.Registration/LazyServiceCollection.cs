@@ -94,7 +94,6 @@ internal sealed class LazyServiceCollection : IServiceCollection
 
     private static InvalidOperationException ReadonlyException()
     {
-        return new InvalidOperationException(
-            "The service collection cannot be modified because it is read-only.");
+        return new InvalidOperationException("The service collection cannot be modified because it is read-only.");
     }
 }

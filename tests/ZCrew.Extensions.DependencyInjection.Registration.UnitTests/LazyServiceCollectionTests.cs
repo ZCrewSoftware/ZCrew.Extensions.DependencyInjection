@@ -190,7 +190,10 @@ public class LazyServiceCollectionTests
         var collection = new LazyServiceCollection(() => [descriptor]);
 
         // Act
-        var act = () => { collection.Remove(descriptor); };
+        var act = () =>
+        {
+            collection.Remove(descriptor);
+        };
 
         // Assert
         Assert.Throws<InvalidOperationException>(act);

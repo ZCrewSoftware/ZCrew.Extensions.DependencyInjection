@@ -1,52 +1,101 @@
 namespace Fixtures.LargeProject.Application.Services;
 
 public interface IService1;
+
 public interface IService2;
+
 public interface IService3;
+
 public interface IService4;
+
 public interface IService5;
+
 public interface IService6;
+
 public interface IService7 : IDisposable;
+
 public interface IService8 : IDisposable;
+
 public interface IService9 : IService3, IDisposable;
+
 public interface IService10 : IAsyncDisposable;
+
 public interface IService11;
+
 public interface IService12;
+
 public interface IService13 : IService1;
+
 public interface IService14;
+
 public interface IService15;
+
 public interface IService16;
+
 public interface IService17 : IDisposable;
+
 public interface IService18;
+
 public interface IService19 : IService17;
+
 public interface IService20 : IAsyncDisposable;
+
 public interface IService21;
+
 public interface IService22 : IDisposable;
+
 public interface IService23;
+
 public interface IService24;
+
 public interface IService25;
+
 public interface IService26;
+
 public interface IService27;
+
 public interface IService28;
+
 public interface IService29;
+
 public interface IService30;
+
 public interface IService31;
+
 public interface IService32;
+
 public interface IService33 : IService16;
+
 public interface IService34;
+
 public interface IService35;
+
 public interface IService36;
+
 public interface IService37;
+
 public interface IService38;
+
 public interface IService39;
+
 public interface IService40 : IService29;
+
 public interface IService41;
+
 public interface IService42 : IAsyncDisposable;
+
 public interface IService43;
+
 public interface IService44 : IAsyncDisposable;
+
 public interface IService45;
+
 public interface IService46;
+
 public interface IService47;
+
 public interface IService48;
+
 public interface IService49;
+
 public interface IService50;

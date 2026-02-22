@@ -65,9 +65,7 @@ public class ClassesEntryPointTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Classes
-            .FromAssembly(assembly)
-            .AsSelf();
+        var result = Classes.FromAssembly(assembly).AsSelf();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -81,9 +79,7 @@ public class ClassesEntryPointTests
     public void FromAssemblyContaining_WithType_ShouldScanCorrectAssembly()
     {
         // Act
-        var result = Classes
-            .FromAssemblyContaining(typeof(CustomerService))
-            .AsSelf();
+        var result = Classes.FromAssemblyContaining(typeof(CustomerService)).AsSelf();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -96,9 +92,7 @@ public class ClassesEntryPointTests
     public void FromAssemblyContaining_WithGeneric_ShouldScanCorrectAssembly()
     {
         // Act
-        var result = Classes
-            .FromAssemblyContaining<CustomerService>()
-            .AsSelf();
+        var result = Classes.FromAssemblyContaining<CustomerService>().AsSelf();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -111,8 +105,7 @@ public class ClassesEntryPointTests
     public void From_WithNullEnumerable_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () =>
-            Classes.From((IEnumerable<Type>)null!);
+        var act = () => Classes.From((IEnumerable<Type>)null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -122,8 +115,7 @@ public class ClassesEntryPointTests
     public void From_WithNullParams_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () =>
-            Classes.From(null!);
+        var act = () => Classes.From(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -133,8 +125,7 @@ public class ClassesEntryPointTests
     public void FromAssembly_WithNull_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () =>
-            Classes.FromAssembly(null!);
+        var act = () => Classes.FromAssembly(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -144,8 +135,7 @@ public class ClassesEntryPointTests
     public void FromAssemblyContaining_WithNull_ShouldThrowArgumentNullException()
     {
         // Act
-        var act = () =>
-            Classes.FromAssemblyContaining(null!);
+        var act = () => Classes.FromAssemblyContaining(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -155,9 +145,7 @@ public class ClassesEntryPointTests
     public void From_WhenCalled_ShouldDefaultToSingletonLifetime()
     {
         // Act
-        var result = Classes
-            .From(typeof(CustomerService))
-            .AsSelf();
+        var result = Classes.From(typeof(CustomerService)).AsSelf();
 
         // Assert
         Assert.All(result, descriptor => Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime));
@@ -183,10 +171,7 @@ public class ClassesEntryPointTests
     public void FromThisAssembly_WhenCalled_ShouldScanCallingAssembly()
     {
         // Act
-        var result = Classes
-            .FromThisAssembly()
-            .Where(t => t == typeof(ClassesEntryPointTests))
-            .AsSelf();
+        var result = Classes.FromThisAssembly().Where(t => t == typeof(ClassesEntryPointTests)).AsSelf();
 
         // Assert
         var descriptor = Assert.Single(result);
