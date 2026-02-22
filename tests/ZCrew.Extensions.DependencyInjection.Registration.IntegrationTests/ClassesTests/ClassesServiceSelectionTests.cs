@@ -95,7 +95,7 @@ public class ClassesServiceSelectionTests
         // Assert
         var descriptor = Assert.Single(result);
         Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
-        Assert.True(typeof(CustomerService).GetInterfaces().Contains(descriptor.ServiceType));
+        Assert.Contains(descriptor.ServiceType, typeof(CustomerService).GetInterfaces());
     }
 
     [Fact]
