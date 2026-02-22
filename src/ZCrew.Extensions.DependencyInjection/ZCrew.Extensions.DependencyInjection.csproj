@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="DecoratorServiceCollectionExtensions.*.cs">
       <DependentUpon>DecoratorServiceCollectionExtensions.cs</DependentUpon>
     </Compile>
-    <Compile Update="ServiceCollectionExtensions.Lifetime.cs">
+    <Compile Update="ServiceCollectionExtensions.*.cs">
       <DependentUpon>ServiceCollectionExtensions.cs</DependentUpon>
     </Compile>
   </ItemGroup>

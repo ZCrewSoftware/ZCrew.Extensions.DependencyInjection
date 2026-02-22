@@ -1,25 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="../ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Update="ITypeFilter.IServiceSelector.cs">
-        <DependentUpon>ITypeFilter.cs</DependentUpon>
-      </Compile>
-      <Compile Update="IServiceSelector.IKeyedServiceSelector.cs">
-        <DependentUpon>IServiceSelector.cs</DependentUpon>
-      </Compile>
-      <Compile Update="ITypeSelector.ITypeFilter.cs">
-        <DependentUpon>ITypeSelector.cs</DependentUpon>
-      </Compile>
-    </ItemGroup>
-
+  <ItemGroup>
+    <Compile Update="ITypeFilter.*.cs">
+      <DependentUpon>ITypeFilter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IServiceSelector.*.cs">
+      <DependentUpon>IServiceSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ITypeSelector.*.cs">
+      <DependentUpon>ITypeSelector.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

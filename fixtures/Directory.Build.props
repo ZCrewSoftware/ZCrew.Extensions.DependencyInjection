@@ -22,18 +22,10 @@
 
   <!-- Make internals visible to the all test project(s) -->
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>ZCrew.Extensions.DependencyInjection.UnitTests</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>ZCrew.Extensions.DependencyInjection.IntegrationTests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="ZCrew.Extensions.DependencyInjection.UnitTests"/>
+    <InternalsVisibleTo Include="ZCrew.Extensions.DependencyInjection.IntegrationTests"/>
 
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>ZCrew.Extensions.DependencyInjection.Registration.UnitTests</_Parameter1>
-    </AssemblyAttribute>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests</_Parameter1>
-    </AssemblyAttribute>
+    <InternalsVisibleTo Include="ZCrew.Extensions.DependencyInjection.Registration.UnitTests"/>
+    <InternalsVisibleTo Include="ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests"/>
   </ItemGroup>
 </Project>
