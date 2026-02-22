@@ -232,6 +232,7 @@ internal class DecoratorServiceDescriptor
     }
 
     /// <inheritdoc />
+    [ExcludeFromCodeCoverage(Justification = "This is copied from Microsoft.Extensions.DependencyInjection")]
     public override string ToString()
     {
         var toString = $"{nameof(ServiceType)}: {ServiceType} ";
@@ -260,6 +261,7 @@ internal class DecoratorServiceDescriptor
         return toString + $"{nameof(DecoratorType)}: {DecoratorType}";
     }
 
+    [ExcludeFromCodeCoverage(Justification = "This is copied from Microsoft.Extensions.DependencyInjection")]
     internal string ToServiceString()
     {
         var toString = $"{nameof(ServiceType)}: {ServiceType}";
@@ -277,6 +279,7 @@ internal class DecoratorServiceDescriptor
         return toString;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "This is copied from Microsoft.Extensions.DependencyInjection")]
     private string DebuggerToString()
     {
         var debugText = $@"{nameof(ServiceType)} = ""{ServiceType.FullName}""";
