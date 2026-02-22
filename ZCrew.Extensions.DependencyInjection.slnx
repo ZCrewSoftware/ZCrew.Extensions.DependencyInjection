@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks.csproj"/>
+  </Folder>
   <Folder Name="/docs/">
     <File Path="docs/1-introduction.md" />
     <File Path="docs/2-getting-started.md" />
@@ -21,6 +24,7 @@
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.UnitTests/ZCrew.Extensions.DependencyInjection.UnitTests.csproj" />
   </Folder>
   <Folder Name="/fixtures/">
+    <Project Path="fixtures/Fixtures.LargeProject/Fixtures.LargeProject.csproj" />
     <Project Path="fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
   </Folder>
 </Solution>
