@@ -9,7 +9,8 @@ public partial class DecoratorServiceCollectionExtensionsTests
     public void AddDecorator_Type_WhenServiceTypeIsNull_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var services = new ServiceCollection();
+        var services = new
+            ServiceCollection();
 
         // Act
         var act = () => services.AddDecorator(null!, typeof(AuditServiceDecorator));
