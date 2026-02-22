@@ -3,6 +3,19 @@
     <ProjectReference Include="../ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
 
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <PackageTags>dependency-injecting;scanning;registration;castle;windsor</PackageTags>
+    <Description>Adds assembly scanning to Microsoft.Extensions.DependencyInjection similar to Castle.Windsor</Description>
+  </PropertyGroup>
+
+  <!-- NuGet package content -->
+  <ItemGroup>
+    <None Include="../../img/icon.png" Pack="true" PackagePath="/" Visible="false" />
+    <!-- Each project has a README.md that can be ignored from the IDE but included in NuGet -->
+    <None Include="README.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="ITypeFilter.*.cs">
       <DependentUpon>ITypeFilter.cs</DependentUpon>

@@ -18,6 +18,26 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
+  <!-- Common NuGet package metadata -->
+  <PropertyGroup>
+    <Authors>Matt Zawislak</Authors>
+    <Company>ZCrew</Company>
+    <PackageProjectUrl>https://github.com/zcrew/ZCrew.Extensions.DependencyInjection</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zcrew/ZCrew.Extensions.DependencyInjection.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!-- Source Link for better debugging experience -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
   <!-- Make internals visible to the corresponding test project(s) -->
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).UnitTests" />

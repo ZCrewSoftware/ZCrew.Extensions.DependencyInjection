@@ -1,4 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <PackageTags>dependency-injection;decorator</PackageTags>
+    <Description>Extensions for Microsoft.Extensions.DependencyInjection to augment service registration</Description>
+  </PropertyGroup>
+
+  <!-- NuGet package content -->
+  <ItemGroup>
+    <None Include="../../img/icon.png" Pack="true" PackagePath="/" Visible="false" />
+    <!-- Each project has a README.md that can be ignored from the IDE but included in NuGet -->
+    <None Include="README.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="DecoratorServiceCollectionExtensions.*.cs">
       <DependentUpon>DecoratorServiceCollectionExtensions.cs</DependentUpon>
