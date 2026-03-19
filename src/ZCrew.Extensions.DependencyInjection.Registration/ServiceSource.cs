@@ -12,6 +12,9 @@ public abstract class ServiceSource : IServiceSource
 {
     private readonly LazyServiceCollection lazyServiceCollection;
 
+    /// <summary>
+    ///     Initialize a new service source with a <see cref="lazyServiceCollection"/> backing it.
+    /// </summary>
     protected ServiceSource()
     {
         this.lazyServiceCollection = new LazyServiceCollection(SelectServices);

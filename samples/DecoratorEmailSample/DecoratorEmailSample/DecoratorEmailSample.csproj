@@ -8,10 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-  </ItemGroup>
-
-  <!-- TODO MWZ: replace this with a NuGet reference once NuGet packages are published somewhere -->
-  <ItemGroup>
-    <ProjectReference Include="../../../src/ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
+    <PackageReference Include="ZCrew.Extensions.DependencyInjection" Version="1.0.0" />
+    <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="1.0.0" />
   </ItemGroup>
 </Project>
