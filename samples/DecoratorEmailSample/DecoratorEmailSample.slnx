@@ -2,6 +2,5 @@
   <Folder Name="/Solution Items/">
     <File Path="global.json" />
   </Folder>
-  <Project Path="../../src/ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
   <Project Path="DecoratorEmailSample/DecoratorEmailSample.csproj" />
 </Solution>

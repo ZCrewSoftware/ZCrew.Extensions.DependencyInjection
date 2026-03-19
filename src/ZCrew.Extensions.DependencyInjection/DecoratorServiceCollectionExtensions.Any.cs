@@ -3,6 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection;
 
+/// <summary>
+///     Extension methods for the <see cref="IServiceCollection"/> to register decorators.
+/// </summary>
 public static partial class DecoratorServiceCollectionExtensions
 {
     /// <param name="services">The <see cref="IServiceCollection" /> to add the service to.</param>
