@@ -151,5 +151,18 @@ public static class TypeExtensions
 
             return topLevel;
         }
+
+        /// <summary>
+        ///     Returns the name without any generic arity.
+        /// </summary>
+        /// <returns>The name of the type without the generic arity.</returns>
+        /// <example>
+        ///     <see cref="List{T}"/> would be return the string <c>"List"</c>.
+        /// </example>
+        public string GetNonGenericName()
+        {
+            var backtick = type.Name.IndexOf('`');
+            return backtick > 0 ? type.Name[..backtick] : type.Name;
+        }
     }
 }

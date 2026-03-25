@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;

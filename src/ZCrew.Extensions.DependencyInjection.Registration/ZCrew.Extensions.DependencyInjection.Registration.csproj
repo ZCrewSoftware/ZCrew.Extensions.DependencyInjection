@@ -26,5 +26,8 @@
     <Compile Update="ITypeSelector.*.cs">
       <DependentUpon>ITypeSelector.cs</DependentUpon>
     </Compile>
+    <Compile Update="TypeFilterExtensions.*.cs">
+      <DependentUpon>TypeFilterExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
