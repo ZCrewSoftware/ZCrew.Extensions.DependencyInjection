@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
-namespace ZCrew.Extensions.DependencyInjection.UnitTests.Registration;
+namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
 [SuppressMessage("ReSharper", "CollectionNeverQueried.Local")]
 [SuppressMessage("ReSharper", "CollectionNeverUpdated.Local")]
