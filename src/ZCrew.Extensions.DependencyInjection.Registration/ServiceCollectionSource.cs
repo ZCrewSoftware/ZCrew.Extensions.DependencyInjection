@@ -17,4 +17,10 @@ public class ServiceCollectionSource : ServiceCollection, IServiceSource
         }
         MakeReadOnly();
     }
+
+    /// <inheritdoc />
+    IServiceSource IServiceSource.AsLifetime(ServiceLifetime lifetime)
+    {
+        return new ServiceCollectionSource(this.AsLifetime(lifetime));
+    }
 }

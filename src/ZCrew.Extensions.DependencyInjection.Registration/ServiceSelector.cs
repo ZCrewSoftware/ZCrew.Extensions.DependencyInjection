@@ -113,12 +113,15 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
     }
 
     /// <inheritdoc />
-    protected override IEnumerable<ServiceDescriptor> SelectServices()
+    protected override IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime)
     {
-        return AsSelf();
+        return SelectFromType(type => [type], lifetime);
     }
 
-    private KeyedServiceSelector SelectFromType(Func<Type, IEnumerable<Type>> serviceSelector)
+    private KeyedServiceSelector SelectFromType(
+        Func<Type, IEnumerable<Type>> serviceSelector,
+        ServiceLifetime lifetime = ServiceLifetime.Singleton
+    )
     {
         var descriptors = new LinkedList<ServiceDescriptor>();
         foreach (var type in this.types)
@@ -126,7 +129,7 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
             var services = serviceSelector(type);
             foreach (var service in services)
             {
-                var descriptor = new ServiceDescriptor(service, type, ServiceLifetime.Singleton);
+                var descriptor = new ServiceDescriptor(service, type, lifetime);
                 descriptors.AddLast(descriptor);
             }
         }
