@@ -275,7 +275,7 @@ public class ServiceSourceTests
             this.serviceDescriptors = serviceDescriptors;
         }
 
-        protected override IEnumerable<ServiceDescriptor> SelectServices()
+        protected override IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime)
         {
             SelectServicesCallCount++;
             return this.serviceDescriptors;

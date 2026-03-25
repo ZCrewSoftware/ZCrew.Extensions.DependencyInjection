@@ -12,8 +12,8 @@ public abstract class TypeSelectorBase : ServiceSource, ITypeSelector
     public abstract IEnumerable<Type> SelectTypes();
 
     /// <inheritdoc />
-    protected override IEnumerable<ServiceDescriptor> SelectServices()
+    protected override IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime)
     {
-        return SelectTypes().Select(type => new ServiceDescriptor(type, type, ServiceLifetime.Singleton));
+        return SelectTypes().Select(type => new ServiceDescriptor(type, type, lifetime));
     }
 }

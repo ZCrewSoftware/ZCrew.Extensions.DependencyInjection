@@ -11,25 +11,33 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 public abstract class ServiceSource : IServiceSource
 {
     private readonly LazyServiceCollection lazyServiceCollection;
+    private ServiceLifetime lifetime = ServiceLifetime.Singleton;
 
     /// <summary>
     ///     Initialize a new service source with a <see cref="lazyServiceCollection"/> backing it.
     /// </summary>
     protected ServiceSource()
     {
-        this.lazyServiceCollection = new LazyServiceCollection(SelectServices);
+        this.lazyServiceCollection = new LazyServiceCollection(() => SelectServices(this.lifetime));
     }
 
     /// <summary>
     ///     When overridden, produces the service descriptors for this node in the registration chain.
     /// </summary>
-    protected abstract IEnumerable<ServiceDescriptor> SelectServices();
+    protected abstract IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime);
 
     /// <inheritdoc />
     public ServiceDescriptor this[int index]
     {
         get => this.lazyServiceCollection[index];
         set => this.lazyServiceCollection[index] = value;
+    }
+
+    /// <inheritdoc />
+    public IServiceSource AsLifetime(ServiceLifetime lifetime)
+    {
+        this.lifetime = lifetime;
+        return this;
     }
 
     /// <inheritdoc />
