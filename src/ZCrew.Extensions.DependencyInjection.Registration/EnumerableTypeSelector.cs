@@ -3,7 +3,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Selects types from an in-memory enumerable with an optional filter predicate.
 /// </summary>
-public sealed class EnumerableTypeSelector : TypeSelectorBase, ITypeSelector
+internal sealed class EnumerableTypeSelector : TypeSelectorBase, ITypeSelector
 {
     private readonly IEnumerable<Type> types;
     private readonly Func<Type, bool>? filter;

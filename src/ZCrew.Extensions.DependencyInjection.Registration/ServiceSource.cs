@@ -1,107 +1,41 @@
-using System.Collections;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-/// <summary>
-///     Abstract base class for registration chain nodes that lazily produce service descriptors. Implements
-///     <see cref="IServiceCollection"/> by deferring to a <see cref="LazyServiceCollection"/> that evaluates
-///     <see cref="SelectServices"/> on first access. The resulting collection is read-only.
-/// </summary>
-public abstract class ServiceSource : IServiceSource
+internal class ServiceSource : IServiceSource
 {
-    private readonly LazyServiceCollection lazyServiceCollection;
-    private ServiceLifetime lifetime = ServiceLifetime.Singleton;
+    private readonly IEnumerable<ServiceComponent> components;
 
-    /// <summary>
-    ///     Initialize a new service source with a <see cref="lazyServiceCollection"/> backing it.
-    /// </summary>
-    protected ServiceSource()
+    internal ServiceSource(IEnumerable<ServiceComponent> components)
     {
-        this.lazyServiceCollection = new LazyServiceCollection(() => SelectServices(this.lifetime));
-    }
-
-    /// <summary>
-    ///     When overridden, produces the service descriptors for this node in the registration chain.
-    /// </summary>
-    protected abstract IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime);
-
-    /// <inheritdoc />
-    public ServiceDescriptor this[int index]
-    {
-        get => this.lazyServiceCollection[index];
-        set => this.lazyServiceCollection[index] = value;
+        this.components = components;
     }
 
     /// <inheritdoc />
-    public IServiceSource AsLifetime(ServiceLifetime lifetime)
+    public IServiceCollection AsLifetime(ServiceLifetime lifetime)
     {
-        this.lifetime = lifetime;
-        return this;
+        return Collect(lifetime);
     }
 
     /// <inheritdoc />
-    public int Count => this.lazyServiceCollection.Count;
-
-    /// <inheritdoc />
-    public bool IsReadOnly => this.lazyServiceCollection.IsReadOnly;
-
-    /// <inheritdoc />
-    public void Add(ServiceDescriptor item)
+    public virtual IServiceCollection Collect()
     {
-        this.lazyServiceCollection.Add(item);
+        return Collect(ServiceLifetime.Singleton);
     }
 
-    /// <inheritdoc />
-    public void Clear()
+    private IServiceCollection Collect(ServiceLifetime lifetime)
     {
-        this.lazyServiceCollection.Clear();
-    }
+        var serviceCollection = new ServiceCollection();
+        foreach (var component in this.components)
+        {
+            var lifetimeComponent = component.WithLifetime(lifetime);
 
-    /// <inheritdoc />
-    public bool Contains(ServiceDescriptor item)
-    {
-        return this.lazyServiceCollection.Contains(item);
-    }
-
-    /// <inheritdoc />
-    public void CopyTo(ServiceDescriptor[] array, int arrayIndex)
-    {
-        this.lazyServiceCollection.CopyTo(array, arrayIndex);
-    }
-
-    /// <inheritdoc />
-    public bool Remove(ServiceDescriptor item)
-    {
-        return this.lazyServiceCollection.Remove(item);
-    }
-
-    /// <inheritdoc />
-    public int IndexOf(ServiceDescriptor item)
-    {
-        return this.lazyServiceCollection.IndexOf(item);
-    }
-
-    /// <inheritdoc />
-    public void Insert(int index, ServiceDescriptor item)
-    {
-        this.lazyServiceCollection.Insert(index, item);
-    }
-
-    /// <inheritdoc />
-    public void RemoveAt(int index)
-    {
-        this.lazyServiceCollection.RemoveAt(index);
-    }
-
-    /// <inheritdoc />
-    public IEnumerator<ServiceDescriptor> GetEnumerator()
-    {
-        return this.lazyServiceCollection.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
+            foreach (var descriptor in lifetimeComponent.GetServiceDescriptors())
+            {
+                serviceCollection.Add(descriptor);
+            }
+        }
+        return serviceCollection;
     }
 }

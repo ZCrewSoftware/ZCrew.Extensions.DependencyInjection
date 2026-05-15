@@ -7,7 +7,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     service types based on the chosen selection strategy (e.g. all interfaces, default interfaces, self, base
 ///     types). All generated descriptors use <see cref="ServiceLifetime.Singleton"/> by default.
 /// </summary>
-public sealed class ServiceSelector : ServiceSource, IServiceSelector
+internal sealed class ServiceSelector : IServiceSelector
 {
     private readonly IEnumerable<Type> types;
     private readonly IEnumerable<Type> baseTypes;
@@ -112,44 +112,23 @@ public sealed class ServiceSelector : ServiceSource, IServiceSelector
         return SelectFromBase((_, basesTypes) => basesTypes);
     }
 
-    /// <inheritdoc />
-    protected override IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime)
+    private KeyedServiceSelector SelectFromType(Func<Type, IEnumerable<Type>> serviceSelector)
     {
-        return SelectFromType(type => [type], lifetime);
-    }
-
-    private KeyedServiceSelector SelectFromType(
-        Func<Type, IEnumerable<Type>> serviceSelector,
-        ServiceLifetime lifetime = ServiceLifetime.Singleton
-    )
-    {
-        var descriptors = new LinkedList<ServiceDescriptor>();
-        foreach (var type in this.types)
-        {
-            var services = serviceSelector(type);
-            foreach (var service in services)
-            {
-                var descriptor = new ServiceDescriptor(service, type, lifetime);
-                descriptors.AddLast(descriptor);
-            }
-        }
-        return new KeyedServiceSelector(descriptors);
+        return new KeyedServiceSelector(
+            this.types.Select(type => new ServiceComponent(type, serviceSelector(type).ToArray()))
+        );
     }
 
     private KeyedServiceSelector SelectFromBase(Func<Type, Type[], IEnumerable<Type>> serviceSelector)
     {
-        var descriptors = new LinkedList<ServiceDescriptor>();
-        foreach (var type in this.types)
-        {
-            var assignableBaseTypes = GetBaseTypes(type);
-            var services = serviceSelector(type, assignableBaseTypes);
-            foreach (var service in services)
+        return new KeyedServiceSelector(
+            this.types.Select(type =>
             {
-                var descriptor = new ServiceDescriptor(service, type, ServiceLifetime.Singleton);
-                descriptors.AddLast(descriptor);
-            }
-        }
-        return new KeyedServiceSelector(descriptors);
+                var assignableBaseTypes = GetBaseTypes(type);
+                var services = serviceSelector(type, assignableBaseTypes).ToArray();
+                return new ServiceComponent(type, services);
+            })
+        );
     }
 
     private Type[] GetDerivedTypes(Type type, IEnumerable<Type> potentialBases)
