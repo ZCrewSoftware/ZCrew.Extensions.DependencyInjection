@@ -117,7 +117,10 @@ public class TypesServiceSelectionTests
     public void AsDefaultInterfaces_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Act
-        var result = Types.From(typeof(CustomerService), typeof(EmailNotificationSender)).AsDefaultInterfaces().Collect();
+        var result = Types
+            .From(typeof(CustomerService), typeof(EmailNotificationSender))
+            .AsDefaultInterfaces()
+            .Collect();
 
         // Assert
         Assert.Contains(
@@ -252,7 +255,8 @@ public class TypesServiceSelectionTests
         // Act
         var result = Types
             .From(typeof(CustomerService), typeof(OrderService))
-            .AsInterfaces(typeof(ICustomerService), typeof(IOrderService)).Collect();
+            .AsInterfaces(typeof(ICustomerService), typeof(IOrderService))
+            .Collect();
 
         // Assert
         Assert.Contains(
@@ -271,7 +275,8 @@ public class TypesServiceSelectionTests
         // Act
         var result = Types
             .From(typeof(SqlCustomerRepository), typeof(SqlOrderRepository))
-            .AsInterfaces(typeof(IRepository<>)).Collect();
+            .AsInterfaces(typeof(IRepository<>))
+            .Collect();
 
         // Assert
         Assert.Contains(

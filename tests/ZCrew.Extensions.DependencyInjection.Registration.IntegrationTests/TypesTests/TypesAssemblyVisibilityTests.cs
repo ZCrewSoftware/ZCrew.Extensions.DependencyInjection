@@ -44,7 +44,12 @@ public class TypesAssemblyVisibilityTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Types.FromAssembly(assembly).IncludePublicTypes().InNamespace(DomainServicesNamespace).AsSelf().Collect();
+        var result = Types
+            .FromAssembly(assembly)
+            .IncludePublicTypes()
+            .InNamespace(DomainServicesNamespace)
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -58,7 +63,12 @@ public class TypesAssemblyVisibilityTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Types.FromAssembly(assembly).IncludeInternalTypes().InNamespace(DomainServicesNamespace).AsSelf().Collect();
+        var result = Types
+            .FromAssembly(assembly)
+            .IncludeInternalTypes()
+            .InNamespace(DomainServicesNamespace)
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -72,7 +82,12 @@ public class TypesAssemblyVisibilityTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Types.FromAssembly(assembly).IncludeInternalTypes().InNamespace(DomainServicesNamespace).AsSelf().Collect();
+        var result = Types
+            .FromAssembly(assembly)
+            .IncludeInternalTypes()
+            .InNamespace(DomainServicesNamespace)
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -87,7 +102,12 @@ public class TypesAssemblyVisibilityTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Types.FromAssembly(assembly).IncludeAllTypes().InNamespace(DomainServicesNamespace).AsSelf().Collect();
+        var result = Types
+            .FromAssembly(assembly)
+            .IncludeAllTypes()
+            .InNamespace(DomainServicesNamespace)
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

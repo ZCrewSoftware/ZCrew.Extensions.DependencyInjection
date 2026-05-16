@@ -18,21 +18,23 @@ internal sealed class KeyedServiceSelector : IKeyedServiceSelector
     /// <inheritdoc />
     public IServiceSource Keyed()
     {
-        return Keyed((implementationType, serviceType) =>
-        {
-            var implementationName = StripGenericArity(implementationType.Name);
-            var serviceName = StripGenericArity(serviceType.GetInterfaceName());
-
-            // The implementation and service may be the same type, so ensure there is a prefix differentiating them
-            if (implementationName.EndsWith(serviceName) && implementationName.Length > serviceName.Length)
+        return Keyed(
+            (implementationType, serviceType) =>
             {
-                var serviceKeyString = new string(implementationName[..^serviceName.Length]);
-                return serviceKeyString;
-            }
+                var implementationName = StripGenericArity(implementationType.Name);
+                var serviceName = StripGenericArity(serviceType.GetInterfaceName());
 
-            // Implementation name did not end with service name, no service key can be extracted automatically
-            return null;
-        });
+                // The implementation and service may be the same type, so ensure there is a prefix differentiating them
+                if (implementationName.EndsWith(serviceName) && implementationName.Length > serviceName.Length)
+                {
+                    var serviceKeyString = new string(implementationName[..^serviceName.Length]);
+                    return serviceKeyString;
+                }
+
+                // Implementation name did not end with service name, no service key can be extracted automatically
+                return null;
+            }
+        );
     }
 
     /// <inheritdoc />

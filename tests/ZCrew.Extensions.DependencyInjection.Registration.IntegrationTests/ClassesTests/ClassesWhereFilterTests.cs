@@ -15,7 +15,8 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .Where(t => t.Name.EndsWith("Service"))
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -33,7 +34,8 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(OrderValidator))
             .Where(t => t.Name.EndsWith("Service"))
             .Where(t => t.Name.StartsWith("Customer"))
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -48,7 +50,8 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .BasedOn<ICustomerService>()
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -71,7 +74,8 @@ public class ClassesWhereFilterTests
                 typeof(PayPalPaymentGateway)
             )
             .BasedOn(typeof(IValidator<>))
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -93,7 +97,8 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(PayPalPaymentGateway))
             .BasedOn(typeof(ICustomerService), typeof(IOrderService))
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         var implementationTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -111,7 +116,8 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .Where(t => !t.Name.StartsWith("Caching"))
             .BasedOn<ICustomerService>()
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -127,7 +133,8 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService))
             .AllTypes()
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -145,7 +152,8 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderService), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn<IOrderService>()
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         var implementationTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -162,7 +170,8 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn(typeof(IValidator<>))
-            .AsBase().Collect();
+            .AsBase()
+            .Collect();
 
         // Assert
         Assert.Contains(

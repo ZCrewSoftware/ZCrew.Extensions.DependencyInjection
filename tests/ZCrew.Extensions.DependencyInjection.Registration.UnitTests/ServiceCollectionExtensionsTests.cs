@@ -124,9 +124,7 @@ public class ServiceCollectionExtensionsTests
     public void AddSingleton_WhenCalled_ShouldReturnSameServiceCollection()
     {
         // Arrange
-        var source = CreateMock<IServiceSource>(
-            ServiceDescriptor.Transient<ICustomerService, CustomerService>()
-        );
+        var source = CreateMock<IServiceSource>(ServiceDescriptor.Transient<ICustomerService, CustomerService>());
         var services = new ServiceCollection();
 
         // Act
@@ -148,5 +146,4 @@ public class ServiceCollectionExtensionsTests
         mock.Collect().Returns(collection);
         return mock;
     }
-
 }

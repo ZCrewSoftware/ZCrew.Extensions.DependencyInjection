@@ -46,7 +46,8 @@ public class ClassesEntryPointTests
                 typeof(PricingDefaults),
                 typeof(OrderValidator)
             )
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

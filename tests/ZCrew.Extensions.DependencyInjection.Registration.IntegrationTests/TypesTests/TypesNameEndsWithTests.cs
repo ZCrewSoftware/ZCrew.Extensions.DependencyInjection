@@ -12,10 +12,7 @@ public class TypesNameEndsWithTests
     public void NameEndsWith_WithSuffix_ShouldFilterToMatchingTypes()
     {
         // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .NameEndsWith("Service")
-            .AsSelf().Collect();
+        var result = Types.FromAssemblyContaining<CustomerService>().NameEndsWith("Service").AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -33,10 +30,7 @@ public class TypesNameEndsWithTests
     public void NameEndsWith_WithNoMatches_ShouldReturnEmpty()
     {
         // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .NameEndsWith("Nonexistent")
-            .AsSelf().Collect();
+        var result = Types.FromAssemblyContaining<CustomerService>().NameEndsWith("Nonexistent").AsSelf().Collect();
 
         // Assert
         Assert.Empty(result);
@@ -46,10 +40,7 @@ public class TypesNameEndsWithTests
     public void NameEndsWith_WithWrongCase_ShouldNotMatch()
     {
         // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .NameEndsWith("service")
-            .AsSelf().Collect();
+        var result = Types.FromAssemblyContaining<CustomerService>().NameEndsWith("service").AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -63,7 +54,8 @@ public class TypesNameEndsWithTests
         var result = Types
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("service", ignoreCase: true)
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -80,7 +72,8 @@ public class TypesNameEndsWithTests
         var result = Types
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("service", ignoreCase: false)
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -94,7 +87,8 @@ public class TypesNameEndsWithTests
         var result = Types
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("gateway", StringComparison.OrdinalIgnoreCase)
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -108,10 +102,7 @@ public class TypesNameEndsWithTests
     public void NameEndsWith_WithGenericTypes_ShouldStripArityBeforeMatching()
     {
         // Act
-        var result = Types
-            .FromAssemblyContaining<CustomerService>()
-            .NameEndsWith("Repository")
-            .AsSelf().Collect();
+        var result = Types.FromAssemblyContaining<CustomerService>().NameEndsWith("Repository").AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -129,7 +120,8 @@ public class TypesNameEndsWithTests
             .FromAssemblyContaining<CustomerService>()
             .Where(t => !t.Name.StartsWith("Sql"))
             .NameEndsWith("Repository")
-            .AsSelf().Collect();
+            .AsSelf()
+            .Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

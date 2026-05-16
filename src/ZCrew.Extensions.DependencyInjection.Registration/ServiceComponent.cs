@@ -32,7 +32,13 @@ internal readonly record struct ServiceComponent
     /// <param name="lifetime">The service lifetime.</param>
     /// <param name="serviceKey">The shared service key.</param>
     /// <param name="serviceKeyProvider">The dynamic service key provider.</param>
-    private ServiceComponent(Type implementation, IReadOnlyList<Type> services, ServiceLifetime lifetime, object? serviceKey, Func<Type, Type, object?>? serviceKeyProvider)
+    private ServiceComponent(
+        Type implementation,
+        IReadOnlyList<Type> services,
+        ServiceLifetime lifetime,
+        object? serviceKey,
+        Func<Type, Type, object?>? serviceKeyProvider
+    )
     {
         this.implementation = implementation;
         this.services = services;
@@ -52,7 +58,13 @@ internal readonly record struct ServiceComponent
             return this;
         }
 
-        return new ServiceComponent(this.implementation, this.services, lifetime, this.serviceKey, this.serviceKeyProvider);
+        return new ServiceComponent(
+            this.implementation,
+            this.services,
+            lifetime,
+            this.serviceKey,
+            this.serviceKeyProvider
+        );
     }
 
     /// <summary>

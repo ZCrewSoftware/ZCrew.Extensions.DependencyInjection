@@ -51,7 +51,10 @@ public class ClassesServiceSelectionTests
     public void AsDefaultInterfaces_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Act
-        var result = Classes.From(typeof(CustomerService), typeof(EmailNotificationSender)).AsDefaultInterfaces().Collect();
+        var result = Classes
+            .From(typeof(CustomerService), typeof(EmailNotificationSender))
+            .AsDefaultInterfaces()
+            .Collect();
 
         // Assert
         Assert.Contains(
@@ -172,7 +175,11 @@ public class ClassesServiceSelectionTests
     public void As_WithBaseTypeContext_ShouldReceiveResolvedBaseTypes()
     {
         // Act
-        var result = Classes.From(typeof(CustomerService)).BasedOn<ICustomerService>().As((_, bases) => bases).Collect();
+        var result = Classes
+            .From(typeof(CustomerService))
+            .BasedOn<ICustomerService>()
+            .As((_, bases) => bases)
+            .Collect();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -186,7 +193,8 @@ public class ClassesServiceSelectionTests
         // Act
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService))
-            .AsInterfaces(typeof(ICustomerService), typeof(IOrderService)).Collect();
+            .AsInterfaces(typeof(ICustomerService), typeof(IOrderService))
+            .Collect();
 
         // Assert
         Assert.Contains(
@@ -205,7 +213,8 @@ public class ClassesServiceSelectionTests
         // Act
         var result = Classes
             .From(typeof(SqlCustomerRepository), typeof(SqlOrderRepository))
-            .AsInterfaces(typeof(IRepository<>)).Collect();
+            .AsInterfaces(typeof(IRepository<>))
+            .Collect();
 
         // Assert
         Assert.Contains(
