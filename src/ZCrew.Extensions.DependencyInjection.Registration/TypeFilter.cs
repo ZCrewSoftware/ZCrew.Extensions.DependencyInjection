@@ -27,7 +27,27 @@ internal sealed class TypeFilter : ITypeFilter
     /// <inheritdoc />
     public IServiceSelector AllTypes()
     {
-        return new ServiceSelector(this.types, this.baseTypes);
+        // If we're just checking the default (based on object) then all types will pass
+        if (ReferenceEquals(this.baseTypes, defaultBases))
+        {
+            return new ServiceSelector(this.types, this.baseTypes);
+        }
+
+        var baseTypesArray = this.baseTypes as Type[] ?? this.baseTypes.ToArray();
+        var filteredTypes = this.types.Where(type => IsAssignableToAnyBase(type, baseTypesArray));
+        return new ServiceSelector(filteredTypes, baseTypesArray);
+    }
+
+    private static bool IsAssignableToAnyBase(Type type, Type[] baseTypes)
+    {
+        foreach (var baseType in baseTypes)
+        {
+            if (type.IsBasedOn(baseType))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <inheritdoc />

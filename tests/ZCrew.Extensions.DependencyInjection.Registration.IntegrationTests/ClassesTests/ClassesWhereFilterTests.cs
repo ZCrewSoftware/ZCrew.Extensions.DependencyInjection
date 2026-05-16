@@ -15,7 +15,7 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .Where(t => t.Name.EndsWith("Service"))
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -33,7 +33,7 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(OrderValidator))
             .Where(t => t.Name.EndsWith("Service"))
             .Where(t => t.Name.StartsWith("Customer"))
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -48,7 +48,7 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .BasedOn<ICustomerService>()
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -71,7 +71,7 @@ public class ClassesWhereFilterTests
                 typeof(PayPalPaymentGateway)
             )
             .BasedOn(typeof(IValidator<>))
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -93,7 +93,7 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService), typeof(PayPalPaymentGateway))
             .BasedOn(typeof(ICustomerService), typeof(IOrderService))
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         var implementationTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -111,7 +111,7 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(CachingCustomerService), typeof(OrderService), typeof(ProductService))
             .Where(t => !t.Name.StartsWith("Caching"))
             .BasedOn<ICustomerService>()
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         var descriptors = result.ToArray();
@@ -127,7 +127,7 @@ public class ClassesWhereFilterTests
         var result = Classes
             .From(typeof(CustomerService), typeof(OrderService), typeof(ProductService))
             .AllTypes()
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -145,7 +145,7 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderService), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn<IOrderService>()
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         var implementationTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -162,7 +162,7 @@ public class ClassesWhereFilterTests
             .From(typeof(CustomerService), typeof(OrderValidator), typeof(PayPalPaymentGateway))
             .BasedOn<ICustomerService>()
             .BasedOn(typeof(IValidator<>))
-            .AsBase();
+            .AsBase().Collect();
 
         // Assert
         Assert.Contains(
@@ -183,7 +183,7 @@ public class ClassesWhereFilterTests
         var filter = Classes.From(typeof(CustomerService), typeof(OrderService)).BasedOn<ICustomerService>();
 
         // Act
-        var result = filter.AsServiceCollection();
+        var result = filter.Collect();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -198,7 +198,7 @@ public class ClassesWhereFilterTests
         var filter = Classes.FromAssemblyContaining<CustomerService>().Where(t => t == typeof(CustomerService));
 
         // Act
-        var result = filter.AsServiceCollection();
+        var result = filter.Collect();
 
         // Assert
         var descriptor = Assert.Single(result);

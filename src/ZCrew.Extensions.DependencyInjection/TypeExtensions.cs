@@ -153,6 +153,62 @@ public static class TypeExtensions
         }
 
         /// <summary>
+        ///     Returns <see langword="true"/> if the type is assignable to, inherits from, or implements
+        ///     <paramref name="baseType"/>. Open generic <paramref name="baseType"/> values are matched against any
+        ///     constructed form found on the type itself, its interfaces, or its base class chain.
+        /// </summary>
+        /// <param name="baseType">
+        ///     The base type, interface, or open generic type definition to test against.
+        /// </param>
+        /// <example>
+        ///     Given the following hierarchy:
+        ///     <code>
+        ///     class BaseRepo&lt;T&gt; { }
+        ///     class CustomerRepo : BaseRepo&lt;Customer&gt; { }
+        ///     </code>
+        ///     Both of the following return <see langword="true"/>:
+        ///     <code>
+        ///     typeof(CustomerRepo).IsBasedOn(typeof(BaseRepo&lt;&gt;));
+        ///     typeof(CustomerRepo).IsBasedOn(typeof(BaseRepo&lt;Customer&gt;));
+        ///     </code>
+        /// </example>
+        public bool IsBasedOn(Type baseType)
+        {
+            if (baseType.IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            if (!baseType.IsGenericTypeDefinition)
+            {
+                return false;
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == baseType)
+            {
+                return true;
+            }
+
+            foreach (var @interface in type.GetInterfaces())
+            {
+                if (@interface.IsGenericType && @interface.GetGenericTypeDefinition() == baseType)
+                {
+                    return true;
+                }
+            }
+
+            for (var current = type.BaseType; current != null; current = current.BaseType)
+            {
+                if (current.IsGenericType && current.GetGenericTypeDefinition() == baseType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         ///     Returns the name without any generic arity.
         /// </summary>
         /// <returns>The name of the type without the generic arity.</returns>

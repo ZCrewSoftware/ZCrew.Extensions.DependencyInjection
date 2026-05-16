@@ -1,12 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using Fixtures.SmallProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-[SuppressMessage("ReSharper", "GenericEnumeratorNotDisposed")]
 public class ServiceCollectionExtensionsTests
 {
     [Fact]
@@ -140,11 +137,15 @@ public class ServiceCollectionExtensionsTests
     }
 
     private static T CreateMock<T>(params ServiceDescriptor[] descriptors)
-        where T : class, IEnumerable<ServiceDescriptor>
+        where T : class, IServiceSource
     {
         var mock = Substitute.For<T>();
-        IEnumerable<ServiceDescriptor> descriptorList = descriptors;
-        mock.GetEnumerator().Returns(_ => descriptorList.GetEnumerator());
+        IServiceCollection collection = new ServiceCollection();
+        foreach (var descriptor in descriptors)
+        {
+            collection.Add(descriptor);
+        }
+        mock.Collect().Returns(collection);
         return mock;
     }
 

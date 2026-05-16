@@ -13,7 +13,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("Service")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -31,7 +31,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("Nonexistent")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         Assert.Empty(result);
@@ -44,7 +44,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("service")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -58,7 +58,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("service", ignoreCase: true)
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -74,7 +74,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("service", ignoreCase: false)
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -88,7 +88,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("gateway", StringComparison.OrdinalIgnoreCase)
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -104,7 +104,7 @@ public class ClassesNameEndsWithTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .NameEndsWith("Repository")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -121,7 +121,7 @@ public class ClassesNameEndsWithTests
             .FromAssemblyContaining<CustomerService>()
             .Where(t => !t.Name.StartsWith("Sql"))
             .NameEndsWith("Repository")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

@@ -90,28 +90,6 @@ internal readonly record struct ServiceComponent
     /// <returns></returns>
     public IEnumerable<ServiceDescriptor> GetServiceDescriptors()
     {
-        return IsAnchoringRequired() ? GetAnchoredServiceDescriptors() : GetUnanchoredServiceDescriptors();
-    }
-
-    private bool IsAnchoringRequired()
-    {
-        // Transient types won't benefit from anchoring
-        if (this.lifetime == ServiceLifetime.Transient)
-        {
-            return false;
-        }
-
-        // Open generic types can't be anchored
-        if (this.implementation.IsGenericTypeDefinition)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private IEnumerable<ServiceDescriptor> GetUnanchoredServiceDescriptors()
-    {
         foreach (var service in this.services)
         {
             if (this.serviceKeyProvider != null)
@@ -124,54 +102,6 @@ internal readonly record struct ServiceComponent
                 // If the service key is null then it's a non-keyed service anyway
                 yield return new ServiceDescriptor(service, this.serviceKey, this.implementation, this.lifetime);
             }
-        }
-    }
-
-    private IEnumerable<ServiceDescriptor> GetAnchoredServiceDescriptors()
-    {
-        var isAnchorBeingRegistered = this.services.Contains(this.implementation);
-
-        var component = this;
-        Func<IServiceProvider, object?, object> anchorForwarder;
-        if (isAnchorBeingRegistered)
-        {
-            yield return new ServiceDescriptor(this.implementation, this.implementation, this.lifetime);
-            anchorForwarder = (sp, _) => sp.GetRequiredService(component.implementation);
-        }
-        else
-        {
-            var anchorKey = new AnchorServiceKey();
-            yield return new ServiceDescriptor(this.implementation, anchorKey, this.implementation, this.lifetime);
-            anchorForwarder = (sp, _) => sp.GetRequiredKeyedService(component.implementation, anchorKey);
-        }
-        foreach (var service in this.services)
-        {
-            // Always skip the anchor if it is present; it was registered above
-            if (service == this.implementation)
-            {
-                continue;
-            }
-
-            if (this.serviceKeyProvider != null)
-            {
-                var specificServiceKey = this.serviceKeyProvider(this.implementation, service);
-                yield return new ServiceDescriptor(service, specificServiceKey, anchorForwarder, this.lifetime);
-            }
-            else
-            {
-                // If service key is null then the forwarder drops it's key parameter
-                yield return new ServiceDescriptor(service, this.serviceKey, anchorForwarder, this.lifetime);
-            }
-        }
-    }
-
-    internal readonly record struct AnchorServiceKey()
-    {
-        private readonly string key = $"<zcrew:anchor:{Guid.NewGuid():N}>";
-
-        public override string ToString()
-        {
-            return this.key;
         }
     }
 }

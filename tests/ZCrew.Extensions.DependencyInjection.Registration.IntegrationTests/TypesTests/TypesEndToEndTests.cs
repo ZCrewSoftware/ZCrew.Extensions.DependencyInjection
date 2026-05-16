@@ -19,7 +19,7 @@ public class TypesEndToEndTests
             .FromAssemblyContaining<SqlCustomerRepository>()
             .BasedOn(typeof(IRepository<>))
             .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
-            .AsInterface();
+            .AsInterface().Collect();
 
         // Assert
         Assert.Contains(
@@ -39,7 +39,7 @@ public class TypesEndToEndTests
         var result = Types
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
-            .AsDefaultNonSystemInterfaces();
+            .AsDefaultNonSystemInterfaces().Collect();
 
         // Assert
         Assert.Contains(
@@ -65,7 +65,7 @@ public class TypesEndToEndTests
             .FromAssemblyContaining<OrderValidator>()
             .BasedOn(typeof(IValidator<>))
             .InNamespace("Fixtures.SmallProject.Domain.Services")
-            .AsInterface();
+            .AsInterface().Collect();
 
         // Assert
         Assert.Contains(
@@ -85,7 +85,7 @@ public class TypesEndToEndTests
         var result = Types
             .FromAssemblyContaining<PayPalPaymentGateway>()
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
-            .AsAllNonSystemInterfaces();
+            .AsAllNonSystemInterfaces().Collect();
 
         // Assert
         Assert.Contains(
@@ -107,7 +107,7 @@ public class TypesEndToEndTests
             .FromAssemblyContaining<CustomerService>()
             .Where(t => t.IsInterface)
             .InNamespace("Fixtures.SmallProject.Application.Services")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -124,7 +124,7 @@ public class TypesEndToEndTests
         var result = Types
             .FromAssemblyContaining<OrderValidator>()
             .InNamespace("Fixtures.SmallProject.Domain.Services")
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

@@ -19,7 +19,7 @@ public class ClassesEndToEndTests
             .FromAssemblyContaining<SqlCustomerRepository>()
             .BasedOn(typeof(IRepository<>))
             .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
-            .AsInterface();
+            .AsInterface().Collect();
 
         // Assert
         Assert.Contains(
@@ -39,7 +39,7 @@ public class ClassesEndToEndTests
         var result = Classes
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
-            .AsDefaultNonSystemInterfaces();
+            .AsDefaultNonSystemInterfaces().Collect();
 
         // Assert
         Assert.Contains(
@@ -65,7 +65,7 @@ public class ClassesEndToEndTests
             .FromAssemblyContaining<OrderValidator>()
             .BasedOn(typeof(IValidator<>))
             .InNamespace("Fixtures.SmallProject.Domain.Services")
-            .AsInterface();
+            .AsInterface().Collect();
 
         // Assert
         Assert.Contains(
@@ -85,7 +85,7 @@ public class ClassesEndToEndTests
         var result = Classes
             .FromAssemblyContaining<PayPalPaymentGateway>()
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
-            .AsAllNonSystemInterfaces();
+            .AsAllNonSystemInterfaces().Collect();
 
         // Assert
         Assert.Contains(

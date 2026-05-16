@@ -13,7 +13,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
             .AsInterface<IPaymentGateway>()
-            .Keyed();
+            .Keyed().Collect();
 
         // Assert
         Assert.Contains(
@@ -39,7 +39,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
             .AsInterface<IPaymentGateway>()
-            .Keyed("myKey");
+            .Keyed("myKey").Collect();
 
         // Assert
         Assert.All(result, d => Assert.Equal("myKey", d.ServiceKey));
@@ -53,7 +53,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
             .AsInterface<IPaymentGateway>()
-            .Keyed((object?)null);
+            .Keyed((object?)null).Collect();
 
         // Assert
         Assert.All(result, d => Assert.False(d.IsKeyedService));
@@ -66,7 +66,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
             .AsInterface<IPaymentGateway>()
-            .Keyed(type => type.Name);
+            .Keyed(type => type.Name).Collect();
 
         // Assert
         Assert.Contains(
@@ -92,7 +92,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(EmailNotificationSender), typeof(SmsNotificationSender))
             .AsInterface<INotificationSender>()
-            .Keyed((impl, svc) => $"{impl.Name}:{svc.Name}");
+            .Keyed((impl, svc) => $"{impl.Name}:{svc.Name}").Collect();
 
         // Assert
         Assert.Contains(
@@ -112,7 +112,7 @@ public class ClassesKeyedServiceTests
         var result = Classes
             .From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
             .AsInterface<IPaymentGateway>()
-            .Keyed(type => type == typeof(PayPalPaymentGateway) ? "PayPal" : null);
+            .Keyed(type => type == typeof(PayPalPaymentGateway) ? "PayPal" : null).Collect();
 
         // Assert
         Assert.Contains(
@@ -132,7 +132,7 @@ public class ClassesKeyedServiceTests
         // and stripping would yield empty string
 
         // Act
-        var result = Classes.From(typeof(PayPalPaymentGateway)).AsSelf().Keyed();
+        var result = Classes.From(typeof(PayPalPaymentGateway)).AsSelf().Keyed().Collect();
 
         // Assert
         var descriptor = Assert.Single(result);

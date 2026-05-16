@@ -22,7 +22,7 @@ public class ClassesEntryPointTests
         ];
 
         // Act
-        var result = Classes.From(types).AsSelf();
+        var result = Classes.From(types).AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -46,7 +46,7 @@ public class ClassesEntryPointTests
                 typeof(PricingDefaults),
                 typeof(OrderValidator)
             )
-            .AsSelf();
+            .AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -65,7 +65,7 @@ public class ClassesEntryPointTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Classes.FromAssembly(assembly).AsSelf();
+        var result = Classes.FromAssembly(assembly).AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -79,7 +79,7 @@ public class ClassesEntryPointTests
     public void FromAssemblyContaining_WithType_ShouldScanCorrectAssembly()
     {
         // Act
-        var result = Classes.FromAssemblyContaining(typeof(CustomerService)).AsSelf();
+        var result = Classes.FromAssemblyContaining(typeof(CustomerService)).AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -92,7 +92,7 @@ public class ClassesEntryPointTests
     public void FromAssemblyContaining_WithGeneric_ShouldScanCorrectAssembly()
     {
         // Act
-        var result = Classes.FromAssemblyContaining<CustomerService>().AsSelf();
+        var result = Classes.FromAssemblyContaining<CustomerService>().AsSelf().Collect();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -145,7 +145,7 @@ public class ClassesEntryPointTests
     public void From_WhenCalled_ShouldDefaultToSingletonLifetime()
     {
         // Act
-        var result = Classes.From(typeof(CustomerService)).AsSelf();
+        var result = Classes.From(typeof(CustomerService)).AsSelf().Collect();
 
         // Assert
         Assert.All(result, descriptor => Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime));
@@ -158,7 +158,7 @@ public class ClassesEntryPointTests
         var selector = Classes.From(typeof(CustomerService));
 
         // Act
-        var result = selector.AsServiceCollection();
+        var result = selector.Collect();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -171,7 +171,7 @@ public class ClassesEntryPointTests
     public void FromThisAssembly_WhenCalled_ShouldScanCallingAssembly()
     {
         // Act
-        var result = Classes.FromThisAssembly().Where(t => t == typeof(ClassesEntryPointTests)).AsSelf();
+        var result = Classes.FromThisAssembly().Where(t => t == typeof(ClassesEntryPointTests)).AsSelf().Collect();
 
         // Assert
         var descriptor = Assert.Single(result);
