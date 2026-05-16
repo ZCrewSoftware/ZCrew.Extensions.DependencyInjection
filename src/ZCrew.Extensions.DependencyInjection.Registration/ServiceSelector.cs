@@ -76,27 +76,27 @@ internal sealed class ServiceSelector : IServiceSelector
     /// <inheritdoc />
     public IKeyedServiceSelector AsInterface()
     {
-        return SelectFromBase(GetDerivedTypes);
+        return SelectFromBase(GetTopLevelInterfacesBasedOnAny);
     }
 
     /// <inheritdoc />
     public IKeyedServiceSelector AsInterface<T>()
     {
-        return SelectFromType(type => GetDerivedTypes(type, [typeof(T)]));
+        return SelectFromType(type => GetTopLevelInterfacesBasedOnAny(type, [typeof(T)]));
     }
 
     /// <inheritdoc />
     public IKeyedServiceSelector AsInterface(Type interfaceType)
     {
         ArgumentNullException.ThrowIfNull(interfaceType);
-        return SelectFromType(type => GetDerivedTypes(type, [interfaceType]));
+        return SelectFromType(type => GetTopLevelInterfacesBasedOnAny(type, [interfaceType]));
     }
 
     /// <inheritdoc />
     public IKeyedServiceSelector AsInterfaces(params Type[] interfaceTypes)
     {
         ArgumentNullException.ThrowIfNull(interfaceTypes);
-        return SelectFromType(type => GetDerivedTypes(type, interfaceTypes));
+        return SelectFromType(type => GetTopLevelInterfacesBasedOnAny(type, interfaceTypes));
     }
 
     /// <inheritdoc />
@@ -124,109 +124,148 @@ internal sealed class ServiceSelector : IServiceSelector
         return new KeyedServiceSelector(
             this.types.Select(type =>
             {
-                var assignableBaseTypes = GetBaseTypes(type);
+                var assignableBaseTypes = GetBaseTypes(type).ToArray();
                 var services = serviceSelector(type, assignableBaseTypes).ToArray();
                 return new ServiceComponent(type, services);
             })
         );
     }
 
-    private Type[] GetDerivedTypes(Type type, IEnumerable<Type> potentialBases)
+    /// <summary>
+    ///     Returns the most-derived interfaces of <paramref name="type"/> that are based on at least one of
+    ///     <paramref name="potentialBases"/>. The returned values are <paramref name="type"/>'s own top-level
+    ///     interfaces, the closest derived form to the implementation, so the DI container can resolve them.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         If no top-level interface of <paramref name="type"/> is based on any of
+    ///         <paramref name="potentialBases"/>, an empty array is returned and the type produces no
+    ///         registrations. This matches the documented contract on
+    ///         <see cref="IServiceSelector.AsInterface()"/> and its overloads.
+    ///     </para>
+    ///     <para>
+    ///         When a matched top-level interface carries unbound generic parameters from
+    ///         <paramref name="type"/> (e.g. an open-generic class implementing a generic interface), it is
+    ///         collapsed to its generic type definition so the produced service type is resolvable by the
+    ///         DI container &#8212; the same rule applied by <see cref="AddIfGenericBaseType"/>.
+    ///     </para>
+    /// </remarks>
+    /// <example>
+    ///     Consider the following 4 types:
+    ///     <code>
+    ///         public interface IRepository&lt;T&gt;;
+    ///         public interface ICachedRepository&lt;T&gt; : IRepository&lt;T&gt;;
+    ///         public interface ICustomerRepository : ICachedRepository&lt;Customer&gt;;
+    ///         public class CustomerRepository : ICustomerRepository;
+    ///     </code>
+    ///
+    ///     We can see that <c>ICachedRepository&lt;T&gt;</c> and <c>ICustomerRepository</c> both <i>derive</i> from
+    ///     <c>IRepository&lt;&gt;</c>. <c>ICustomerRepository</c> is <i>more-derived</i> or <i>closer</i> to
+    ///     <c>CustomerRepository</c>. Calling this method will return the closest interface that derives
+    ///     <c>IRepository&lt;&gt;</c>:
+    ///
+    ///     <code>
+    ///         // types is [typeof(ICustomerRepository)]
+    ///         var types = GetTopLevelInterfacesBasedOnAny(typeof(CustomerRepository), [typeof(IRepository&lt;&gt;)]);
+    ///     </code>
+    /// </example>
+    private static IEnumerable<Type> GetTopLevelInterfacesBasedOnAny(Type type, Type[] potentialBases)
     {
-        var potentialBasesArray = potentialBases.ToArray();
         var matches = new HashSet<Type>();
-
-        var topLevelInterfaces = type.GetTopLevelInterfaces();
-        foreach (var topLevelInterface in topLevelInterfaces)
+        foreach (var topLevelInterface in type.GetTopLevelInterfaces())
         {
-            foreach (var interfaceType in potentialBasesArray)
+            foreach (var potentialBase in potentialBases)
             {
-                if (interfaceType.IsAssignableFrom(topLevelInterface))
-                {
-                    matches.Add(topLevelInterface);
-                    break;
-                }
-
-                if (!interfaceType.IsGenericTypeDefinition)
+                if (!topLevelInterface.IsBasedOn(potentialBase))
                 {
                     continue;
                 }
 
-                if (topLevelInterface.IsGenericType && topLevelInterface.GetGenericTypeDefinition() == interfaceType)
-                {
-                    matches.Add(topLevelInterface);
-                    break;
-                }
-
-                if (
-                    topLevelInterface
-                        .GetInterfaces()
-                        .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType)
-                )
-                {
-                    matches.Add(topLevelInterface);
-                    break;
-                }
+                // If the matched interface carries unbound generic parameters, register the open form
+                // so the DI container can resolve it - this would register 'IStep' borrowed from
+                // 'LoggingStep<TContext>' as the open 'Pipeline<>.IStep'
+                matches.Add(
+                    topLevelInterface.ContainsGenericParameters
+                        ? topLevelInterface.GetGenericTypeDefinition()
+                        : topLevelInterface
+                );
+                break;
             }
         }
 
-        if (matches.Count != 0)
-        {
-            return matches.ToArray();
-        }
-
-        // Slight deviation from Castle Windsor: this will register generic base
-        // types - this feels like an oversight from the original impl
-        return potentialBasesArray;
+        return matches;
     }
 
-    private Type[] GetBaseTypes(Type type)
+    /// <summary>
+    ///     Returns the constructed-or-open forms of <see cref="baseTypes"/> that <paramref name="type"/> derives from,
+    ///     used by <see cref="AsBase"/> to map an implementation to its configured base service types.
+    /// </summary>
+    /// <remarks>
+    ///     Walks <paramref name="type"/>'s interfaces and base class chain. Open generic bases are matched against
+    ///     constructed forms; bound forms (e.g. <c>IRepository&lt;Customer&gt;</c>) are returned as-is, unbound forms
+    ///     fall back to the open generic. <paramref name="type"/> itself is never included &#8212; registering a type
+    ///     against itself is <see cref="AsSelf"/>'s responsibility.
+    /// </remarks>
+    private IEnumerable<Type> GetBaseTypes(Type type)
     {
-        var actuallyBasedOn = new HashSet<Type>();
+        var results = new HashSet<Type>();
         foreach (var potentialBase in this.baseTypes)
         {
-            if (potentialBase.IsAssignableFrom(type))
-            {
-                actuallyBasedOn.Add(potentialBase);
-                continue;
-            }
-
-            if (!potentialBase.IsGenericTypeDefinition)
-            {
-                continue;
-            }
-
-            var genericBaseTypes = GetGenericBaseTypes(type, potentialBase);
-            actuallyBasedOn.UnionWith(genericBaseTypes);
+            AddMatchedBaseForms(type, potentialBase, results);
         }
-
-        return actuallyBasedOn.ToArray();
+        return results;
     }
 
-    private static Type[] GetGenericBaseTypes(Type type, Type genericInterface)
+    private static void AddMatchedBaseForms(Type type, Type baseType, HashSet<Type> results)
     {
-        var types = new List<Type>(4);
-        foreach (var @interface in type.GetInterfaces())
+        if (baseType.IsAssignableFrom(type))
         {
-            if (!@interface.IsGenericType)
-            {
-                continue;
-            }
-
-            if (@interface.GetGenericTypeDefinition() != genericInterface)
-            {
-                continue;
-            }
-
-            if (@interface.DeclaringType == null && @interface.ContainsGenericParameters)
-            {
-                types.Add(genericInterface);
-                continue;
-            }
-
-            types.Add(@interface);
+            results.Add(baseType);
+            return;
         }
 
-        return types.ToArray();
+        // All non-generic types would have matched IsAssignableFrom - if it isn't generic then it isn't a match
+        if (!baseType.IsGenericTypeDefinition)
+        {
+            return;
+        }
+
+        foreach (var @interface in type.GetInterfaces())
+        {
+            AddIfGenericBaseType(@interface, baseType, results);
+        }
+
+        for (var current = type.BaseType; current != null; current = current.BaseType)
+        {
+            AddIfGenericBaseType(current, baseType, results);
+        }
+    }
+
+    private static void AddIfGenericBaseType(Type type, Type baseType, HashSet<Type> results)
+    {
+        // We only care about generic types here, where 'IsGenericTypeDefinition' was true for baseType
+        if (!type.IsGenericType)
+        {
+            return;
+        }
+
+        // We only care about the same generic definition (without parameters)
+        // 'IRepository<>', 'IRepository<T>', and 'IRepository<Customer>' all share the same generic type definition
+        if (type.GetGenericTypeDefinition() != baseType)
+        {
+            return;
+        }
+
+        // If the interface or base type has generic type parameters then use the open form
+        // This would register 'IRepository<>' and 'IRepository<T>' as 'IRepository<>'
+        // Note: per the check above, 'baseType' is the generic definition we're after
+        if (type.ContainsGenericParameters)
+        {
+            results.Add(baseType);
+            return;
+        }
+
+        // The interface or base type is closed, this would register 'IRepository<Customer>'
+        results.Add(type);
     }
 }
