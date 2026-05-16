@@ -22,7 +22,7 @@ public static class ServiceSourceExtensions
         ///     Returns a new <see cref="IServiceSource"/> with all descriptors set to
         ///     <see cref="ServiceLifetime.Singleton"/>.
         /// </summary>
-        public IServiceSource AsSingleton()
+        public IServiceCollection AsSingleton()
         {
             return services.AsLifetime(ServiceLifetime.Singleton);
         }
@@ -31,7 +31,7 @@ public static class ServiceSourceExtensions
         ///     Returns a new <see cref="IServiceSource"/> with all descriptors set to
         ///     <see cref="ServiceLifetime.Scoped"/>.
         /// </summary>
-        public IServiceSource AsScoped()
+        public IServiceCollection AsScoped()
         {
             return services.AsLifetime(ServiceLifetime.Scoped);
         }
@@ -40,7 +40,7 @@ public static class ServiceSourceExtensions
         ///     Returns a new <see cref="IServiceSource"/> with all descriptors set to
         ///     <see cref="ServiceLifetime.Transient"/>.
         /// </summary>
-        public IServiceSource AsTransient()
+        public IServiceCollection AsTransient()
         {
             return services.AsLifetime(ServiceLifetime.Transient);
         }

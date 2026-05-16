@@ -5,8 +5,13 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     an optional stage between <see cref="IServiceSelector"/> and <see cref="IServiceSource"/> in the registration
 ///     fluent API.
 /// </summary>
-public interface IKeyedServiceSelector : IServiceSource
+public partial interface IKeyedServiceSelector : IServiceSource
 {
+    /// <summary>
+    ///     Explicitly avoid assigning a service key to each registration.
+    /// </summary>
+    IServiceSource Unkeyed();
+
     /// <summary>
     ///     Assigns a service key to each registration by convention: the implementation type name with the service
     ///     type's interface name stripped. For example, <c>PayPalPaymentGateway</c> registered as

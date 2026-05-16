@@ -5,6 +5,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 // first calls AsSelf() to accept all remaining types, then delegates to the corresponding IKeyedServiceSelector method.
 public partial interface IServiceSelector
 {
+    IServiceSource IKeyedServiceSelector.Unkeyed()
+    {
+        return AsSelf().Unkeyed();
+    }
+
     IServiceSource IKeyedServiceSelector.Keyed()
     {
         return AsSelf().Keyed();

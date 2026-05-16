@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Filters a set of types using predicates and base type constraints, then transitions to service selection.
 ///     Maintains an immutable chain: each filter method returns a new <see cref="TypeFilter"/> instance.
 /// </summary>
-public sealed class TypeFilter : ServiceSource, ITypeFilter
+internal sealed class TypeFilter : ITypeFilter
 {
     private static readonly IEnumerable<Type> defaultBases = [typeof(object)];
     private readonly IEnumerable<Type> types;
@@ -27,7 +27,27 @@ public sealed class TypeFilter : ServiceSource, ITypeFilter
     /// <inheritdoc />
     public IServiceSelector AllTypes()
     {
-        return new ServiceSelector(this.types, this.baseTypes);
+        // If we're just checking the default (based on object) then all types will pass
+        if (ReferenceEquals(this.baseTypes, defaultBases))
+        {
+            return new ServiceSelector(this.types, this.baseTypes);
+        }
+
+        var baseTypesArray = this.baseTypes as Type[] ?? this.baseTypes.ToArray();
+        var filteredTypes = this.types.Where(type => IsAssignableToAnyBase(type, baseTypesArray));
+        return new ServiceSelector(filteredTypes, baseTypesArray);
+    }
+
+    private static bool IsAssignableToAnyBase(Type type, Type[] baseTypes)
+    {
+        foreach (var baseType in baseTypes)
+        {
+            if (type.IsBasedOn(baseType))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <inheritdoc />
@@ -100,15 +120,5 @@ public sealed class TypeFilter : ServiceSource, ITypeFilter
         }
 
         return new TypeFilter(this.types, this.baseTypes.Concat(baseTypes));
-    }
-
-    /// <inheritdoc />
-    protected override IEnumerable<ServiceDescriptor> SelectServices(ServiceLifetime lifetime)
-    {
-        // Types have not yet been filtered by base types since new base types may be added
-        // At this point the filtering should be applied since the service descriptors are being resolved
-        return this
-            .types.Where(type => this.baseTypes.Any(baseType => baseType.IsAssignableFrom(type)))
-            .Select(type => new ServiceDescriptor(type, type, lifetime));
     }
 }

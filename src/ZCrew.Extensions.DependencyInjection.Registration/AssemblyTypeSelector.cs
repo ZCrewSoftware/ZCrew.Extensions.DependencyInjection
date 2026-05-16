@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Selects types from an assembly with optional visibility scoping. By default, only publicly exported types
 ///     are included; use <see cref="IncludeInternalTypes"/> or <see cref="IncludeAllTypes"/> to broaden the scope.
 /// </summary>
-public sealed class AssemblyTypeSelector : TypeSelectorBase, IAssemblyTypeSelector
+internal sealed class AssemblyTypeSelector : TypeSelectorBase, IAssemblyTypeSelector
 {
     private readonly Assembly assembly;
     private readonly Func<Type, bool>? filter;
