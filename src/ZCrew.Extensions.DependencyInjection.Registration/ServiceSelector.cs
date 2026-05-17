@@ -140,14 +140,13 @@ internal sealed class ServiceSelector : IServiceSelector
     ///     <para>
     ///         If no top-level interface of <paramref name="type"/> is based on any of
     ///         <paramref name="potentialBases"/>, an empty array is returned and the type produces no
-    ///         registrations. This matches the documented contract on
-    ///         <see cref="IServiceSelector.AsInterface()"/> and its overloads.
+    ///         registrations. This matches the documented contract on <see cref="IServiceSelector.AsInterface()"/> and
+    ///         its overloads.
     ///     </para>
     ///     <para>
-    ///         When a matched top-level interface carries unbound generic parameters from
-    ///         <paramref name="type"/> (e.g. an open-generic class implementing a generic interface), it is
-    ///         collapsed to its generic type definition so the produced service type is resolvable by the
-    ///         DI container &#8212; the same rule applied by <see cref="AddIfGenericBaseType"/>.
+    ///         When a matched top-level interface carries unbound generic parameters from <paramref name="type"/>
+    ///         (e.g. an open-generic class implementing a generic interface), it is collapsed to its generic type
+    ///         definition so the produced service type is resolvable by the DI container.
     ///     </para>
     /// </remarks>
     /// <example>
@@ -181,14 +180,16 @@ internal sealed class ServiceSelector : IServiceSelector
                     continue;
                 }
 
-                // If the matched interface carries unbound generic parameters, register the open form
-                // so the DI container can resolve it - this would register 'IStep' borrowed from
-                // 'LoggingStep<TContext>' as the open 'Pipeline<>.IStep'
-                matches.Add(
-                    topLevelInterface.ContainsGenericParameters
-                        ? topLevelInterface.GetGenericTypeDefinition()
-                        : topLevelInterface
-                );
+                // If the interface has generic type parameters then use the open form
+                // This would register 'IRepository<>' and 'IRepository<T>' as 'IRepository<>'
+                if (topLevelInterface.ContainsGenericParameters)
+                {
+                    matches.Add(topLevelInterface.GetGenericTypeDefinition());
+                    continue;
+                }
+
+                // The interface is closed, this would register 'IRepository<Customer>'
+                matches.Add(topLevelInterface);
                 break;
             }
         }
