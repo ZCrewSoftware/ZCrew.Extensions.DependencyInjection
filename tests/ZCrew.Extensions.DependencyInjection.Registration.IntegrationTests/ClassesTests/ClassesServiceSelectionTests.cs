@@ -1,3 +1,4 @@
+using Fixtures.SmallProject.Application.Pipelines;
 using Fixtures.SmallProject.Application.Ports;
 using Fixtures.SmallProject.Application.Services;
 using Fixtures.SmallProject.Domain.Entities;
@@ -237,5 +238,95 @@ public class ClassesServiceSelectionTests
         var descriptor = Assert.Single(result);
         Assert.Equal(typeof(SqlCustomerRepository), descriptor.ImplementationType);
         Assert.Equal(typeof(ICustomerRepository), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsBase_WhenExtendingOpenGenericClassBase_ShouldRegisterConstructedForm()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(SqlCustomerRepository))
+            .BasedOn(typeof(RepositoryBase<>))
+            .AsBase()
+            .Collect();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(SqlCustomerRepository), descriptor.ImplementationType);
+        Assert.Equal(typeof(RepositoryBase<Customer>), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterface_T_WhenTypeHasNoMatchingInterface_ShouldNotRegister()
+    {
+        // Act
+        var result = Classes.From(typeof(CustomerService)).AsInterface<IPaymentGateway>().Collect();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsBase_WhenOpenGenericImplementsNestedInterface_ShouldRegisterOpenForm()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(LoggingStep<>))
+            .BasedOn(typeof(Pipeline<>.IStep))
+            .AsBase()
+            .Collect();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(LoggingStep<>), descriptor.ImplementationType);
+        Assert.Equal(typeof(Pipeline<>.IStep), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsBase_WhenClosedTypeImplementsNestedInterface_ShouldRegisterClosedForm()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(OrderValidationStep))
+            .BasedOn(typeof(Pipeline<>.IStep))
+            .AsBase()
+            .Collect();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(OrderValidationStep), descriptor.ImplementationType);
+        Assert.Equal(typeof(Pipeline<Order>.IStep), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterface_WhenOpenGenericImplementsNestedInterface_ShouldRegisterOpenForm()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(LoggingStep<>))
+            .BasedOn(typeof(Pipeline<>.IStep))
+            .AsInterface()
+            .Collect();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(LoggingStep<>), descriptor.ImplementationType);
+        Assert.Equal(typeof(Pipeline<>.IStep), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterface_WhenClosedTypeImplementsNestedInterface_ShouldRegisterClosedForm()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(OrderValidationStep))
+            .BasedOn(typeof(Pipeline<>.IStep))
+            .AsInterface()
+            .Collect();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(OrderValidationStep), descriptor.ImplementationType);
+        Assert.Equal(typeof(Pipeline<Order>.IStep), descriptor.ServiceType);
     }
 }

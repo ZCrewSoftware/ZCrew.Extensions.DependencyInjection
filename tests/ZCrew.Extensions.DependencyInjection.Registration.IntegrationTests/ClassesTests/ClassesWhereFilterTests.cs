@@ -202,6 +202,41 @@ public class ClassesWhereFilterTests
     }
 
     [Fact]
+    public void BasedOn_WithOpenGenericAndDirectCollect_ShouldFilterToImplementors()
+    {
+        // Arrange
+        var filter = Classes
+            .From(typeof(OrderValidator), typeof(CustomerValidator), typeof(CustomerService))
+            .BasedOn(typeof(IValidator<>));
+
+        // Act
+        var result = filter.Collect();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, d => d.ImplementationType == typeof(OrderValidator));
+        Assert.Contains(result, d => d.ImplementationType == typeof(CustomerValidator));
+        Assert.DoesNotContain(result, d => d.ImplementationType == typeof(CustomerService));
+    }
+
+    [Fact]
+    public void BasedOn_WithAsLifetimeAndNoTerminal_ShouldFilterToImplementors()
+    {
+        // Arrange
+        var filter = Classes
+            .From(typeof(CustomerService), typeof(OrderService))
+            .BasedOn<ICustomerService>();
+
+        // Act
+        var result = filter.AsLifetime(ServiceLifetime.Scoped);
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+    }
+
+    [Fact]
     public void Where_WhenEnumeratedWithoutTerminalMethod_ShouldDefaultToSelfRegistration()
     {
         var filter = Classes.FromAssemblyContaining<CustomerService>().Where(t => t == typeof(CustomerService));
