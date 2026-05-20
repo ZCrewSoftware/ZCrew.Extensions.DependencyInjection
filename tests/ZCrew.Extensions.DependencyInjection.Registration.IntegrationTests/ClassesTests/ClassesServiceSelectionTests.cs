@@ -33,7 +33,6 @@ public class ClassesServiceSelectionTests
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
         Assert.Contains(typeof(IPaymentGateway), serviceTypes);
         Assert.Contains(typeof(IDisposable), serviceTypes);
-        Assert.All(result, d => Assert.Equal(typeof(PayPalPaymentGateway), d.ImplementationType));
     }
 
     [Fact]

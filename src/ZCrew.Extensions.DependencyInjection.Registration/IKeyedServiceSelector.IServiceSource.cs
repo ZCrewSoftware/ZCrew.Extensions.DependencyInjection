@@ -4,11 +4,19 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public partial interface IKeyedServiceSelector
 {
+    /// <inheritdoc />
     IServiceCollection IServiceSource.AsLifetime(ServiceLifetime lifetime)
     {
         return Unkeyed().AsLifetime(lifetime);
     }
 
+    /// <inheritdoc />
+    IServiceCollection IServiceSource.AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode)
+    {
+        return Unkeyed().AsLifetime(lifetime, sharingMode);
+    }
+
+    /// <inheritdoc />
     IServiceCollection IServiceSource.Collect()
     {
         return Unkeyed().Collect();
