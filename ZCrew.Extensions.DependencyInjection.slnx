@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/benchmarks/">
-    <Project Path="benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks.csproj"/>
+    <Project Path="benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/1-introduction.md" />
@@ -11,6 +11,7 @@
     <File Path="docs/6-type-filters.md" />
     <File Path="docs/7-service-selectors.md" />
     <File Path="docs/8-keyed-service-selectors.md" />
+    <File Path="docs/9-shared-components.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/samples/DecoratorEmailSample/">

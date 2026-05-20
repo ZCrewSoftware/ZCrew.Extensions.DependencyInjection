@@ -15,23 +15,41 @@ internal class ServiceSource : IServiceSource
     /// <inheritdoc />
     public IServiceCollection AsLifetime(ServiceLifetime lifetime)
     {
-        return Collect(lifetime);
+        // Transient types won't benefit from sharing an instance
+        var defaultSharingMode =
+            lifetime == ServiceLifetime.Transient ? SharingMode.Independent : SharingMode.SharedComponent;
+        return Collect(lifetime, defaultSharingMode);
+    }
+
+    /// <inheritdoc />
+    public IServiceCollection AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode)
+    {
+        if (lifetime == ServiceLifetime.Transient && sharingMode != SharingMode.Independent)
+        {
+            throw new ArgumentException(
+                "Transient services can only be registered with SharingMode.Independent. "
+                    + "Sharing only adds value for Singleton or Scoped services. "
+                    + "This exception was thrown to immediately surface this mismatch instead of silently ignoring it"
+            );
+        }
+
+        return Collect(lifetime, sharingMode);
     }
 
     /// <inheritdoc />
     public virtual IServiceCollection Collect()
     {
-        return Collect(ServiceLifetime.Singleton);
+        return Collect(ServiceLifetime.Singleton, SharingMode.SharedComponent);
     }
 
-    private IServiceCollection Collect(ServiceLifetime lifetime)
+    private IServiceCollection Collect(ServiceLifetime lifetime, SharingMode sharingMode)
     {
         var serviceCollection = new ServiceCollection();
         foreach (var component in this.components)
         {
             var lifetimeComponent = component.WithLifetime(lifetime);
 
-            foreach (var descriptor in lifetimeComponent.GetServiceDescriptors())
+            foreach (var descriptor in lifetimeComponent.GetServiceDescriptors(sharingMode))
             {
                 serviceCollection.Add(descriptor);
             }

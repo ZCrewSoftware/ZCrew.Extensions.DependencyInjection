@@ -66,6 +66,7 @@ public class ClassesEndToEndTests
         var result = Classes
             .FromAssemblyContaining<OrderValidator>()
             .BasedOn(typeof(IValidator<>))
+            .Where(t => !t.IsGenericTypeDefinition)
             .InNamespace("Fixtures.SmallProject.Domain.Services")
             .AsInterface()
             .Collect();
@@ -87,6 +88,7 @@ public class ClassesEndToEndTests
         // Act
         var result = Classes
             .FromAssemblyContaining<PayPalPaymentGateway>()
+            .Where(t => !t.IsGenericTypeDefinition)
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
             .AsAllNonSystemInterfaces()
             .Collect();

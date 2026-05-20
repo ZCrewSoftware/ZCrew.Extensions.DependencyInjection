@@ -29,5 +29,8 @@
     <Compile Update="TypeFilterExtensions.*.cs">
       <DependentUpon>TypeFilterExtensions.cs</DependentUpon>
     </Compile>
+    <Compile Update="IKeyedServiceSelector.*.cs">
+      <DependentUpon>IKeyedServiceSelector.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
