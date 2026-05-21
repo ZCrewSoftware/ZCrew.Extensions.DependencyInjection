@@ -4,6 +4,7 @@
   </Folder>
   <Folder Name="/docs/">
     <File Path="docs/1-introduction.md" />
+    <File Path="docs/10-castle-windsor-comparison.md" />
     <File Path="docs/2-getting-started.md" />
     <File Path="docs/3-decorators.md" />
     <File Path="docs/4-registration.md" />

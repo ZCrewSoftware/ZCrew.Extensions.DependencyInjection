@@ -149,6 +149,72 @@ OrderValidator     → IValidator<Order>
 CustomerValidator  → IValidator<Customer>
 ```
 
+## `NameEndsWith(string)` and overloads
+
+Filters to types whose name ends with the given suffix. Generic arity is stripped before matching, so `Repository<T>` is treated as `Repository` and `IEnumerable<T>` ends with `"able"`.
+
+```csharp
+Classes.FromAssemblyContaining<CustomerService>()
+    .NameEndsWith("Service")
+    .AsInterface()
+```
+
+Given:
+
+```csharp
+public class CustomerService : ICustomerService { }
+public class OrderService : IOrderService { }
+public class SqlCustomerRepository : ICustomerRepository { }
+```
+
+Selects:
+
+```
+CustomerService  → ICustomerService
+OrderService     → IOrderService
+```
+
+`SqlCustomerRepository` is excluded — its name ends with `Repository`, not `Service`.
+
+### Overloads
+
+| Overload                                                                 | Behavior                                                                                                                            |
+|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `NameEndsWith(string suffix)`                                            | Case-sensitive, ordinal-style match.                                                                                                |
+| `NameEndsWith(string suffix, bool ignoreCase)`                           | Case-insensitive when `ignoreCase` is `true`. Uses `CultureInfo.CurrentCulture`.                                                    |
+| `NameEndsWith(string suffix, bool ignoreCase, CultureInfo? cultureInfo)` | Culture-aware match. A `null` culture falls back to the current culture.                                                            |
+| `NameEndsWith(string suffix, StringComparison comparisonType)`           | Explicit comparison — typically `StringComparison.Ordinal` or `StringComparison.OrdinalIgnoreCase` for assembly-scanning scenarios. |
+
+## `GenericTypes()` / `GenericTypeDefinitions()` / `ConstructedGenericTypes()`
+
+Filters for generic types. The three methods are mutually exclusive in the way most callers want:
+
+| Method                      | Selects                                                | Example match                                                  |
+|-----------------------------|--------------------------------------------------------|----------------------------------------------------------------|
+| `GenericTypes()`            | Any generic type — both open and closed forms          | `Repository<T>`, `Repository<Customer>`, `Cache<TKey, TValue>` |
+| `GenericTypeDefinitions()`  | Open generics only (`Type.IsGenericTypeDefinition`)    | `Repository<T>`, `Validator<>`                                 |
+| `ConstructedGenericTypes()` | Closed generics only (`Type.IsConstructedGenericType`) | `Repository<Customer>`, `Validator<Order>`                     |
+
+```csharp
+// Register only closed generic repositories — open generics handled separately
+Classes.FromAssemblyContaining<SqlCustomerRepository>()
+    .BasedOn(typeof(IRepository<>))
+    .ConstructedGenericTypes()
+    .AsBase()
+```
+
+Given:
+
+```csharp
+public class SqlCustomerRepository : RepositoryBase<Customer>, IRepository<Customer> { }
+public class SqlOrderRepository : RepositoryBase<Order>, IRepository<Order> { }
+public class InMemoryRepository<T> : IRepository<T> { }
+```
+
+Selects `SqlCustomerRepository` and `SqlOrderRepository` (both closed). `InMemoryRepository<T>` is excluded because it is an open generic.
+
+> **Remarks:** Open and closed generic registrations have different behavior under shared-component forwarding — open generics can't be forwarded at all. See [Open generic limitation](9-shared-components.md#open-generic-limitation) and the [Castle Windsor comparison](10-castle-windsor-comparison.md#open-generic-registration-with-a-factory) for the full picture.
+
 ## `InNamespace(string)` / `InNamespace(string, bool)`
 
 Filters to types in the specified namespace. The two-parameter overload optionally includes sub-namespaces:
