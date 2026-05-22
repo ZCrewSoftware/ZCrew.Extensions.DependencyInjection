@@ -138,12 +138,16 @@ public class ServiceCollectionExtensionsTests
         where T : class, IServiceSource
     {
         var mock = Substitute.For<T>();
-        IServiceCollection collection = new ServiceCollection();
-        foreach (var descriptor in descriptors)
-        {
-            collection.Add(descriptor);
-        }
-        mock.Collect().Returns(collection);
+        mock.ToServiceCollection(Arg.Any<IServiceCollection>())
+            .Returns(callInfo =>
+            {
+                var collection = callInfo.Arg<IServiceCollection>();
+                foreach (var descriptor in descriptors)
+                {
+                    collection.Add(descriptor);
+                }
+                return collection;
+            });
         return mock;
     }
 }
