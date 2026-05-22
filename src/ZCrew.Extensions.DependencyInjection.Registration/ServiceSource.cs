@@ -13,15 +13,6 @@ internal class ServiceSource : IServiceSource
     }
 
     /// <inheritdoc />
-    public IServiceCollection AsLifetime(ServiceLifetime lifetime)
-    {
-        // Transient types won't benefit from sharing an instance
-        var defaultSharingMode =
-            lifetime == ServiceLifetime.Transient ? SharingMode.Independent : SharingMode.SharedComponent;
-        return Collect(lifetime, defaultSharingMode);
-    }
-
-    /// <inheritdoc />
     public IServiceCollection AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode)
     {
         if (lifetime == ServiceLifetime.Transient && sharingMode != SharingMode.Independent)
@@ -37,7 +28,7 @@ internal class ServiceSource : IServiceSource
     }
 
     /// <inheritdoc />
-    public virtual IServiceCollection Collect()
+    public IServiceCollection Collect()
     {
         return Collect(ServiceLifetime.Singleton, SharingMode.SharedComponent);
     }

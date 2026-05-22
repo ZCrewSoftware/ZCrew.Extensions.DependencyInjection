@@ -6,6 +6,7 @@ using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using Castle.Windsor;
 using Fixtures.LargeProject.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
+using ZCrew.Extensions.DependencyInjection.Registration;
 using CastleClasses = Castle.MicroKernel.Registration.Classes;
 using ZCrewClasses = ZCrew.Extensions.DependencyInjection.Registration.Classes;
 
@@ -170,7 +171,7 @@ public class RegistrationBenchmarks
     public int ZCrew_BasedOn_AsInterface()
     {
         var services = new ServiceCollection();
-        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).BasedOn<IService1>().AsInterface());
+        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).BasedOn<Service1>().AsInterface());
         return services.Count;
     }
 

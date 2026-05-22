@@ -23,6 +23,9 @@
     <Compile Update="IServiceSelector.*.cs">
       <DependentUpon>IServiceSelector.cs</DependentUpon>
     </Compile>
+    <Compile Update="ServiceSelectorExtensions.*.cs">
+      <DependentUpon>ServiceSelectorExtensions.cs</DependentUpon>
+    </Compile>
     <Compile Update="ITypeSelector.*.cs">
       <DependentUpon>ITypeSelector.cs</DependentUpon>
     </Compile>
