@@ -24,18 +24,21 @@ internal class ServiceSource : IServiceSource
             );
         }
 
-        return Collect(lifetime, sharingMode);
+        return ToServiceCollection(new ServiceCollection(), lifetime, sharingMode);
     }
 
     /// <inheritdoc />
-    public IServiceCollection Collect()
+    public IServiceCollection ToServiceCollection(IServiceCollection serviceCollection)
     {
-        return Collect(ServiceLifetime.Singleton, SharingMode.SharedComponent);
+        return ToServiceCollection(serviceCollection, ServiceLifetime.Singleton, SharingMode.SharedComponent);
     }
 
-    private IServiceCollection Collect(ServiceLifetime lifetime, SharingMode sharingMode)
+    private IServiceCollection ToServiceCollection(
+        IServiceCollection serviceCollection,
+        ServiceLifetime lifetime,
+        SharingMode sharingMode
+    )
     {
-        var serviceCollection = new ServiceCollection();
         foreach (var component in this.components)
         {
             var lifetimeComponent = component.WithLifetime(lifetime);

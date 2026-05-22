@@ -11,8 +11,8 @@ public partial interface IKeyedServiceSelector
     }
 
     /// <inheritdoc />
-    IServiceCollection IServiceSource.Collect()
+    IServiceCollection IServiceSource.ToServiceCollection(IServiceCollection serviceCollection)
     {
-        return Unkeyed().Collect();
+        return Unkeyed().ToServiceCollection(serviceCollection);
     }
 }

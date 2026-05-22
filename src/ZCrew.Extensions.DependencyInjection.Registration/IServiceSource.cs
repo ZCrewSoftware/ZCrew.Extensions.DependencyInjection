@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Represents a read-only service collection produced by the registration fluent API. This is the terminal type
 ///     in the registration chain, providing the resulting <see cref="ServiceDescriptor"/> registrations as an
-///     <see cref="IServiceCollection"/> via <see cref="Collect"/>.
+///     <see cref="IServiceCollection"/> via <see cref="ToServiceCollection"/>.
 /// </summary>
 public interface IServiceSource
 {
@@ -27,8 +27,8 @@ public interface IServiceSource
     IServiceCollection AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode);
 
     /// <summary>
-    ///     Collects all the services into a <see cref="IServiceCollection"/>.
+    ///     Collects all the services into the <paramref name="serviceCollection"/>.
     /// </summary>
     /// <returns>The resulting service collection.</returns>
-    IServiceCollection Collect();
+    IServiceCollection ToServiceCollection(IServiceCollection serviceCollection);
 }

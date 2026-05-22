@@ -15,7 +15,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WhenCalled_ShouldRegisterAsImplementationType()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).AsSelf().Collect();
+        var result = Types.From(typeof(CustomerService)).AsSelf().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -27,7 +27,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithInterface_ShouldRegisterInterfaceAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types.From(typeof(ICustomerService)).AsSelf().Collect();
+        var result = Types.From(typeof(ICustomerService)).AsSelf().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -39,7 +39,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithAbstractClass_ShouldRegisterAbstractClassAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types.From(typeof(RepositoryBase<Customer>)).AsSelf().Collect();
+        var result = Types.From(typeof(RepositoryBase<Customer>)).AsSelf().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -51,7 +51,7 @@ public class TypesServiceSelectionTests
     public void AsSelf_WithStaticClass_ShouldRegisterStaticClassAsBothServiceAndImplementation()
     {
         // Act
-        var result = Types.From(typeof(PricingDefaults)).AsSelf().Collect();
+        var result = Types.From(typeof(PricingDefaults)).AsSelf().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -63,7 +63,7 @@ public class TypesServiceSelectionTests
     public void AsAllInterfaces_WhenCalled_ShouldRegisterAllInterfaces()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().Collect();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -75,7 +75,7 @@ public class TypesServiceSelectionTests
     public void AsAllInterfaces_WithInterfaceType_ShouldRegisterParentInterfaces()
     {
         // Act
-        var result = Types.From(typeof(ICustomerRepository)).AsAllInterfaces().Collect();
+        var result = Types.From(typeof(ICustomerRepository)).AsAllInterfaces().ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -89,7 +89,7 @@ public class TypesServiceSelectionTests
     public void AsAllNonSystemInterfaces_WhenCalled_ShouldExcludeSystemInterfaces()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces().Collect();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces().ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -101,7 +101,7 @@ public class TypesServiceSelectionTests
     public void AsAllNonSystemInterfaces_WithInterfaceType_ShouldRegisterNonSystemParentInterfaces()
     {
         // Act
-        var result = Types.From(typeof(ICustomerRepository)).AsAllNonSystemInterfaces().Collect();
+        var result = Types.From(typeof(ICustomerRepository)).AsAllNonSystemInterfaces().ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -118,7 +118,7 @@ public class TypesServiceSelectionTests
         var result = Types
             .From(typeof(CustomerService), typeof(EmailNotificationSender))
             .AsDefaultInterfaces()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -135,7 +135,7 @@ public class TypesServiceSelectionTests
     public void AsDefaultInterfaces_WhenNoConventionMatch_ShouldNotRegister()
     {
         // Act
-        var result = Types.From(typeof(Customer)).AsDefaultInterfaces().Collect();
+        var result = Types.From(typeof(Customer)).AsDefaultInterfaces().ToServiceCollection();
 
         // Assert
         Assert.Empty(result);
@@ -145,7 +145,7 @@ public class TypesServiceSelectionTests
     public void AsDefaultNonSystemInterfaces_WhenCalled_ShouldCombineBothFilters()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsDefaultNonSystemInterfaces().Collect();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsDefaultNonSystemInterfaces().ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -157,7 +157,7 @@ public class TypesServiceSelectionTests
     public void AsFirstInterface_WhenCalled_ShouldRegisterFirstInterface()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).AsFirstInterface().Collect();
+        var result = Types.From(typeof(CustomerService)).AsFirstInterface().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -169,7 +169,7 @@ public class TypesServiceSelectionTests
     public void AsFirstInterface_WhenNoInterfaces_ShouldNotRegister()
     {
         // Act
-        var result = Types.From(typeof(Customer)).AsFirstInterface().Collect();
+        var result = Types.From(typeof(Customer)).AsFirstInterface().ToServiceCollection();
 
         // Assert
         Assert.Empty(result);
@@ -179,7 +179,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithBasedOn_ShouldRegisterTopLevelDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(SqlCustomerRepository)).BasedOn(typeof(IRepository<>)).AsInterface().Collect();
+        var result = Types.From(typeof(SqlCustomerRepository)).BasedOn(typeof(IRepository<>)).AsInterface().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -191,7 +191,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithGenericTypeArg_ShouldRegisterDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface<IPaymentGateway>().Collect();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface<IPaymentGateway>().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -203,7 +203,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithExplicitType_ShouldRegisterDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface(typeof(IPaymentGateway)).Collect();
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface(typeof(IPaymentGateway)).ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -215,7 +215,7 @@ public class TypesServiceSelectionTests
     public void AsBase_WithBasedOn_ShouldRegisterAsBaseTypes()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().AsBase().Collect();
+        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().AsBase().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -227,7 +227,7 @@ public class TypesServiceSelectionTests
     public void As_WithCustomSelector_ShouldUseProvidedFunction()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).As(type => type.GetInterfaces()).Collect();
+        var result = Types.From(typeof(CustomerService)).As(type => type.GetInterfaces()).ToServiceCollection();
 
         // Assert
         var serviceTypes = result.Select(d => d.ServiceType).ToArray();
@@ -239,7 +239,7 @@ public class TypesServiceSelectionTests
     public void As_WithBaseTypeContext_ShouldReceiveResolvedBaseTypes()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().As((_, bases) => bases).Collect();
+        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().As((_, bases) => bases).ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -254,7 +254,7 @@ public class TypesServiceSelectionTests
         var result = Types
             .From(typeof(CustomerService), typeof(OrderService))
             .AsInterfaces(typeof(ICustomerService), typeof(IOrderService))
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -274,7 +274,7 @@ public class TypesServiceSelectionTests
         var result = Types
             .From(typeof(SqlCustomerRepository), typeof(SqlOrderRepository))
             .AsInterfaces(typeof(IRepository<>))
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -291,7 +291,7 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithOpenGenericTypeArg_ShouldRegisterTopLevelDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(SqlCustomerRepository)).AsInterface(typeof(IRepository<>)).Collect();
+        var result = Types.From(typeof(SqlCustomerRepository)).AsInterface(typeof(IRepository<>)).ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);

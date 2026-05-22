@@ -10,6 +10,15 @@ public static class ServiceSourceExtensions
     extension(IServiceSource source)
     {
         /// <summary>
+        ///     Collects all the services into a <see cref="IServiceCollection"/>.
+        /// </summary>
+        /// <returns>The resulting service collection.</returns>
+        public IServiceCollection ToServiceCollection()
+        {
+            return source.ToServiceCollection(new ServiceCollection());
+        }
+
+        /// <summary>
         ///     Returns a new <see cref="IServiceSource"/> with all descriptors set to the specified
         ///     <paramref name="lifetime"/>. Instance-based descriptors that cannot change lifetime are kept unchanged.
         /// </summary>

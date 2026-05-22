@@ -6,6 +6,7 @@ using Fixtures.SmallProject.Domain.Services;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Notifications;
 using Fixtures.SmallProject.Infrastructure.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.TypesTests;
 
@@ -20,7 +21,7 @@ public class TypesEndToEndTests
             .BasedOn(typeof(IRepository<>))
             .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
             .AsInterface()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -41,7 +42,7 @@ public class TypesEndToEndTests
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
             .AsDefaultNonSystemInterfaces()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -69,7 +70,7 @@ public class TypesEndToEndTests
             .Where(t => !t.IsGenericTypeDefinition)
             .InNamespace("Fixtures.SmallProject.Domain.Services")
             .AsInterface()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -91,7 +92,7 @@ public class TypesEndToEndTests
             .Where(t => !t.IsGenericTypeDefinition)
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
             .AsAllNonSystemInterfaces()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -114,7 +115,7 @@ public class TypesEndToEndTests
             .Where(t => t.IsInterface)
             .InNamespace("Fixtures.SmallProject.Application.Services")
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -132,7 +133,7 @@ public class TypesEndToEndTests
             .FromAssemblyContaining<OrderValidator>()
             .InNamespace("Fixtures.SmallProject.Domain.Services")
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -141,5 +142,107 @@ public class TypesEndToEndTests
         Assert.Contains(typeof(PricingDefaults), registeredTypes);
         Assert.Contains(typeof(OrderValidator), registeredTypes);
         Assert.Contains(typeof(CustomerValidator), registeredTypes);
+    }
+
+    [Fact]
+    public void ToServiceCollection_WhenGivenExistingCollection_ShouldAppendDescriptorsAndReturnSameInstance()
+    {
+        // Arrange
+        var existing = new ServiceCollection();
+        existing.AddSingleton<IEventPublisher>(_ => null!);
+
+        // Act
+        var result = Types
+            .FromAssemblyContaining<SqlCustomerRepository>()
+            .BasedOn(typeof(IRepository<>))
+            .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
+            .AsInterface()
+            .Unkeyed()
+            .ToServiceCollection(existing);
+
+        // Assert
+        Assert.Same(existing, result);
+        Assert.Contains(result, d => d.ServiceType == typeof(IEventPublisher));
+        Assert.Contains(
+            result,
+            d => d.ImplementationType == typeof(SqlCustomerRepository) && d.ServiceType == typeof(ICustomerRepository)
+        );
+        Assert.Contains(
+            result,
+            d => d.ImplementationType == typeof(SqlOrderRepository) && d.ServiceType == typeof(IOrderRepository)
+        );
+    }
+
+    [Fact]
+    public void ToServiceCollection_WhenGivenExistingCollection_ShouldRegisterAddedDescriptorsAsSingleton()
+    {
+        // Arrange
+        var existing = new ServiceCollection();
+
+        // Act
+        var result = Types
+            .FromAssemblyContaining<SqlCustomerRepository>()
+            .BasedOn(typeof(IRepository<>))
+            .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
+            .AsInterface()
+            .Unkeyed()
+            .ToServiceCollection(existing);
+
+        // Assert
+        Assert.NotEmpty(result);
+        Assert.All(result, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
+    }
+
+    [Fact]
+    public void ToServiceCollection_WhenCalledTwiceOnSameCollection_ShouldAppendBothBatches()
+    {
+        // Arrange
+        var existing = new ServiceCollection();
+
+        // Act
+        Types
+            .FromAssemblyContaining<SqlCustomerRepository>()
+            .BasedOn(typeof(IRepository<>))
+            .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
+            .AsInterface()
+            .Unkeyed()
+            .ToServiceCollection(existing);
+        Types
+            .FromAssemblyContaining<CustomerService>()
+            .InNamespace("Fixtures.SmallProject.Application.Services")
+            .AsDefaultNonSystemInterfaces()
+            .Unkeyed()
+            .ToServiceCollection(existing);
+
+        // Assert
+        Assert.Contains(
+            existing,
+            d => d.ImplementationType == typeof(SqlCustomerRepository) && d.ServiceType == typeof(ICustomerRepository)
+        );
+        Assert.Contains(
+            existing,
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
+        );
+    }
+
+    [Fact]
+    public void ToServiceCollection_WhenCalledOnKeyedServiceSelector_ShouldAppendToExistingCollection()
+    {
+        // Arrange
+        var existing = new ServiceCollection();
+        existing.AddSingleton<IEventPublisher>(_ => null!);
+
+        // Act
+        var result = Types
+            .FromAssemblyContaining<SqlCustomerRepository>()
+            .BasedOn(typeof(IRepository<>))
+            .InNamespace("Fixtures.SmallProject.Infrastructure.Persistence", includeSubnamespaces: true)
+            .AsInterface()
+            .ToServiceCollection(existing);
+
+        // Assert
+        Assert.Same(existing, result);
+        Assert.Contains(result, d => d.ServiceType == typeof(IEventPublisher));
+        Assert.Contains(result, d => d.ImplementationType == typeof(SqlCustomerRepository));
     }
 }
