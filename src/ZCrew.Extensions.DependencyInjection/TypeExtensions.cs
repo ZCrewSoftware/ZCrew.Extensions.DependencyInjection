@@ -153,25 +153,24 @@ public static class TypeExtensions
         }
 
         /// <summary>
+        ///     Returns the name without any generic arity.
+        /// </summary>
+        /// <returns>The name of the type without the generic arity.</returns>
+        /// <example>
+        ///     <see cref="List{T}"/> would be return the string <c>"List"</c>.
+        /// </example>
+        public string GetNonGenericName()
+        {
+            var backtick = type.Name.IndexOf('`');
+            return backtick > 0 ? type.Name[..backtick] : type.Name;
+        }
+
+        /// <summary>
         ///     Returns <see langword="true"/> if the type is assignable to, inherits from, or implements
-        ///     <paramref name="baseType"/>. Open generic <paramref name="baseType"/> values are matched against any
+        ///     <paramref name="baseType"/>. Open generic <paramref name="baseType"/> values match any
         ///     constructed form found on the type itself, its interfaces, or its base class chain.
         /// </summary>
-        /// <param name="baseType">
-        ///     The base type, interface, or open generic type definition to test against.
-        /// </param>
-        /// <example>
-        ///     Given the following hierarchy:
-        ///     <code>
-        ///     class BaseRepo&lt;T&gt; { }
-        ///     class CustomerRepo : BaseRepo&lt;Customer&gt; { }
-        ///     </code>
-        ///     Both of the following return <see langword="true"/>:
-        ///     <code>
-        ///     typeof(CustomerRepo).IsBasedOn(typeof(BaseRepo&lt;&gt;));
-        ///     typeof(CustomerRepo).IsBasedOn(typeof(BaseRepo&lt;Customer&gt;));
-        ///     </code>
-        /// </example>
+        /// <param name="baseType">The base type, interface, or open generic type definition to test against.</param>
         public bool IsBasedOn(Type baseType)
         {
             if (baseType.IsAssignableFrom(type))
@@ -184,41 +183,89 @@ public static class TypeExtensions
                 return false;
             }
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == baseType)
+            return type.GetGenericFormsMatching(baseType).Any();
+        }
+
+        /// <summary>
+        ///     Returns the most-derived interfaces of <paramref name="type"/> based on at least one of
+        ///     <paramref name="baseTypes"/>. Interfaces with unbound generic parameters collapse to their
+        ///     generic type definition so the DI container can resolve them.
+        /// </summary>
+        /// <param name="baseTypes">The base types to match against.</param>
+        public IEnumerable<Type> GetTopLevelInterfacesMatchingBaseTypes(IEnumerable<Type> baseTypes)
+        {
+            var matches = new HashSet<Type>();
+            var baseTypeArray = baseTypes.ToArray();
+            foreach (var topLevelInterface in type.GetTopLevelInterfaces())
             {
-                return true;
+                if (!baseTypeArray.Any(baseType => topLevelInterface.IsBasedOn(baseType)))
+                {
+                    continue;
+                }
+
+                if (topLevelInterface.ContainsGenericParameters)
+                {
+                    matches.Add(topLevelInterface.GetGenericTypeDefinition());
+                    continue;
+                }
+
+                matches.Add(topLevelInterface);
+            }
+            return matches;
+        }
+
+        /// <summary>
+        ///     Returns the forms of <paramref name="baseTypes"/> that <paramref name="type"/> derives from.
+        ///     Open generic bases collapse to the constructed form found on the hierarchy, or back to the
+        ///     open definition when the implementing type still has unbound parameters.
+        /// </summary>
+        /// <param name="baseTypes">The base types to match against.</param>
+        public IEnumerable<Type> GetMatchingBaseTypes(IEnumerable<Type> baseTypes)
+        {
+            var results = new HashSet<Type>();
+            foreach (var baseType in baseTypes)
+            {
+                if (baseType.IsAssignableFrom(type))
+                {
+                    results.Add(baseType);
+                    continue;
+                }
+
+                if (!baseType.IsGenericTypeDefinition)
+                {
+                    continue;
+                }
+
+                foreach (var candidate in type.GetGenericFormsMatching(baseType))
+                {
+                    results.Add(candidate.ContainsGenericParameters ? baseType : candidate);
+                }
+            }
+            return results;
+        }
+
+        private IEnumerable<Type> GetGenericFormsMatching(Type genericDefinition)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == genericDefinition)
+            {
+                yield return type;
             }
 
             foreach (var @interface in type.GetInterfaces())
             {
-                if (@interface.IsGenericType && @interface.GetGenericTypeDefinition() == baseType)
+                if (@interface.IsGenericType && @interface.GetGenericTypeDefinition() == genericDefinition)
                 {
-                    return true;
+                    yield return @interface;
                 }
             }
 
             for (var current = type.BaseType; current != null; current = current.BaseType)
             {
-                if (current.IsGenericType && current.GetGenericTypeDefinition() == baseType)
+                if (current.IsGenericType && current.GetGenericTypeDefinition() == genericDefinition)
                 {
-                    return true;
+                    yield return current;
                 }
             }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     Returns the name without any generic arity.
-        /// </summary>
-        /// <returns>The name of the type without the generic arity.</returns>
-        /// <example>
-        ///     <see cref="List{T}"/> would be return the string <c>"List"</c>.
-        /// </example>
-        public string GetNonGenericName()
-        {
-            var backtick = type.Name.IndexOf('`');
-            return backtick > 0 ? type.Name[..backtick] : type.Name;
         }
     }
 }

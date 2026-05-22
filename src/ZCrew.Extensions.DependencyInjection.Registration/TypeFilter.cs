@@ -36,76 +36,11 @@ internal sealed class TypeFilter : ITypeFilter
         return new ServiceSelector(filteredTypes, baseTypesArray);
     }
 
-    private static bool IsAssignableToAnyBase(Type type, Type[] baseTypes)
-    {
-        foreach (var baseType in baseTypes)
-        {
-            if (type.IsBasedOn(baseType))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InNamespace(string @namespace)
-    {
-        ArgumentNullException.ThrowIfNull(@namespace);
-        return Where(type => type.IsInNamespace(@namespace));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InNamespace(string @namespace, bool includeSubnamespaces)
-    {
-        ArgumentNullException.ThrowIfNull(@namespace);
-        return Where(type => type.IsInNamespace(@namespace, includeSubnamespaces));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs(Type otherType)
-    {
-        ArgumentNullException.ThrowIfNull(otherType);
-        return Where(type => type.IsInSameNamespaceAs(otherType));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs(Type otherType, bool includeSubnamespaces)
-    {
-        ArgumentNullException.ThrowIfNull(otherType);
-        return Where(type => type.IsInSameNamespaceAs(otherType, includeSubnamespaces));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs<T>()
-    {
-        return Where(type => type.IsInSameNamespaceAs<T>());
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs<T>(bool includeSubnamespaces)
-    {
-        return Where(type => type.IsInSameNamespaceAs<T>(includeSubnamespaces));
-    }
-
     /// <inheritdoc />
     public ITypeFilter Where(Func<Type, bool> filter)
     {
         ArgumentNullException.ThrowIfNull(filter);
         return new TypeFilter(this.types.Where(filter), this.baseTypes);
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter BasedOn<T>()
-    {
-        return BasedOn([typeof(T)]);
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter BasedOn(Type baseType)
-    {
-        ArgumentNullException.ThrowIfNull(baseType);
-        return BasedOn([baseType]);
     }
 
     /// <inheritdoc />
@@ -118,5 +53,17 @@ internal sealed class TypeFilter : ITypeFilter
         }
 
         return new TypeFilter(this.types, this.baseTypes.Concat(baseTypes));
+    }
+
+    private static bool IsAssignableToAnyBase(Type type, Type[] baseTypes)
+    {
+        foreach (var baseType in baseTypes)
+        {
+            if (type.IsBasedOn(baseType))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

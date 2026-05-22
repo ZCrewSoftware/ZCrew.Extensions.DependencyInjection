@@ -7,26 +7,26 @@ public partial interface IServiceSelector
 {
     IServiceSource IKeyedServiceSelector.Unkeyed()
     {
-        return AsSelf().Unkeyed();
+        return this.AsSelf().Unkeyed();
     }
 
     IServiceSource IKeyedServiceSelector.Keyed()
     {
-        return AsSelf().Keyed();
+        return this.AsSelf().Keyed();
     }
 
     IServiceSource IKeyedServiceSelector.Keyed(object? serviceKey)
     {
-        return AsSelf().Keyed(serviceKey);
+        return this.AsSelf().Keyed(serviceKey);
     }
 
     IServiceSource IKeyedServiceSelector.Keyed(Func<Type, object?> serviceKeySelector)
     {
-        return AsSelf().Keyed(serviceKeySelector);
+        return this.AsSelf().Keyed(serviceKeySelector);
     }
 
     IServiceSource IKeyedServiceSelector.Keyed(Func<Type, Type, object?> serviceKeySelector)
     {
-        return AsSelf().Keyed(serviceKeySelector);
+        return this.AsSelf().Keyed(serviceKeySelector);
     }
 }
