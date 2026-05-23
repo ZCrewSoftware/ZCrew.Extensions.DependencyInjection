@@ -1,3 +1,13 @@
+using Fixtures.SmallProject.Application.Caching;
+using Fixtures.SmallProject.Application.Ports;
+using Fixtures.SmallProject.Application.Services;
+using Fixtures.SmallProject.Domain.Auditing;
+using Fixtures.SmallProject.Domain.Entities;
+using Fixtures.SmallProject.Domain.Repositories;
+using Fixtures.SmallProject.Domain.Services;
+using Fixtures.SmallProject.Infrastructure.Notifications;
+using Fixtures.SmallProject.Infrastructure.Persistence;
+
 namespace ZCrew.Extensions.DependencyInjection.UnitTests;
 
 public class TypeExtensionsTests
@@ -6,7 +16,7 @@ public class TypeExtensionsTests
     public void HasAttribute_WhenTypeHasAttribute_ShouldReturnTrue()
     {
         // Act
-        var result = typeof(DecoratedType).HasAttribute<TestAttribute>();
+        var result = typeof(CachingCustomerService).HasAttribute<CacheableAttribute>();
 
         // Assert
         Assert.True(result);
@@ -16,7 +26,7 @@ public class TypeExtensionsTests
     public void HasAttribute_WhenTypeDoesNotHaveAttribute_ShouldReturnFalse()
     {
         // Act
-        var result = typeof(PlainType).HasAttribute<TestAttribute>();
+        var result = typeof(Customer).HasAttribute<CacheableAttribute>();
 
         // Assert
         Assert.False(result);
@@ -26,7 +36,7 @@ public class TypeExtensionsTests
     public void HasAttribute_WithFilter_WhenAttributeMatchesFilter_ShouldReturnTrue()
     {
         // Act
-        var result = typeof(DecoratedType).HasAttribute<TestAttribute>(a => a.Value == "hello");
+        var result = typeof(CachingCustomerService).HasAttribute<CacheableAttribute>(a => a.Region == "customers");
 
         // Assert
         Assert.True(result);
@@ -36,7 +46,7 @@ public class TypeExtensionsTests
     public void HasAttribute_WithFilter_WhenAttributeDoesNotMatchFilter_ShouldReturnFalse()
     {
         // Act
-        var result = typeof(DecoratedType).HasAttribute<TestAttribute>(a => a.Value == "world");
+        var result = typeof(CachingCustomerService).HasAttribute<CacheableAttribute>(a => a.Region == "products");
 
         // Assert
         Assert.False(result);
@@ -46,10 +56,50 @@ public class TypeExtensionsTests
     public void HasAttribute_WithFilter_WhenTypeDoesNotHaveAttribute_ShouldReturnFalse()
     {
         // Act
-        var result = typeof(PlainType).HasAttribute<TestAttribute>(a => a.Value == "hello");
+        var result = typeof(Customer).HasAttribute<CacheableAttribute>(a => a.Region == "customers");
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void IsAbstractClass_WhenAbstractClass_ShouldReturnTrue()
+    {
+        // Act
+        var result = typeof(RepositoryBase<Customer>).IsAbstractClass;
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsAbstractClass_WhenInterface_ShouldReturnFalse()
+    {
+        // Act
+        var result = typeof(ICustomerRepository).IsAbstractClass;
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsAbstractClass_WhenConcreteClass_ShouldReturnFalse()
+    {
+        // Act
+        var result = typeof(SqlCustomerRepository).IsAbstractClass;
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsAbstractClass_WhenStaticClass_ShouldReturnTrue()
+    {
+        // Act
+        var result = typeof(PricingDefaults).IsAbstractClass;
+
+        // Assert
+        Assert.True(result);
     }
 
     [Fact]
@@ -176,60 +226,60 @@ public class TypeExtensionsTests
     public void GetInterfaceName_WhenHasConventionalIPrefix_ShouldStripPrefix()
     {
         // Act
-        var result = typeof(IMyService).GetInterfaceName();
+        var result = typeof(ICustomerService).GetInterfaceName();
 
         // Assert
-        Assert.Equal("MyService", result);
+        Assert.Equal("CustomerService", result);
     }
 
     [Fact]
     public void GetInterfaceName_WhenNoIPrefix_ShouldReturnUnchanged()
     {
         // Act
-        var result = typeof(PlainType).GetInterfaceName();
+        var result = typeof(Customer).GetInterfaceName();
 
         // Assert
-        Assert.Equal("PlainType", result);
+        Assert.Equal("Customer", result);
     }
 
     [Fact]
     public void GetInterfaceName_WhenSecondCharIsLowercase_ShouldReturnUnchanged()
     {
         // Act
-        var result = typeof(Items).GetInterfaceName();
+        var result = typeof(Invoice).GetInterfaceName();
 
         // Assert
-        Assert.Equal("Items", result);
+        Assert.Equal("Invoice", result);
     }
 
     [Fact]
     public void GetTopLevelInterfaces_WhenHierarchy_ShouldReturnOnlyMostDerived()
     {
         // Act
-        var result = typeof(DerivedImpl).GetTopLevelInterfaces().ToList();
+        var result = typeof(SqlCustomerRepository).GetTopLevelInterfaces().ToList();
 
         // Assert
         Assert.Single(result);
-        Assert.Contains(typeof(IDerived), result);
+        Assert.Contains(typeof(ICustomerRepository), result);
     }
 
     [Fact]
     public void GetTopLevelInterfaces_WhenMultipleUnrelated_ShouldReturnAll()
     {
         // Act
-        var result = typeof(MultiImpl).GetTopLevelInterfaces().ToList();
+        var result = typeof(BroadcastNotificationSender).GetTopLevelInterfaces().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(typeof(IFirst), result);
-        Assert.Contains(typeof(ISecond), result);
+        Assert.Contains(typeof(INotificationSender), result);
+        Assert.Contains(typeof(IEventPublisher), result);
     }
 
     [Fact]
     public void GetTopLevelInterfaces_WhenNoInterfaces_ShouldReturnEmpty()
     {
         // Act
-        var result = typeof(PlainType).GetTopLevelInterfaces();
+        var result = typeof(Customer).GetTopLevelInterfaces();
 
         // Assert
         Assert.Empty(result);
@@ -239,47 +289,88 @@ public class TypeExtensionsTests
     public void GetTopLevelInterfaces_WhenDiamondHierarchy_ShouldReturnOnlyLeaves()
     {
         // Act
-        var result = typeof(DiamondImpl).GetTopLevelInterfaces().ToList();
+        var result = typeof(AuditableSoftDeletableEntity).GetTopLevelInterfaces().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(typeof(IDiamondLeft), result);
-        Assert.Contains(typeof(IDiamondRight), result);
-        Assert.DoesNotContain(typeof(IDiamondBase), result);
+        Assert.Contains(typeof(IAuditable), result);
+        Assert.Contains(typeof(ISoftDeletable), result);
+        Assert.DoesNotContain(typeof(IIdentifiable), result);
     }
 
-    [AttributeUsage(AttributeTargets.Class)]
-    private class TestAttribute(string value) : Attribute
+    [Fact]
+    public void GetTypes_OnConcreteClassWithBaseAndInterface_ShouldReturnTypeItselfBaseClassesAndInterfaces()
     {
-        public string Value => value;
+        // Act
+        var result = typeof(SqlCustomerRepository).GetTypes().ToList();
+
+        // Assert
+        Assert.Contains(typeof(SqlCustomerRepository), result);
+        Assert.Contains(typeof(RepositoryBase<Customer>), result);
+        Assert.Contains(typeof(object), result);
+        Assert.Contains(typeof(ICustomerRepository), result);
+        Assert.Contains(typeof(IRepository<Customer>), result);
+        Assert.Contains(typeof(IReadOnlyRepository<Customer>), result);
+        Assert.Contains(typeof(IDisposable), result);
+        Assert.Contains(typeof(IAsyncDisposable), result);
     }
 
-    [Test("hello")]
-    private class DecoratedType;
+    [Fact]
+    public void GetTypes_WhenBaseClassIsAbstract_ShouldIncludeAbstractBaseClasses()
+    {
+        // Act
+        var result = typeof(SqlCustomerRepository).GetTypes().ToList();
 
-    private class PlainType;
+        // Assert
+        Assert.Contains(typeof(RepositoryBase<Customer>), result);
+    }
 
-    private class Items;
+    [Fact]
+    public void GetTypes_WhenCalled_ShouldIncludeObjectBaseType()
+    {
+        // Act
+        var result = typeof(SqlCustomerRepository).GetTypes().ToList();
 
-    private interface IMyService;
+        // Assert
+        Assert.Contains(typeof(object), result);
+    }
 
-    private interface IBase;
+    [Fact]
+    public void GetTypes_OnTypeWithNoBaseOrInterfaces_ShouldReturnTypeItselfAndObject()
+    {
+        // Act
+        var result = typeof(Customer).GetTypes().ToList();
 
-    private interface IDerived : IBase;
+        // Assert
+        Assert.Equal(new[] { typeof(Customer), typeof(object) }, result);
+    }
 
-    private class DerivedImpl : IDerived;
+    [Fact]
+    public void GetTypes_OnTypeWithMultipleBaseClasses_ShouldReturnFullChainInOrder()
+    {
+        // Act
+        var result = typeof(SubscriptionProduct).GetTypes().ToList();
 
-    private interface IFirst;
+        // Assert
+        Assert.Equal(
+            new[] { typeof(SubscriptionProduct), typeof(DigitalProduct), typeof(Product), typeof(object) },
+            result
+        );
+    }
 
-    private interface ISecond;
+    [Fact]
+    public void GetTypes_OnInterface_ShouldReturnInterfaceItselfAndInheritedInterfaces()
+    {
+        // Act
+        var result = typeof(ICustomerRepository).GetTypes().ToList();
 
-    private class MultiImpl : IFirst, ISecond;
+        // Assert
+        Assert.Contains(typeof(ICustomerRepository), result);
+        Assert.Contains(typeof(IRepository<Customer>), result);
+        Assert.Contains(typeof(IReadOnlyRepository<Customer>), result);
+        Assert.Contains(typeof(IDisposable), result);
+        Assert.Contains(typeof(IAsyncDisposable), result);
+        Assert.DoesNotContain(typeof(object), result);
+    }
 
-    private interface IDiamondBase;
-
-    private interface IDiamondLeft : IDiamondBase;
-
-    private interface IDiamondRight : IDiamondBase;
-
-    private class DiamondImpl : IDiamondLeft, IDiamondRight;
 }

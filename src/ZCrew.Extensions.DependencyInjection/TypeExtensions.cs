@@ -11,6 +11,15 @@ public static class TypeExtensions
     extension(Type type)
     {
         /// <summary>
+        ///     Combines the <see cref="Type.IsAbstract"/> and <see cref="Type.IsInterface"/> to check if a type is
+        ///     abstract and not an interface.
+        /// </summary>
+        public bool IsAbstractClass
+        {
+            get => type is { IsAbstract: true, IsInterface: false };
+        }
+
+        /// <summary>
         ///     Returns <see langword="true"/> if the type has the specified attribute applied.
         /// </summary>
         /// <typeparam name="TAttribute">The attribute type to check for.</typeparam>
@@ -31,6 +40,31 @@ public static class TypeExtensions
         {
             var attribute = type.GetTypeInfo().GetCustomAttribute<TAttribute>();
             return attribute != null && filter(attribute);
+        }
+
+        /// <summary>
+        ///     Returns the type itself, all classes the current type extends, and all interfaces the current type
+        ///     implements.
+        /// </summary>
+        /// <returns>The list of all types the current type represents.</returns>
+        public IEnumerable<Type> GetTypes()
+        {
+            // Every type is itself
+            yield return type;
+
+            // And all base types
+            var baseType = type.BaseType;
+            while (baseType != null)
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
+            }
+
+            // And all interfaces
+            foreach (var @interface in type.GetInterfaces())
+            {
+                yield return @interface;
+            }
         }
 
         /// <summary>

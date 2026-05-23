@@ -90,6 +90,131 @@ public class ClassesServiceSelectionTests
     }
 
     [Fact]
+    public void AsAllTypes_WhenCalled_ShouldRegisterTypeAndNonAbstractBaseClassesAndInterfaces()
+    {
+        // Act
+        var result = Classes.From(typeof(SqlCustomerRepository)).AsAllTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(SqlCustomerRepository), serviceTypes);
+        Assert.Contains(typeof(ICustomerRepository), serviceTypes);
+        Assert.Contains(typeof(IDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(RepositoryBase<Customer>), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllNonSystemTypes_WhenCalled_ShouldExcludeSystemTypesAndAbstractBaseClasses()
+    {
+        // Act
+        var result = Classes.From(typeof(SqlCustomerRepository)).AsAllNonSystemTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(SqlCustomerRepository), serviceTypes);
+        Assert.Contains(typeof(ICustomerRepository), serviceTypes);
+        Assert.DoesNotContain(typeof(IDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(IAsyncDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(object), serviceTypes);
+        Assert.DoesNotContain(typeof(RepositoryBase<Customer>), serviceTypes);
+    }
+
+    [Fact]
+    public void AsDefaultTypes_WhenCalled_ShouldMatchByNamingConvention()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(CustomerService), typeof(EmailNotificationSender))
+            .AsDefaultTypes()
+            .ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(ICustomerService), serviceTypes);
+        Assert.Contains(typeof(INotificationSender), serviceTypes);
+    }
+
+    [Fact]
+    public void AsDefaultTypes_WhenTypeHasNoBaseOrInterfaceMatchingConvention_ShouldRegisterOnlySelf()
+    {
+        // Act
+        var result = Classes.From(typeof(Customer)).AsDefaultTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(Customer), serviceTypes);
+        Assert.DoesNotContain(typeof(object), serviceTypes);
+    }
+
+    [Fact]
+    public void AsDefaultNonSystemTypes_WhenCalled_ShouldCombineBothFilters()
+    {
+        // Act
+        var result = Classes.From(typeof(SqlCustomerRepository)).AsDefaultNonSystemTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(ICustomerRepository), serviceTypes);
+        Assert.DoesNotContain(typeof(IDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(IAsyncDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(RepositoryBase<Customer>), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllTypes_WhenTypeExtendsConcreteBase_ShouldRegisterAgainstBaseAndInheritedInterfaces()
+    {
+        // Act
+        var result = Classes.From(typeof(CachingPayPalPaymentGateway)).AsAllTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(CachingPayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(PayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IDisposable), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllNonSystemTypes_WhenTypeExtendsConcreteBase_ShouldExcludeSystemInheritedInterfaces()
+    {
+        // Act
+        var result = Classes.From(typeof(CachingPayPalPaymentGateway)).AsAllNonSystemTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(CachingPayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(PayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+        Assert.DoesNotContain(typeof(IDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(object), serviceTypes);
+    }
+
+    [Fact]
+    public void AsDefaultTypes_WhenBaseClassNameMatchesConvention_ShouldRegisterAgainstBase()
+    {
+        // Act
+        var result = Classes.From(typeof(CachingPayPalPaymentGateway)).AsDefaultTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(PayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+    }
+
+    [Fact]
+    public void AsDefaultNonSystemTypes_WhenBaseClassNameMatchesConvention_ShouldRegisterAgainstBase()
+    {
+        // Act
+        var result = Classes.From(typeof(CachingPayPalPaymentGateway)).AsDefaultNonSystemTypes().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(PayPalPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+        Assert.DoesNotContain(typeof(IDisposable), serviceTypes);
+    }
+
+    [Fact]
     public void AsFirstInterface_WhenCalled_ShouldRegisterFirstInterface()
     {
         // Act
