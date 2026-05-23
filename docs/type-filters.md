@@ -1,6 +1,6 @@
 # Type Filters
 
-Type filters narrow down the set of [selected types](5-type-selectors.md) before [service selection](7-service-selectors.md). Each filter method returns a new instance, so filters can be chained without mutating previous state.
+Type filters narrow down the set of [selected types](type-selectors.md) before [service selection](service-selectors.md). Each filter method returns a new instance, so filters can be chained without mutating previous state.
 
 ## `AllTypes()`
 
@@ -41,26 +41,7 @@ OrderService     → IOrderService
 CustomerService  → ICustomerService
 ```
 
-### Chaining `Where`
-
-Each chained `Where` further restricts the set:
-
-```csharp
-Classes.FromAssemblyContaining<CustomerService>()
-    .Where(type => type.Namespace?.Contains("Application") == true)
-    .Where(type => !type.Name.Contains("Caching"))
-    .AsDefaultInterfaces()
-```
-
-Given types in `Fixtures.SmallProject.Application.Services`:
-
-```csharp
-public class CustomerService : ICustomerService { }
-public class OrderService : IOrderService { }
-public class CachingCustomerService : ICustomerService { }
-```
-
-Selects `CustomerService` and `OrderService` (both pass both predicates), excludes `CachingCustomerService` (fails the second predicate).
+Chained `Where` calls further restrict the set — each predicate must pass.
 
 ## `BasedOn<T>()` / `BasedOn(Type)` / `BasedOn(params Type[])`
 
@@ -97,57 +78,7 @@ SqlCustomerRepository, SqlOrderRepository, InMemoryRepository<T>
 
 `CustomerService` is excluded because it does not implement `IRepository<>`.
 
-### Multiple base types
-
-`BasedOn(params Type[])` accepts multiple types. A type is included if it matches **any** of them:
-
-```csharp
-Classes.FromAssemblyContaining<SqlCustomerRepository>()
-    .BasedOn(typeof(IRepository<>), typeof(IValidator<>))
-```
-
-Given:
-
-```csharp
-public class SqlCustomerRepository : RepositoryBase<Customer>, ICustomerRepository { }
-public class OrderValidator : IValidator<Order> { }
-public class CustomerService : ICustomerService { }
-```
-
-Selects:
-
-```
-SqlCustomerRepository  (matches IRepository<>)
-OrderValidator         (matches IValidator<>)
-```
-
-`CustomerService` is excluded because it matches neither base type.
-
-### Chaining `BasedOn` with `Where`
-
-`BasedOn` returns an `ITypeFilter`, so it can be combined with `Where`:
-
-```csharp
-Classes.FromAssemblyContaining<OrderValidator>()
-    .BasedOn(typeof(IValidator<>))
-    .Where(type => type.IsPublic)
-    .AsBase()
-```
-
-Given:
-
-```csharp
-public class OrderValidator : IValidator<Order> { }
-public class CustomerValidator : IValidator<Customer> { }
-internal class InternalOrderValidator : IValidator<Order> { }
-```
-
-`BasedOn` matches all three, then `Where` excludes `InternalOrderValidator`. Result:
-
-```
-OrderValidator     → IValidator<Order>
-CustomerValidator  → IValidator<Customer>
-```
+`BasedOn(params Type[])` accepts multiple base types — a type is included if it matches **any** of them. `BasedOn` returns `ITypeFilter`, so it composes with `Where` and other filters.
 
 ## `NameEndsWith(string)` and overloads
 
@@ -176,14 +107,7 @@ OrderService     → IOrderService
 
 `SqlCustomerRepository` is excluded — its name ends with `Repository`, not `Service`.
 
-### Overloads
-
-| Overload                                                                 | Behavior                                                                                                                            |
-|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `NameEndsWith(string suffix)`                                            | Case-sensitive, ordinal-style match.                                                                                                |
-| `NameEndsWith(string suffix, bool ignoreCase)`                           | Case-insensitive when `ignoreCase` is `true`. Uses `CultureInfo.CurrentCulture`.                                                    |
-| `NameEndsWith(string suffix, bool ignoreCase, CultureInfo? cultureInfo)` | Culture-aware match. A `null` culture falls back to the current culture.                                                            |
-| `NameEndsWith(string suffix, StringComparison comparisonType)`           | Explicit comparison — typically `StringComparison.Ordinal` or `StringComparison.OrdinalIgnoreCase` for assembly-scanning scenarios. |
+Overloads accept `ignoreCase`/`CultureInfo` or a `StringComparison` for explicit control — typically `StringComparison.Ordinal` for assembly scanning.
 
 ## `GenericTypes()` / `GenericTypeDefinitions()` / `ConstructedGenericTypes()`
 
@@ -213,7 +137,7 @@ public class InMemoryRepository<T> : IRepository<T> { }
 
 Selects `SqlCustomerRepository` and `SqlOrderRepository` (both closed). `InMemoryRepository<T>` is excluded because it is an open generic.
 
-> **Remarks:** Open and closed generic registrations have different behavior under shared-component forwarding — open generics can't be forwarded at all. See [Open generic limitation](9-shared-components.md#open-generic-limitation) and the [Castle Windsor comparison](10-castle-windsor-comparison.md#open-generic-registration-with-a-factory) for the full picture.
+> Open and closed generic registrations behave differently under shared-component forwarding. See [Open generic limitation](shared-components.md#open-generic-limitation).
 
 ## `InNamespace(string)` / `InNamespace(string, bool)`
 

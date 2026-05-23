@@ -1,6 +1,6 @@
 # Service Selectors
 
-Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](5-type-selectors.md) and [type filtering](6-type-filters.md) in the registration chain. Each service selector method returns an `IKeyedServiceSelector`, which can optionally be chained with [keyed service selection](8-keyed-service-selectors.md) via `Keyed`, or used directly as an `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
+Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns an `IKeyedServiceSelector`, which can optionally be chained with [keyed service selection](keyed-service-selectors.md) via `Keyed`, or used directly as an `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
 
 ## `AsAllInterfaces()`
 
@@ -136,7 +136,7 @@ The "first" interface is determined by the runtime's reflection ordering, which 
 
 Registers each type against its **top-level interfaces that derive from the base types** set via `BasedOn`. "Top-level" means the most-derived interface in the hierarchy — it picks the leaf, not the root.
 
-This method requires [`BasedOn`](6-type-filters.md#basedont--basedontype--basedonparams-type) to be called first to set the base type context:
+This method requires [`BasedOn`](type-filters.md#basedont--basedontype--basedonparams-type) to be called first to set the base type context:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -325,58 +325,6 @@ The open generic `IValidator<>` in `BasedOn` is resolved to the closed form (`IV
 | Register as the concrete type      | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
 | Custom logic                       | `As(delegate)`               | Full control via a function                     |
 
-## Side-by-side comparison
+## Type-based variants
 
-The following scenario is designed so that every selector produces a distinct set of registrations, making the differences easy to compare at a glance.
-
-### Setup
-
-```csharp
-public interface IAuditable { }
-
-public interface IHandler { }
-public interface IOrderHandler : IHandler { }
-
-public class DisposableOrderHandler : IAuditable, IOrderHandler, IDisposable
-{
-    public void Dispose() { }
-}
-```
-
-The type hierarchy at play:
-
-```
-DisposableOrderHandler
-├── IAuditable
-├── IOrderHandler
-│   └── IHandler
-└── IDisposable (System)
-```
-
-`DisposableOrderHandler` implements four interfaces in total: `IAuditable`, `IOrderHandler`, `IHandler` (inherited via `IOrderHandler`), and `IDisposable`.
-The top level interfaces are `IAuditable`, `IOrderHandler`, and `IDisposable`.
-
-### Registration
-
-All examples below assume:
-
-```csharp
-Classes.From(new[] { typeof(DisposableOrderHandler) }).BasedOn<IHandler>()
-```
-
-`AsInterface<T>()`, `AsInterface(Type)`, and `AsInterfaces(params Type[])` specify their base types as parameters instead of relying on `BasedOn`. The table notes where this applies.
-
-### Results
-
-| Selector                                             | `DisposableOrderHandler` registered as                   | Why                                                                                           |
-|------------------------------------------------------|----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `AsAllInterfaces()`                                  | `IAuditable`, `IOrderHandler`, `IHandler`, `IDisposable` | Every interface, including inherited and `System` interfaces                                  |
-| `AsAllNonSystemInterfaces()`                         | `IAuditable`, `IOrderHandler`, `IHandler`                | Same as above, minus `IDisposable` (`System` namespace)                                       |
-| `AsDefaultInterfaces()`                              | `IOrderHandler`, `IHandler`, `IDisposable`               | Convention match: name contains "OrderHandler", "Handler", and "Disposable" (not "Auditable") |
-| `AsDefaultNonSystemInterfaces()`                     | `IOrderHandler`, `IHandler`                              | Same convention match, minus `IDisposable` (`System` namespace)                               |
-| `AsFirstInterface()`                                 | `IAuditable`                                             | First declared interface only                                                                 |
-| `AsInterface()`                                      | `IOrderHandler`                                          | Most-derived interface descending from `IHandler` (the `BasedOn` type)                        |
-| `AsInterface(typeof(IAuditable))`                    | `IAuditable`                                             | Most-derived interface descending from `IAuditable`                                           |
-| `AsInterfaces(typeof(IHandler), typeof(IAuditable))` | `IOrderHandler`, `IAuditable`                            | Most-derived interface from each specified base type                                          |
-| `AsBase()`                                           | `IHandler`                                               | The `BasedOn` type itself                                                                     |
-| `AsSelf()`                                           | `DisposableOrderHandler`                                 | The concrete implementation type                                                              |
+`AsAllTypes()`, `AsAllNonSystemTypes()`, `AsDefaultTypes()`, and `AsDefaultNonSystemTypes()` mirror the interface methods but match against base types instead of interfaces.
