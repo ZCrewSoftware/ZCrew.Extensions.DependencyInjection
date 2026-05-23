@@ -15,7 +15,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Application.Services")
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -34,7 +34,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Infrastructure", includeSubnamespaces: true)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -52,7 +52,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InNamespace("Fixtures.SmallProject.Infrastructure")
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         Assert.Empty(result);
@@ -66,7 +66,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs(typeof(CustomerService))
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -83,7 +83,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs<CustomerService>()
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -100,7 +100,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs<CustomerService>(includeSubnamespaces: true)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -116,7 +116,7 @@ public class ClassesNamespaceFilterTests
             .FromAssemblyContaining<CustomerService>()
             .InSameNamespaceAs(typeof(PayPalPaymentGateway), includeSubnamespaces: true)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -134,7 +134,7 @@ public class ClassesNamespaceFilterTests
             .Where(t => !t.Name.StartsWith("Stripe"))
             .InSameNamespaceAs<PayPalPaymentGateway>(includeSubnamespaces: true)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

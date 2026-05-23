@@ -1,6 +1,6 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-internal sealed class KeyedServiceSelector : IKeyedServiceSelector
+internal sealed class KeyedServiceSelector : KeyedServiceSelectorBase
 {
     private readonly IEnumerable<ServiceComponent> components;
 
@@ -10,13 +10,13 @@ internal sealed class KeyedServiceSelector : IKeyedServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource Unkeyed()
+    public override IServiceSource Unkeyed()
     {
         return new ServiceSource(this.components);
     }
 
     /// <inheritdoc />
-    public IServiceSource Keyed()
+    public override IServiceSource Keyed()
     {
         return Keyed(
             (implementationType, serviceType) =>
@@ -38,7 +38,7 @@ internal sealed class KeyedServiceSelector : IKeyedServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource Keyed(object? serviceKey)
+    public override IServiceSource Keyed(object? serviceKey)
     {
         // Just skip the scan entirely
         if (serviceKey == null)
@@ -50,13 +50,13 @@ internal sealed class KeyedServiceSelector : IKeyedServiceSelector
     }
 
     /// <inheritdoc />
-    public IServiceSource Keyed(Func<Type, object?> serviceKeySelector)
+    public override IServiceSource Keyed(Func<Type, object?> serviceKeySelector)
     {
         return Keyed((implementationType, _) => serviceKeySelector(implementationType));
     }
 
     /// <inheritdoc />
-    public IServiceSource Keyed(Func<Type, Type, object?> serviceKeySelector)
+    public override IServiceSource Keyed(Func<Type, Type, object?> serviceKeySelector)
     {
         ArgumentNullException.ThrowIfNull(serviceKeySelector);
         return new ServiceSource(this.components.Select(component => component.WithServiceKey(serviceKeySelector)));

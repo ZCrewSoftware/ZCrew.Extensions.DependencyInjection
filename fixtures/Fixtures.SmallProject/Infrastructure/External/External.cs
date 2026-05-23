@@ -11,3 +11,5 @@ public class StripePaymentGateway : IPaymentGateway
 {
     public void Dispose() { }
 }
+
+public class CachingPayPalPaymentGateway : PayPalPaymentGateway;

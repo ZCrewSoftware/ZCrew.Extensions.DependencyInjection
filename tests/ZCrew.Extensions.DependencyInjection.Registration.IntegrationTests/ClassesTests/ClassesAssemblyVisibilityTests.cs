@@ -14,7 +14,7 @@ public class ClassesAssemblyVisibilityTests
         var assembly = typeof(CustomerService).Assembly;
 
         // Act
-        var result = Classes.FromAssembly(assembly).InNamespace(DomainServicesNamespace).AsSelf().Collect();
+        var result = Classes.FromAssembly(assembly).InNamespace(DomainServicesNamespace).AsSelf().ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -33,7 +33,7 @@ public class ClassesAssemblyVisibilityTests
             .IncludePublicTypes()
             .InNamespace(DomainServicesNamespace)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -52,7 +52,7 @@ public class ClassesAssemblyVisibilityTests
             .IncludeInternalTypes()
             .InNamespace(DomainServicesNamespace)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -71,7 +71,7 @@ public class ClassesAssemblyVisibilityTests
             .IncludeInternalTypes()
             .InNamespace(DomainServicesNamespace)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -91,7 +91,7 @@ public class ClassesAssemblyVisibilityTests
             .IncludeAllTypes()
             .InNamespace(DomainServicesNamespace)
             .AsSelf()
-            .Collect();
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();

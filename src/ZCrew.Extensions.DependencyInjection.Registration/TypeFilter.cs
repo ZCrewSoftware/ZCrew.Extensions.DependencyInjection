@@ -4,7 +4,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Filters a set of types using predicates and base type constraints, then transitions to service selection.
 ///     Maintains an immutable chain: each filter method returns a new <see cref="TypeFilter"/> instance.
 /// </summary>
-internal sealed class TypeFilter : ITypeFilter
+internal sealed class TypeFilter : TypeFilterBase
 {
     private static readonly IEnumerable<Type> defaultBases = [typeof(object)];
     private readonly IEnumerable<Type> types;
@@ -23,7 +23,7 @@ internal sealed class TypeFilter : ITypeFilter
     }
 
     /// <inheritdoc />
-    public IServiceSelector AllTypes()
+    public override IServiceSelector AllTypes()
     {
         // If we're just checking the default (based on object) then all types will pass
         if (ReferenceEquals(this.baseTypes, defaultBases))
@@ -36,6 +36,25 @@ internal sealed class TypeFilter : ITypeFilter
         return new ServiceSelector(filteredTypes, baseTypesArray);
     }
 
+    /// <inheritdoc />
+    public override ITypeFilter Where(Func<Type, bool> filter)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
+        return new TypeFilter(this.types.Where(filter), this.baseTypes);
+    }
+
+    /// <inheritdoc />
+    public override ITypeFilter BasedOn(params Type[] baseTypes)
+    {
+        ArgumentNullException.ThrowIfNull(baseTypes);
+        if (ReferenceEquals(this.baseTypes, defaultBases))
+        {
+            return new TypeFilter(this.types, baseTypes);
+        }
+
+        return new TypeFilter(this.types, this.baseTypes.Concat(baseTypes));
+    }
+
     private static bool IsAssignableToAnyBase(Type type, Type[] baseTypes)
     {
         foreach (var baseType in baseTypes)
@@ -46,77 +65,5 @@ internal sealed class TypeFilter : ITypeFilter
             }
         }
         return false;
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InNamespace(string @namespace)
-    {
-        ArgumentNullException.ThrowIfNull(@namespace);
-        return Where(type => type.IsInNamespace(@namespace));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InNamespace(string @namespace, bool includeSubnamespaces)
-    {
-        ArgumentNullException.ThrowIfNull(@namespace);
-        return Where(type => type.IsInNamespace(@namespace, includeSubnamespaces));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs(Type otherType)
-    {
-        ArgumentNullException.ThrowIfNull(otherType);
-        return Where(type => type.IsInSameNamespaceAs(otherType));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs(Type otherType, bool includeSubnamespaces)
-    {
-        ArgumentNullException.ThrowIfNull(otherType);
-        return Where(type => type.IsInSameNamespaceAs(otherType, includeSubnamespaces));
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs<T>()
-    {
-        return Where(type => type.IsInSameNamespaceAs<T>());
-    }
-
-    /// <inheritdoc />
-    public IServiceSelector InSameNamespaceAs<T>(bool includeSubnamespaces)
-    {
-        return Where(type => type.IsInSameNamespaceAs<T>(includeSubnamespaces));
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter Where(Func<Type, bool> filter)
-    {
-        ArgumentNullException.ThrowIfNull(filter);
-        return new TypeFilter(this.types.Where(filter), this.baseTypes);
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter BasedOn<T>()
-    {
-        return BasedOn([typeof(T)]);
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter BasedOn(Type baseType)
-    {
-        ArgumentNullException.ThrowIfNull(baseType);
-        return BasedOn([baseType]);
-    }
-
-    /// <inheritdoc />
-    public ITypeFilter BasedOn(params Type[] baseTypes)
-    {
-        ArgumentNullException.ThrowIfNull(baseTypes);
-        if (ReferenceEquals(this.baseTypes, defaultBases))
-        {
-            return new TypeFilter(this.types, baseTypes);
-        }
-
-        return new TypeFilter(this.types, this.baseTypes.Concat(baseTypes));
     }
 }

@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(IServiceSource descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(IKeyedServiceSelector descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(IServiceSelector descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ITypeFilter descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ITypeSelector descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(IAssemblyTypeSelector descriptors)
         {
-            return services.AddSingleton(descriptors.Collect());
+            return services.AddSingleton(descriptors.ToServiceCollection());
         }
     }
 }
