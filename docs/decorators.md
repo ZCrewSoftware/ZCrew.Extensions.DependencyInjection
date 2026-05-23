@@ -108,23 +108,6 @@ When `IEmailService` is resolved, the call chain is:
 LoggingEmailService → FilteredEmailService → EmailService
 ```
 
-## Best practices
+## Lifetime validation
 
-### Learn the decorator pattern
-
-If you're unfamiliar with the decorator pattern, [Refactoring Guru's decorator guide](https://refactoring.guru/design-patterns/decorator) is an excellent resource.
-Understanding the pattern will help you design clean, composable decorators.
-
-### Registration order matters
-
-Decorators are applied in the order they are registered.
-The last decorator registered becomes the outermost layer — it runs first and delegates inward.
-Consider the order carefully, especially when one decorator depends on the behavior of another (e.g., a logging decorator should typically be outermost so it captures the final result).
-
-### Match decorator lifetime to the inner service
-
-A decorator with a longer lifetime than its inner service creates a **captive dependency** — the decorator holds a stale reference to an instance that should have been disposed or recreated.
-For example, a singleton decorator wrapping a transient service would always use the same transient instance, defeating its purpose.
-
-The library enforces this at registration time and throws an `InvalidOperationException` if a decorator's lifetime exceeds its delegate's.
-To avoid this entirely, use `AddDecorator` (without a lifetime prefix) so the decorator automatically inherits the delegate's lifetime.
+A decorator with a longer lifetime than its delegate creates a captive dependency — the decorator holds a stale reference to an instance that should have been recreated. The library throws `InvalidOperationException` at registration time when this happens. Use `AddDecorator` (without a lifetime prefix) to inherit the delegate's lifetime automatically.

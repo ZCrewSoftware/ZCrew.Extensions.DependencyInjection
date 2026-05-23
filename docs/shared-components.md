@@ -14,7 +14,7 @@ A shared component fixes this: the implementation is registered once and every o
 
 ## How shared components work
 
-Given a [service selector](7-service-selectors.md) that maps a single implementation to multiple service types, the library registers:
+Given a [service selector](service-selectors.md) that maps a single implementation to multiple service types, the library registers:
 
 1. The implementation itself, either directly (if it is one of the selected service types) or under a hidden shared key.
 2. A factory-based descriptor for every other service type that resolves through the implementation registration.
@@ -22,10 +22,9 @@ Given a [service selector](7-service-selectors.md) that maps a single implementa
 For example:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.From(typeof(CustomerService))
         .AsAllNonSystemInterfaces()
-        .AsSingleton()
 );
 ```
 
@@ -85,11 +84,7 @@ Both modes produce one shared instance behind every service type. They differ in
 A safe `Dependent` example, where a separate `AsSelf()` registration ensures the implementation is in the container:
 
 ```csharp
-services.Add(
-    Classes.From(typeof(CustomerService))
-        .AsSelf()
-        .AsSingleton()
-);
+services.AddSingleton(Classes.From(typeof(CustomerService)).AsSelf());
 services.Add(
     Classes.From(typeof(CustomerService))
         .AsInterface<ICustomerService>()

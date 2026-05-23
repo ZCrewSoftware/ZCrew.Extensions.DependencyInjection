@@ -1,6 +1,6 @@
 # Type Filters
 
-Type filters narrow down the set of [selected types](5-type-selectors.md) before [service selection](7-service-selectors.md). Each filter method returns a new instance, so filters can be chained without mutating previous state.
+Type filters narrow down the set of [selected types](type-selectors.md) before [service selection](service-selectors.md). Each filter method returns a new instance, so filters can be chained without mutating previous state.
 
 ## `AllTypes()`
 
@@ -41,26 +41,7 @@ OrderService     → IOrderService
 CustomerService  → ICustomerService
 ```
 
-### Chaining `Where`
-
-Each chained `Where` further restricts the set:
-
-```csharp
-Classes.FromAssemblyContaining<CustomerService>()
-    .Where(type => type.Namespace?.Contains("Application") == true)
-    .Where(type => !type.Name.Contains("Caching"))
-    .AsDefaultInterfaces()
-```
-
-Given types in `Fixtures.SmallProject.Application.Services`:
-
-```csharp
-public class CustomerService : ICustomerService { }
-public class OrderService : IOrderService { }
-public class CachingCustomerService : ICustomerService { }
-```
-
-Selects `CustomerService` and `OrderService` (both pass both predicates), excludes `CachingCustomerService` (fails the second predicate).
+Chained `Where` calls further restrict the set — each predicate must pass.
 
 ## `BasedOn<T>()` / `BasedOn(Type)` / `BasedOn(params Type[])`
 
@@ -97,57 +78,66 @@ SqlCustomerRepository, SqlOrderRepository, InMemoryRepository<T>
 
 `CustomerService` is excluded because it does not implement `IRepository<>`.
 
-### Multiple base types
+`BasedOn(params Type[])` accepts multiple base types — a type is included if it matches **any** of them. `BasedOn` returns `ITypeFilter`, so it composes with `Where` and other filters.
 
-`BasedOn(params Type[])` accepts multiple types. A type is included if it matches **any** of them:
+## `NameEndsWith(string)` and overloads
+
+Filters to types whose name ends with the given suffix. Generic arity is stripped before matching, so `Repository<T>` is treated as `Repository` and `IEnumerable<T>` ends with `"able"`.
 
 ```csharp
-Classes.FromAssemblyContaining<SqlCustomerRepository>()
-    .BasedOn(typeof(IRepository<>), typeof(IValidator<>))
+Classes.FromAssemblyContaining<CustomerService>()
+    .NameEndsWith("Service")
+    .AsInterface()
 ```
 
 Given:
 
 ```csharp
-public class SqlCustomerRepository : RepositoryBase<Customer>, ICustomerRepository { }
-public class OrderValidator : IValidator<Order> { }
 public class CustomerService : ICustomerService { }
+public class OrderService : IOrderService { }
+public class SqlCustomerRepository : ICustomerRepository { }
 ```
 
 Selects:
 
 ```
-SqlCustomerRepository  (matches IRepository<>)
-OrderValidator         (matches IValidator<>)
+CustomerService  → ICustomerService
+OrderService     → IOrderService
 ```
 
-`CustomerService` is excluded because it matches neither base type.
+`SqlCustomerRepository` is excluded — its name ends with `Repository`, not `Service`.
 
-### Chaining `BasedOn` with `Where`
+Overloads accept `ignoreCase`/`CultureInfo` or a `StringComparison` for explicit control — typically `StringComparison.Ordinal` for assembly scanning.
 
-`BasedOn` returns an `ITypeFilter`, so it can be combined with `Where`:
+## `GenericTypes()` / `GenericTypeDefinitions()` / `ConstructedGenericTypes()`
+
+Filters for generic types. The three methods are mutually exclusive in the way most callers want:
+
+| Method                      | Selects                                                | Example match                                                  |
+|-----------------------------|--------------------------------------------------------|----------------------------------------------------------------|
+| `GenericTypes()`            | Any generic type — both open and closed forms          | `Repository<T>`, `Repository<Customer>`, `Cache<TKey, TValue>` |
+| `GenericTypeDefinitions()`  | Open generics only (`Type.IsGenericTypeDefinition`)    | `Repository<T>`, `Validator<>`                                 |
+| `ConstructedGenericTypes()` | Closed generics only (`Type.IsConstructedGenericType`) | `Repository<Customer>`, `Validator<Order>`                     |
 
 ```csharp
-Classes.FromAssemblyContaining<OrderValidator>()
-    .BasedOn(typeof(IValidator<>))
-    .Where(type => type.IsPublic)
+// Register only closed generic repositories — open generics handled separately
+Classes.FromAssemblyContaining<SqlCustomerRepository>()
+    .BasedOn(typeof(IRepository<>))
+    .ConstructedGenericTypes()
     .AsBase()
 ```
 
 Given:
 
 ```csharp
-public class OrderValidator : IValidator<Order> { }
-public class CustomerValidator : IValidator<Customer> { }
-internal class InternalOrderValidator : IValidator<Order> { }
+public class SqlCustomerRepository : RepositoryBase<Customer>, IRepository<Customer> { }
+public class SqlOrderRepository : RepositoryBase<Order>, IRepository<Order> { }
+public class InMemoryRepository<T> : IRepository<T> { }
 ```
 
-`BasedOn` matches all three, then `Where` excludes `InternalOrderValidator`. Result:
+Selects `SqlCustomerRepository` and `SqlOrderRepository` (both closed). `InMemoryRepository<T>` is excluded because it is an open generic.
 
-```
-OrderValidator     → IValidator<Order>
-CustomerValidator  → IValidator<Customer>
-```
+> Open and closed generic registrations behave differently under shared-component forwarding. See [Open generic limitation](shared-components.md#open-generic-limitation).
 
 ## `InNamespace(string)` / `InNamespace(string, bool)`
 

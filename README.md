@@ -53,10 +53,13 @@ The library throws `InvalidOperationException` at registration time if a decorat
 
 Scan assemblies and register services by convention using a fluent API inspired by Castle Windsor.
 
+> [!TIP]
+> **Looking for a quick lookup?** The **[Registration Cheat Sheet](docs/registration-cheat-sheet.md)** is a single-page reference covering every entry point, filter, selector, keyed overload, and lifetime helper — with copy-paste recipes. Bookmark it.
+
 ```csharp
 using ZCrew.Extensions.DependencyInjection.Registration;
 
-services.Add(
+services.AddSingleton(
     Classes.FromThisAssembly()
         .BasedOn<IRepository>()
         .AsInterface()
@@ -79,7 +82,7 @@ services.Add(
 When scanning assemblies, control which types are included:
 
 ```csharp
-Classes.FromAssembly(assembly).IncludePublicTypes()   // Only public types (default)
+Classes.FromAssembly(assembly).IncludePublicTypes()    // Only public types (default)
 Classes.FromAssembly(assembly).IncludeInternalTypes()  // Public + internal types
 Classes.FromAssembly(assembly).IncludeAllTypes()       // All types including nested
 ```
@@ -127,7 +130,7 @@ Choose how implementation types map to service types:
 Optionally assign service keys after service selection using `Keyed`:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<Startup>()
         .BasedOn<IPaymentGateway>()
         .AsInterface()
@@ -135,8 +138,8 @@ services.Add(
 );
 ```
 
-| Method                                      | Behavior                                                                   |
-|---------------------------------------------|----------------------------------------------------------------------------|
+| Method                             | Behavior                                                                   |
+|------------------------------------|----------------------------------------------------------------------------|
 | `Keyed()`                          | Auto-detect key by stripping the service name from the implementation name |
 | `Keyed(object?)`                   | Same key for all registrations (`null` = no service key)                   |
 | `Keyed(Func<Type, object?>)`       | Key per implementation type (`null` return = no service key)               |
@@ -144,31 +147,35 @@ services.Add(
 
 ### Adding to `IServiceCollection`
 
-The result of the fluent chain is an `IServiceCollection`, so pass it directly to `services.Add()`:
+Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient`:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<Startup>()
         .BasedOn<IRepository>()
         .AsInterface()
 );
 
-services.Add(
+services.AddScoped(
     Classes.FromAssemblyContaining<Startup>()
         .InSameNamespaceAs<CustomerService>()
         .AsDefaultInterfaces()
 );
 ```
 
+A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful when you need a sharing mode that has no bulk-add equivalent — e.g. `chain.AsSingletonDependent()` for factory-only forwarding.
+
 ## Documentation
 
 See the [docs](docs) folder for detailed guides:
 
-- [Introduction](docs/1-introduction.md)
-- [Getting Started](docs/2-getting-started.md)
-- [Decorators](docs/3-decorators.md)
-- [Convention-Based Registration](docs/4-registration.md)
-- [Type Selectors](docs/5-type-selectors.md)
-- [Type Filters](docs/6-type-filters.md)
-- [Service Selectors](docs/7-service-selectors.md)
-- [Keyed Service Selectors](docs/8-keyed-service-selectors.md)
+- [Introduction](docs/introduction.md)
+- [Decorators](docs/decorators.md)
+- [Convention-Based Registration](docs/registration.md)
+- **[Registration Cheat Sheet](docs/registration-cheat-sheet.md)** — one-page API reference (start here when you need to look something up)
+- [Type Selectors](docs/type-selectors.md)
+- [Type Filters](docs/type-filters.md)
+- [Service Selectors](docs/service-selectors.md)
+- [Keyed Service Selectors](docs/keyed-service-selectors.md)
+- [Shared Components](docs/shared-components.md)
+- [Castle Windsor Comparison](docs/castle-windsor-comparison.md)

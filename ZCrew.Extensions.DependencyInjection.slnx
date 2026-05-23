@@ -3,15 +3,16 @@
     <Project Path="benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks/ZCrew.Extensions.DependencyInjection.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/docs/">
-    <File Path="docs/1-introduction.md" />
-    <File Path="docs/2-getting-started.md" />
-    <File Path="docs/3-decorators.md" />
-    <File Path="docs/4-registration.md" />
-    <File Path="docs/5-type-selectors.md" />
-    <File Path="docs/6-type-filters.md" />
-    <File Path="docs/7-service-selectors.md" />
-    <File Path="docs/8-keyed-service-selectors.md" />
-    <File Path="docs/9-shared-components.md" />
+    <File Path="docs/castle-windsor-comparison.md" />
+    <File Path="docs/decorators.md" />
+    <File Path="docs/introduction.md" />
+    <File Path="docs/keyed-service-selectors.md" />
+    <File Path="docs/registration-cheat-sheet.md" />
+    <File Path="docs/registration.md" />
+    <File Path="docs/service-selectors.md" />
+    <File Path="docs/shared-components.md" />
+    <File Path="docs/type-filters.md" />
+    <File Path="docs/type-selectors.md" />
   </Folder>
   <Folder Name="/samples/" />
   <Folder Name="/samples/DecoratorEmailSample/">
@@ -27,6 +28,9 @@
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests/ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.Registration.UnitTests/ZCrew.Extensions.DependencyInjection.Registration.UnitTests.csproj" />
     <Project Path="tests/ZCrew.Extensions.DependencyInjection.UnitTests/ZCrew.Extensions.DependencyInjection.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/docs/upgrades/">
+    <File Path="docs/upgrades/v1-to-v2.md" />
   </Folder>
   <Folder Name="/fixtures/">
     <Project Path="fixtures/Fixtures.LargeProject/Fixtures.LargeProject.csproj" />

@@ -2,6 +2,10 @@
 
 Convention-based service registration for `Microsoft.Extensions.DependencyInjection`, inspired by Castle Windsor's registration API. Scan assemblies, filter types, and bulk-register services using a fluent interface.
 
+> [!TIP]
+> **One-page API reference: [Registration Cheat Sheet](../../docs/registration-cheat-sheet.md).**
+> Every entry point, filter, selector, keyed overload, and lifetime helper in one place — plus copy-paste recipes. The fastest way to find the method you need.
+
 ## Features
 
 - **Assembly scanning** — scan entire assemblies or provide explicit type lists
@@ -52,7 +56,7 @@ services.AddSingleton(
     Classes.FromThisAssembly()          // scan the calling assembly
         .IncludeInternalTypes()         // include internal types (optional)
         .BasedOn<IHandler>()            // filter to IHandler implementations
-        .Where(t => !t.IsAbstract)      // additional predicate filtering
+        .Where(t => !t.IsNested)        // additional predicate filtering
         .AsInterface()                  // register each as its IHandler interface
         .Keyed()                        // auto-detect service keys by convention
 );
@@ -90,6 +94,10 @@ services.AddSingleton(
 // Custom key selector
 .Keyed(implType => implType.Name)
 ```
+
+## Full API reference
+
+The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](../../docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](../../docs).
 
 ## License
 
