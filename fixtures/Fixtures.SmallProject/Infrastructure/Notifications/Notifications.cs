@@ -11,3 +11,8 @@ public class SmsNotificationSender : INotificationSender
 {
     public void Dispose() { }
 }
+
+public class BroadcastNotificationSender : INotificationSender, IEventPublisher
+{
+    public void Dispose() { }
+}

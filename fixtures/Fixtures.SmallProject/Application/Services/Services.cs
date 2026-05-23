@@ -45,4 +45,5 @@ public class AuditServiceDecorator(IAuditService inner) : IAuditService
 
 public class LegacyOrderProcessor : IOrderService;
 
+[Cacheable("customers")]
 public class CachingCustomerService(ICustomerService inner, ICacheProvider cache) : ICustomerService;
