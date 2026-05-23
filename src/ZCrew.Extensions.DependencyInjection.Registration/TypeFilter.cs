@@ -4,7 +4,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Filters a set of types using predicates and base type constraints, then transitions to service selection.
 ///     Maintains an immutable chain: each filter method returns a new <see cref="TypeFilter"/> instance.
 /// </summary>
-internal sealed class TypeFilter : ITypeFilter
+internal sealed class TypeFilter : TypeFilterBase
 {
     private static readonly IEnumerable<Type> defaultBases = [typeof(object)];
     private readonly IEnumerable<Type> types;
@@ -23,7 +23,7 @@ internal sealed class TypeFilter : ITypeFilter
     }
 
     /// <inheritdoc />
-    public IServiceSelector AllTypes()
+    public override IServiceSelector AllTypes()
     {
         // If we're just checking the default (based on object) then all types will pass
         if (ReferenceEquals(this.baseTypes, defaultBases))
@@ -37,14 +37,14 @@ internal sealed class TypeFilter : ITypeFilter
     }
 
     /// <inheritdoc />
-    public ITypeFilter Where(Func<Type, bool> filter)
+    public override ITypeFilter Where(Func<Type, bool> filter)
     {
         ArgumentNullException.ThrowIfNull(filter);
         return new TypeFilter(this.types.Where(filter), this.baseTypes);
     }
 
     /// <inheritdoc />
-    public ITypeFilter BasedOn(params Type[] baseTypes)
+    public override ITypeFilter BasedOn(params Type[] baseTypes)
     {
         ArgumentNullException.ThrowIfNull(baseTypes);
         if (ReferenceEquals(this.baseTypes, defaultBases))

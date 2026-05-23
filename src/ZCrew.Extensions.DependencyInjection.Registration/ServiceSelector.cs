@@ -7,7 +7,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     service types based on the chosen selection strategy (e.g. all interfaces, default interfaces, self, base
 ///     types). All generated descriptors use <see cref="ServiceLifetime.Singleton"/> by default.
 /// </summary>
-internal sealed class ServiceSelector : IServiceSelector
+internal sealed class ServiceSelector : ServiceSelectorBase
 {
     private readonly IEnumerable<Type> types;
     private readonly IEnumerable<Type> baseTypes;
@@ -19,7 +19,7 @@ internal sealed class ServiceSelector : IServiceSelector
     }
 
     /// <inheritdoc />
-    public IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector)
+    public override IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
         return new KeyedServiceSelector(
@@ -28,7 +28,7 @@ internal sealed class ServiceSelector : IServiceSelector
     }
 
     /// <inheritdoc />
-    public IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
+    public override IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
         return new KeyedServiceSelector(

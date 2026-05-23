@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     the service selection stage of the registration fluent API, analogous to Castle Windsor's <c>WithService</c>
 ///     methods. Maintains an immutable chain: each select method returns a new instance.
 /// </summary>
-public partial interface IServiceSelector : IKeyedServiceSelector
+public interface IServiceSelector : IKeyedServiceSelector
 {
     /// <summary>
     ///     Registers each type against service types returned by the specified <paramref name="serviceSelector"/> delegate.
