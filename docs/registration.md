@@ -35,7 +35,7 @@ The API is a fluent chain with five stages:
 4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
 5. **Keyed service selection** — Optionally assign service keys via `Keyed`
 
-The result is an `IServiceCollection` that you pass to `services.Add()`.
+Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient` — overloads exist for every stage of the chain.
 
 ## Quick patterns
 
@@ -44,7 +44,7 @@ The result is an `IServiceCollection` that you pass to `services.Add()`.
 The most common pattern: register each class against the interface whose name matches by convention — `CustomerService` maps to `ICustomerService`, `OrderService` to `IOrderService`, and so on:
 
 ```csharp
-services.Add(
+services.AddScoped(
     Classes.FromAssemblyContaining<CustomerService>()
         .InSameNamespaceAs<CustomerService>(includeSubnamespaces: true)
         .AsDefaultInterfaces()
@@ -58,7 +58,7 @@ services.Add(
 When your types share a common base interface, use `BasedOn` to filter and `AsInterface` to register against the most-derived interface:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<SqlCustomerRepository>()
         .BasedOn<IRepository>()
         .AsInterface()
@@ -82,7 +82,7 @@ IRepository
 When your types implement a generic interface, use `BasedOn` with the open generic type and `AsBase` to register each implementation against its closed generic form:
 
 ```csharp
-services.Add(
+services.AddTransient(
     Classes.FromAssemblyContaining<OrderValidator>()
         .BasedOn(typeof(IValidator<>))
         .AsBase()
@@ -102,7 +102,7 @@ public class CustomerValidator : IValidator<Customer> { }
 You can combine this with `Where` to control which implementations are included:
 
 ```csharp
-services.Add(
+services.AddTransient(
     Classes.FromAssemblyContaining<OrderValidator>()
         .BasedOn(typeof(IValidator<>))
         .Where(type => !type.HasAttribute<ObsoleteAttribute>())

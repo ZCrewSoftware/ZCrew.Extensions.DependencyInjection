@@ -82,3 +82,22 @@ The `fixtures/` directory contains projects that mirror real-world code for inte
 - **C# 14 extensions:** This codebase uses the new `extension(T)` blocks rather than traditional `static` extension method syntax.
 - **Field naming:** Private instance fields use `this.fieldName` (no underscore prefix). Static fields use `camelCase`.
 - **Internals visible to tests:** `src/Directory.Build.props` auto-exposes internals to `*.Tests`, `*.UnitTests`, and `*.IntegrationTests` assemblies.
+
+## Preferred Registration Patterns
+
+When writing examples in code, docs, samples, or test fixtures, **prefer the bulk-add extensions**:
+
+```csharp
+// Preferred — most concise, matches MS DI idiom (AddSingleton<T>, AddScoped<T>, AddTransient<T>):
+services.AddSingleton(Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface());
+services.AddScoped(Classes.FromThisAssembly().InNamespace("MyApp.Services").AsDefaultInterfaces());
+services.AddTransient(Classes.FromThisAssembly().BasedOn(typeof(IValidator<>)).AsBase());
+
+// Acceptable Windsor-style alternative — required when you need a sharing mode that has no
+// bulk-add equivalent (AsSingletonDependent, AsScopedIndependent, etc.):
+services.Add(Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>().AsSingletonDependent());
+```
+
+Both forms work without importing `Microsoft.Extensions.DependencyInjection.Extensions` — the Registration project ships its own `Add(IServiceCollection)` extension to keep callers from needing it.
+
+The `Add{Singleton,Scoped,Transient}(chain)` extensions live in `ZCrew.Extensions.DependencyInjection.Registration.ServiceCollectionExtensions` and exist for every stage of the chain (`IServiceSource`, `IKeyedServiceSelector`, `IServiceSelector`, `ITypeFilter`, `ITypeSelector`, `IAssemblyTypeSelector`). Reserve `services.Add(chain.AsXxx())` for cases where a sharing mode (Dependent / Independent) demands the explicit terminal.

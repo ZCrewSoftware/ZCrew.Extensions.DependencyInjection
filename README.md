@@ -59,7 +59,7 @@ Scan assemblies and register services by convention using a fluent API inspired 
 ```csharp
 using ZCrew.Extensions.DependencyInjection.Registration;
 
-services.Add(
+services.AddSingleton(
     Classes.FromThisAssembly()
         .BasedOn<IRepository>()
         .AsInterface()
@@ -130,7 +130,7 @@ Choose how implementation types map to service types:
 Optionally assign service keys after service selection using `Keyed`:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<Startup>()
         .BasedOn<IPaymentGateway>()
         .AsInterface()
@@ -147,21 +147,23 @@ services.Add(
 
 ### Adding to `IServiceCollection`
 
-The result of the fluent chain is an `IServiceCollection`, so pass it directly to `services.Add()`:
+Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient`:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<Startup>()
         .BasedOn<IRepository>()
         .AsInterface()
 );
 
-services.Add(
+services.AddScoped(
     Classes.FromAssemblyContaining<Startup>()
         .InSameNamespaceAs<CustomerService>()
         .AsDefaultInterfaces()
 );
 ```
+
+A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful when you need a sharing mode that has no bulk-add equivalent — e.g. `chain.AsSingletonDependent()` for factory-only forwarding.
 
 ## Documentation
 

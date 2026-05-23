@@ -54,11 +54,10 @@ Component.For<IPaymentGateway>().ImplementedBy<StripePaymentGateway>().Named("st
 // Resolved via: container.Resolve<IPaymentGateway>("stripe")
 
 // ZCrew
-services.Add(
+services.AddSingleton(
     Classes.From(typeof(StripePaymentGateway))
         .AsInterface<IPaymentGateway>()
         .Keyed("stripe")
-        .AsSingleton()
 );
 // Resolved via: [FromKeyedServices("stripe")] IPaymentGateway gateway
 ```

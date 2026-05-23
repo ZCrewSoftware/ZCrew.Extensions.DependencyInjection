@@ -22,10 +22,9 @@ Given a [service selector](service-selectors.md) that maps a single implementati
 For example:
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.From(typeof(CustomerService))
         .AsAllNonSystemInterfaces()
-        .AsSingleton()
 );
 ```
 
@@ -85,11 +84,7 @@ Both modes produce one shared instance behind every service type. They differ in
 A safe `Dependent` example, where a separate `AsSelf()` registration ensures the implementation is in the container:
 
 ```csharp
-services.Add(
-    Classes.From(typeof(CustomerService))
-        .AsSelf()
-        .AsSingleton()
-);
+services.AddSingleton(Classes.From(typeof(CustomerService)).AsSelf());
 services.Add(
     Classes.From(typeof(CustomerService))
         .AsInterface<ICustomerService>()

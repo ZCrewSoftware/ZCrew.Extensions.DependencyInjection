@@ -108,68 +108,63 @@ See [shared-components.md](shared-components.md) for the full model.
 
 ## Adding to the container
 
-Two equivalent forms:
+**Preferred** — use the bulk-add extensions. No extra `using` needed beyond `ZCrew.Extensions.DependencyInjection.Registration`:
 
 ```csharp
-// Canonical — works for any lifetime
+services.AddSingleton(Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface());
+services.AddScoped(   Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface());
+services.AddTransient(Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface());
+```
+
+Overloads exist for every stage of the chain (`ITypeSelector`, `ITypeFilter`, `IServiceSelector`, `IKeyedServiceSelector`, `IServiceSource`), so you can stop the chain early.
+
+**Alternative (Windsor-style)** — set the lifetime on the chain and pass the result to `services.Add`.
+
+```csharp
 services.Add(
     Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface().AsScoped()
 );
-
-// Convenience — Singleton only, skips the AsSingleton() call
-services.AddSingleton(
-    Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface()
-);
-
-// Convenience — Add only, avoid allocating a temporary collection
-Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface().AsTransient().ToServiceCollection(services);
 ```
-
-`services.AddSingleton(chain)` accepts any stage of the chain (`ITypeSelector`, `ITypeFilter`, `IServiceSelector`, `IKeyedServiceSelector`, `IServiceSource`).
 
 ## Recipes
 
 **Repositories by their top-level interface**
 
 ```csharp
-services.Add(
+services.AddSingleton(
     Classes.FromAssemblyContaining<SqlCustomerRepository>()
         .BasedOn<IRepository>()
         .AsInterface()
-        .AsSingleton()
 );
 ```
 
 **Services by naming convention**
 
 ```csharp
-services.Add(
+services.AddScoped(
     Classes.FromAssemblyContaining<CustomerService>()
         .InSameNamespaceAs<CustomerService>(includeSubnamespaces: true)
         .AsDefaultInterfaces()
-        .AsScoped()
 );
 ```
 
 **Open generic validators**
 
 ```csharp
-services.Add(
+services.AddTransient(
     Classes.FromAssemblyContaining<OrderValidator>()
         .BasedOn(typeof(IValidator<>))
         .AsBase()
-        .AsTransient()
 );
 ```
 
 **Everything ending in `Service` as itself**
 
 ```csharp
-services.Add(
+services.AddScoped(
     Classes.FromThisAssembly()
         .NameEndsWith("Service")
         .AsSelf()
-        .AsScoped()
 );
 ```
 

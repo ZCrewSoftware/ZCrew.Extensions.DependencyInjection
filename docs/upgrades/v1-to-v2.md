@@ -76,10 +76,9 @@ In v2 the default `SharingMode.SharedComponent` registers the implementation onc
 
 ```csharp
 // v2
-services.Add(
+services.AddSingleton(
     Classes.From(typeof(CustomerService))
         .AsAllNonSystemInterfaces()
-        .AsSingleton()
 );
 
 // provider.GetService<ICustomerService>()
