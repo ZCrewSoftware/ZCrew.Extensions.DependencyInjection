@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     <c>If</c>/<c>Where</c> and <c>BasedOn</c> methods. Maintains an immutable chain: each filter method returns a
 ///     new instance.
 /// </summary>
-public partial interface ITypeFilter : IServiceSelector
+public interface ITypeFilter : IServiceSelector
 {
     /// <summary>
     ///     Accepts all remaining types without further filtering and transitions to service selection.

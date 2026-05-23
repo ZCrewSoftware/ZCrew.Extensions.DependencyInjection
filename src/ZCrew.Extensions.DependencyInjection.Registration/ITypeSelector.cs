@@ -4,7 +4,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Defines the type selection stage of the registration fluent API. Provides access to the concrete set of types
 ///     that will be filtered and registered.
 /// </summary>
-public partial interface ITypeSelector : ITypeFilter
+public interface ITypeSelector : ITypeFilter
 {
     /// <summary>
     ///     Materializes the selected types as an enumerable sequence.
