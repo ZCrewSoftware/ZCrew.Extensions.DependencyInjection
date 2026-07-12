@@ -13,27 +13,27 @@ public static class Classes
     ///     Begins registration from the specified collection of types, filtering to concrete, non-abstract classes.
     /// </summary>
     /// <param name="types">The types to select from.</param>
-    public static ITypeSelector From(IEnumerable<Type> types)
+    public static TypeFilter From(IEnumerable<Type> types)
     {
         ArgumentNullException.ThrowIfNull(types);
-        return new EnumerableTypeSelector(types, ClassFilter);
+        return new TypeFilter(types.Where(ClassFilter));
     }
 
     /// <summary>
     ///     Begins registration from the specified types, filtering to concrete, non-abstract classes.
     /// </summary>
     /// <param name="types">The types to select from.</param>
-    public static ITypeSelector From(params Type[] types)
+    public static TypeFilter From(params Type[] types)
     {
         ArgumentNullException.ThrowIfNull(types);
-        return new EnumerableTypeSelector(types, ClassFilter);
+        return new TypeFilter(types.Where(ClassFilter));
     }
 
     /// <summary>
     ///     Begins registration by scanning the specified assembly for concrete, non-abstract classes.
     /// </summary>
     /// <param name="assembly">The assembly to scan.</param>
-    public static IAssemblyTypeSelector FromAssembly(Assembly assembly)
+    public static AssemblyTypeSelector FromAssembly(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);
         return new AssemblyTypeSelector(assembly, ClassFilter);
@@ -44,7 +44,7 @@ public static class Classes
     ///     classes.
     /// </summary>
     /// <param name="type">A type whose containing assembly will be scanned.</param>
-    public static IAssemblyTypeSelector FromAssemblyContaining(Type type)
+    public static AssemblyTypeSelector FromAssemblyContaining(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
         return new AssemblyTypeSelector(type.Assembly, ClassFilter);
@@ -55,7 +55,7 @@ public static class Classes
     ///     classes.
     /// </summary>
     /// <typeparam name="T">A type whose containing assembly will be scanned.</typeparam>
-    public static IAssemblyTypeSelector FromAssemblyContaining<T>()
+    public static AssemblyTypeSelector FromAssemblyContaining<T>()
     {
         return FromAssemblyContaining(typeof(T));
     }
@@ -64,7 +64,7 @@ public static class Classes
     ///     Begins registration by scanning the calling assembly for concrete, non-abstract classes.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static IAssemblyTypeSelector FromThisAssembly()
+    public static AssemblyTypeSelector FromThisAssembly()
     {
         return FromAssembly(Assembly.GetCallingAssembly());
     }

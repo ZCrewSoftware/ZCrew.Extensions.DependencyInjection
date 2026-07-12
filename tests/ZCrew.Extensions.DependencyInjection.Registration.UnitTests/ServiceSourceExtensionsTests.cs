@@ -6,57 +6,32 @@ namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 public class ServiceSourceExtensionsTests
 {
     [Fact]
-    public void AsSingleton_WhenCalled_ShouldSetAllDescriptorsToSingletonLifetime()
+    public void ToServiceCollection_WhenCalled_ShouldReturnCollectionContainingChainDescriptors()
     {
         // Arrange
-        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>();
+        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>().Unkeyed();
 
         // Act
-        var result = source.AsSingleton();
+        var result = source.ToServiceCollection();
 
         // Assert
-        Assert.NotEmpty(result);
-        Assert.All(result, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(ICustomerService), descriptor.ServiceType);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
     }
 
     [Fact]
-    public void AsScoped_WhenCalled_ShouldSetAllDescriptorsToScopedLifetime()
+    public void ToServiceCollection_WhenCalledTwice_ShouldReturnIndependentCollections()
     {
         // Arrange
-        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>();
+        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>().Unkeyed();
 
         // Act
-        var result = source.AsScoped();
+        var first = source.ToServiceCollection();
+        var second = source.ToServiceCollection();
 
         // Assert
-        Assert.NotEmpty(result);
-        Assert.All(result, d => Assert.Equal(ServiceLifetime.Scoped, d.Lifetime));
-    }
-
-    [Fact]
-    public void AsTransient_WhenCalled_ShouldSetAllDescriptorsToTransientLifetime()
-    {
-        // Arrange
-        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>();
-
-        // Act
-        var result = source.AsTransient();
-
-        // Assert
-        Assert.NotEmpty(result);
-        Assert.All(result, d => Assert.Equal(ServiceLifetime.Transient, d.Lifetime));
-    }
-
-    [Fact]
-    public void AsLifetime_WhenCalled_ShouldIncludeRequestedServiceType()
-    {
-        // Arrange
-        var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>();
-
-        // Act
-        var result = source.AsLifetime(ServiceLifetime.Scoped);
-
-        // Assert
-        Assert.Contains(result, d => d.ServiceType == typeof(ICustomerService));
+        Assert.NotSame(first, second);
+        Assert.Equal(first.Count, second.Count);
     }
 }

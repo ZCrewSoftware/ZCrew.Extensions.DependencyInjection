@@ -2,50 +2,32 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-internal class ServiceSource : IServiceSource
+/// <summary>
+///     Represents a read-only service collection produced by the registration fluent API. This is the terminal stage
+///     in the registration chain, providing the resulting <see cref="ServiceDescriptor"/> registrations as an
+///     <see cref="IServiceCollection"/> via <see cref="ToServiceCollection(IServiceCollection)"/>.
+/// </summary>
+public class ServiceSource
 {
     private readonly IEnumerable<ServiceComponent> components;
+    private readonly SharingMode sharingMode;
 
-    internal ServiceSource(IEnumerable<ServiceComponent> components)
+    internal ServiceSource(IEnumerable<ServiceComponent> components, SharingMode sharingMode)
     {
         this.components = components;
+        this.sharingMode = sharingMode;
     }
 
-    /// <inheritdoc />
-    public IServiceCollection AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode)
-    {
-        if (lifetime == ServiceLifetime.Transient && sharingMode != SharingMode.Independent)
-        {
-            throw new ArgumentException(
-                "Transient services can only be registered with SharingMode.Independent. "
-                    + "Sharing only adds value for Singleton or Scoped services. "
-                    + "This exception was thrown to immediately surface this mismatch instead of silently ignoring it"
-            );
-        }
-
-        return ToServiceCollection(new ServiceCollection(), lifetime, sharingMode);
-    }
-
-    /// <inheritdoc />
+    /// <summary>
+    ///     Collects all the services into the <paramref name="serviceCollection"/>.
+    /// </summary>
+    /// <param name="serviceCollection">The service collection to add the descriptors to.</param>
+    /// <returns>The resulting service collection.</returns>
     public IServiceCollection ToServiceCollection(IServiceCollection serviceCollection)
-    {
-        return ToServiceCollection(serviceCollection, ServiceLifetime.Singleton, SharingMode.SharedComponent);
-    }
-
-    private IServiceCollection ToServiceCollection(
-        IServiceCollection serviceCollection,
-        ServiceLifetime lifetime,
-        SharingMode sharingMode
-    )
     {
         foreach (var component in this.components)
         {
-            var lifetimeComponent = component.WithLifetime(lifetime);
-
-            foreach (var descriptor in lifetimeComponent.GetServiceDescriptors(sharingMode))
-            {
-                serviceCollection.Add(descriptor);
-            }
+            component.AddServiceDescriptors(serviceCollection, this.sharingMode);
         }
         return serviceCollection;
     }

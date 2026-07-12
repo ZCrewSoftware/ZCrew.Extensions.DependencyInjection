@@ -10,7 +10,7 @@ public class SharingBehaviorTests
     public void AsSingleton_WhenMultipleServices_ShouldShareSingleInstance()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingleton();
+        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingleton().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -25,7 +25,7 @@ public class SharingBehaviorTests
     public void AsScoped_WhenMultipleServices_ShouldShareInstanceWithinScope()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped();
+        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -41,7 +41,7 @@ public class SharingBehaviorTests
     public void AsScoped_WhenMultipleServices_ShouldGiveDifferentInstancesAcrossScopes()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped();
+        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -65,14 +65,10 @@ public class SharingBehaviorTests
     {
         // Arrange
         IServiceCollection services = new ServiceCollection();
-        foreach (var d in Classes.From(typeof(PayPalPaymentGateway)).AsSelf().AsSingleton())
-        {
-            services.Add(d);
-        }
-        foreach (var d in Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingletonDependent())
-        {
-            services.Add(d);
-        }
+        services.Add(Classes.From(typeof(PayPalPaymentGateway)).AsSelf().AsSingleton().ToServiceCollection());
+        services.Add(
+            Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingletonDependent().ToServiceCollection()
+        );
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -89,7 +85,11 @@ public class SharingBehaviorTests
         // Arrange — multiple services force the forwarding path (single-service mappings short-circuit to direct
         // registration regardless of sharing mode, so Dependent's "must have impl registered" contract only kicks in
         // when more than one service is mapped).
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingletonDependent();
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .AsAllInterfaces()
+            .AsSingletonDependent()
+            .ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -103,7 +103,11 @@ public class SharingBehaviorTests
     public void AsSingletonIndependent_WhenMultipleServices_ShouldGiveEachServiceItsOwnInstance()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingletonIndependent();
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .AsAllInterfaces()
+            .AsSingletonIndependent()
+            .ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -118,7 +122,7 @@ public class SharingBehaviorTests
     public void AsTransient_WhenMultipleServices_ShouldGiveEachResolutionNewInstance()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsTransient();
+        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsTransient().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act

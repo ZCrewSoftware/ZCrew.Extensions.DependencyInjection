@@ -2,7 +2,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class TypeFilterExtensions
 {
-    extension(ITypeFilter typeFilter)
+    extension(TypeFilter typeFilter)
     {
         /// <summary>
         ///     Filters to types where <see cref="Type.IsGenericType"/> is <see langword="true"/>.
@@ -18,7 +18,7 @@ public static partial class TypeFilterExtensions
         ///     This is often implied if using other generic methods like: <see cref="GenericTypeDefinitions"/> or
         ///     <see cref="ConstructedGenericTypes"/>, so this can be skipped when calling those other methods.
         /// </remarks>
-        ITypeFilter GenericTypes()
+        TypeFilter GenericTypes()
         {
             return typeFilter.Where(type => type.IsGenericType);
         }
@@ -40,7 +40,7 @@ public static partial class TypeFilterExtensions
         ///     <see langword="true"/>. This means that <see cref="GenericTypeDefinitions"/> and
         ///     <see cref="ConstructedGenericTypes"/> are mutually exclusive and will not select the same types.
         /// </remarks>
-        ITypeFilter GenericTypeDefinitions()
+        TypeFilter GenericTypeDefinitions()
         {
             return typeFilter.Where(type => type.IsGenericTypeDefinition);
         }
@@ -62,7 +62,7 @@ public static partial class TypeFilterExtensions
         ///     <see langword="true"/>. This means that <see cref="GenericTypeDefinitions"/> and
         ///     <see cref="ConstructedGenericTypes"/> are mutually exclusive and will not select the same types.
         /// </remarks>
-        ITypeFilter ConstructedGenericTypes()
+        TypeFilter ConstructedGenericTypes()
         {
             return typeFilter.Where(type => type.IsConstructedGenericType);
         }

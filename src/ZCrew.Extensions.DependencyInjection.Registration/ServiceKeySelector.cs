@@ -1,16 +1,30 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Defines methods for assigning service keys to registrations produced by the service selection stage. This is
-///     an optional stage between <see cref="IServiceSelector"/> and <see cref="IServiceSource"/> in the registration
-///     fluent API.
+///     Assigns service keys to registrations produced by the service selection stage. This is an optional stage
+///     between <see cref="ServiceSelector"/> and <see cref="ServiceLifetimeSelector"/> in the registration fluent API.
+///     When the stage is skipped, the registrations pass through unkeyed.
 /// </summary>
-public interface IKeyedServiceSelector : IServiceSource
+public class ServiceKeySelector : ServiceLifetimeSelector
 {
+    private readonly IEnumerable<ServiceComponent> components;
+
+    // Single walk per terminal is verified by MultiEnumerationTests.
+    // ReSharper disable PossibleMultipleEnumeration
+    internal ServiceKeySelector(IEnumerable<ServiceComponent> components)
+        : base(components)
+    {
+        this.components = components;
+    }
+    // ReSharper restore PossibleMultipleEnumeration
+
     /// <summary>
     ///     Explicitly avoid assigning a service key to each registration.
     /// </summary>
-    IServiceSource Unkeyed();
+    public ServiceLifetimeSelector Unkeyed()
+    {
+        return new ServiceLifetimeSelector(this.components);
+    }
 
     /// <summary>
     ///     Assigns a service key to each registration by convention: the implementation type name with the service
@@ -27,7 +41,26 @@ public interface IKeyedServiceSelector : IServiceSource
     ///     // StripePaymentGateway keyed as "Stripe"
     ///     </code>
     /// </example>
-    IServiceSource Keyed();
+    public ServiceLifetimeSelector Keyed()
+    {
+        return Keyed(
+            (implementationType, serviceType) =>
+            {
+                var implementationName = StripGenericArity(implementationType.Name);
+                var serviceName = StripGenericArity(serviceType.GetInterfaceName());
+
+                // The implementation and service may be the same type, so ensure there is a prefix differentiating them
+                if (implementationName.EndsWith(serviceName) && implementationName.Length > serviceName.Length)
+                {
+                    var serviceKeyString = new string(implementationName[..^serviceName.Length]);
+                    return serviceKeyString;
+                }
+
+                // Implementation name did not end with service name, no service key can be extracted automatically
+                return null;
+            }
+        );
+    }
 
     /// <summary>
     ///     Assigns the specified <paramref name="serviceKey"/> to all registrations. When
@@ -43,7 +76,16 @@ public interface IKeyedServiceSelector : IServiceSource
     ///         .Keyed("myKey")
     ///     </code>
     /// </example>
-    IServiceSource Keyed(object? serviceKey);
+    public ServiceLifetimeSelector Keyed(object? serviceKey)
+    {
+        // Just skip the scan entirely
+        if (serviceKey == null)
+        {
+            return Unkeyed();
+        }
+
+        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKey)));
+    }
 
     /// <summary>
     ///     Assigns a service key to each registration using a function that receives the implementation type. When
@@ -59,7 +101,10 @@ public interface IKeyedServiceSelector : IServiceSource
     ///         .Keyed(type => type.Name)
     ///     </code>
     /// </example>
-    IServiceSource Keyed(Func<Type, object?> serviceKeySelector);
+    public ServiceLifetimeSelector Keyed(Func<Type, object?> serviceKeySelector)
+    {
+        return Keyed((implementationType, _) => serviceKeySelector(implementationType));
+    }
 
     /// <summary>
     ///     Assigns a service key to each registration using a function that receives both the implementation type
@@ -76,5 +121,15 @@ public interface IKeyedServiceSelector : IServiceSource
     ///         .Keyed((impl, svc) => $"{impl.Name}:{svc.Name}")
     ///     </code>
     /// </example>
-    IServiceSource Keyed(Func<Type, Type, object?> serviceKeySelector);
+    public ServiceLifetimeSelector Keyed(Func<Type, Type, object?> serviceKeySelector)
+    {
+        ArgumentNullException.ThrowIfNull(serviceKeySelector);
+        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKeySelector)));
+    }
+
+    private static ReadOnlySpan<char> StripGenericArity(ReadOnlySpan<char> name)
+    {
+        var backtick = name.IndexOf('`');
+        return backtick >= 0 ? name[..backtick] : name;
+    }
 }

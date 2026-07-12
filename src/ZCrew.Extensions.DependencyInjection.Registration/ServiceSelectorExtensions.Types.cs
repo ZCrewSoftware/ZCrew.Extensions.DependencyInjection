@@ -2,7 +2,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class ServiceSelectorExtensions
 {
-    extension(IServiceSelector selector)
+    extension(ServiceSelector selector)
     {
         /// <summary>
         ///     Registers each type as itself, against all non-abstract classes it extends, and against all interfaces
@@ -17,7 +17,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsAllTypes()
+        public ServiceKeySelector AsAllTypes()
         {
             return selector.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
         }
@@ -35,7 +35,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsAllNonSystemTypes()
+        public ServiceKeySelector AsAllNonSystemTypes()
         {
             return selector.As(type =>
                 type.GetTypes()
@@ -58,7 +58,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsDefaultTypes()
+        public ServiceKeySelector AsDefaultTypes()
         {
             return selector.As(type =>
                 type.GetTypes()
@@ -83,7 +83,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsDefaultNonSystemTypes()
+        public ServiceKeySelector AsDefaultNonSystemTypes()
         {
             return selector.As(type =>
                 type.GetTypes()

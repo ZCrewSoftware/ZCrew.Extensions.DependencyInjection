@@ -58,7 +58,7 @@ Sharing behavior is controlled by the `SharingMode` enum:
 
 ## Lifetime methods
 
-`IServiceSource` exposes lifetime methods that combine a `ServiceLifetime` with a sharing mode:
+`ServiceLifetimeSelector` exposes lifetime methods that combine a `ServiceLifetime` with a sharing mode. Each returns a `ServiceSource`; finish the chain with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`):
 
 | Method                       | Sharing mode      | Behavior                                                                  |
 |------------------------------|-------------------|---------------------------------------------------------------------------|
@@ -142,7 +142,7 @@ Classes.FromAssemblyContaining(typeof(Repository<>))
 To register open generics that target multiple service types, switch to `AsSingletonIndependent()` (or the scoped equivalent). Each service type will be an independent registration, which is the same behavior you would get from raw `services.AddSingleton(typeof(IFoo<>), typeof(Foo<>))` calls.
 
 If having independent services is unacceptable then there may need to be separate service registration or design changes to the service (if the service has a code smell).
-The `ITypeFilter.ConstructedGenericTypes()` and `ITypeFilter.GenericTypeDefinitions()` can be used to only select closed and open generic types respectively.
+The `TypeFilter.ConstructedGenericTypes()` and `TypeFilter.GenericTypeDefinitions()` can be used to only select closed and open generic types respectively.
 
 ## Choosing the right method
 

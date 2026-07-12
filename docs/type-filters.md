@@ -78,7 +78,7 @@ SqlCustomerRepository, SqlOrderRepository, InMemoryRepository<T>
 
 `CustomerService` is excluded because it does not implement `IRepository<>`.
 
-`BasedOn(params Type[])` accepts multiple base types — a type is included if it matches **any** of them. `BasedOn` returns `ITypeFilter`, so it composes with `Where` and other filters.
+`BasedOn(params Type[])` accepts multiple base types — a type is included if it matches **any** of them. `BasedOn` returns `TypeFilter`, so it composes with `Where` and other filters.
 
 ## `NameEndsWith(string)` and overloads
 
@@ -202,7 +202,7 @@ Includes types in the same namespace as `CustomerService` and all its child name
 
 ## Combining filters
 
-Because `BasedOn` and `Where` both return `ITypeFilter`, they compose naturally. `InNamespace` and `InSameNamespaceAs` have a declared return type of `IServiceSelector`, so the compiler won't let you chain further `Where`/`BasedOn` calls after them. Place them **after** `BasedOn`/`Where` in the chain:
+Because `BasedOn` and `Where` both return `TypeFilter`, they compose naturally. `InNamespace` and `InSameNamespaceAs` have a declared return type of `ServiceSelector`, so the compiler won't let you chain further `Where`/`BasedOn` calls after them. Place them **after** `BasedOn`/`Where` in the chain:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()

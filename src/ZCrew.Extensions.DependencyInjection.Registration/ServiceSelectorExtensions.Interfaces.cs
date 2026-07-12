@@ -2,7 +2,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class ServiceSelectorExtensions
 {
-    extension(IServiceSelector selector)
+    extension(ServiceSelector selector)
     {
         /// <summary>
         ///     Registers each type against all interfaces it implements.
@@ -15,7 +15,7 @@ public static partial class ServiceSelectorExtensions
         ///     // ICustomerRepository and IDisposable
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsAllInterfaces()
+        public ServiceKeySelector AsAllInterfaces()
         {
             return selector.As(type => type.GetInterfaces());
         }
@@ -32,7 +32,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (IDisposable is in System and is excluded)
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsAllNonSystemInterfaces()
+        public ServiceKeySelector AsAllNonSystemInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
@@ -51,7 +51,7 @@ public static partial class ServiceSelectorExtensions
         ///     // "ICustomerRepository", but not "Disposable")
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsDefaultInterfaces()
+        public ServiceKeySelector AsDefaultInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
@@ -67,7 +67,7 @@ public static partial class ServiceSelectorExtensions
         ///     Classes.From(types).AsDefaultNonSystemInterfaces()
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsDefaultNonSystemInterfaces()
+        public ServiceKeySelector AsDefaultNonSystemInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces()
@@ -87,7 +87,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsFirstInterface()
+        public ServiceKeySelector AsFirstInterface()
         {
             return selector.As(type =>
             {
@@ -98,7 +98,7 @@ public static partial class ServiceSelectorExtensions
 
         /// <summary>
         ///     Registers each type against its top-level interfaces that derive from the base types specified via
-        ///     <see cref="ITypeFilter.BasedOn"/>.
+        ///     <see cref="TypeFilter.BasedOn"/>.
         /// </summary>
         /// <example>
         ///     Given <c>CustomerRepository : ICustomerRepository : IRepository</c>:
@@ -109,7 +109,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsInterface()
+        public ServiceKeySelector AsInterface()
         {
             return selector.As((type, baseTypes) => type.GetTopLevelInterfacesMatchingBaseTypes(baseTypes));
         }
@@ -125,7 +125,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsInterface<T>()
+        public ServiceKeySelector AsInterface<T>()
         {
             return selector.As(type => type.GetTopLevelInterfacesMatchingBaseTypes([typeof(T)]));
         }
@@ -141,7 +141,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsInterface(Type interfaceType)
+        public ServiceKeySelector AsInterface(Type interfaceType)
         {
             ArgumentNullException.ThrowIfNull(interfaceType);
             return selector.As(type => type.GetTopLevelInterfacesMatchingBaseTypes([interfaceType]));
@@ -162,7 +162,7 @@ public static partial class ServiceSelectorExtensions
         ///     //          OrderRepository as IOrderRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsInterfaces(params Type[] interfaceTypes)
+        public ServiceKeySelector AsInterfaces(params Type[] interfaceTypes)
         {
             ArgumentNullException.ThrowIfNull(selector);
             ArgumentNullException.ThrowIfNull(interfaceTypes);

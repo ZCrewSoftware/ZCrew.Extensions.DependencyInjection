@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Intermediate between the <see cref="IServiceSelector"/> and the raw <see cref="ServiceDescriptor"/>.
+///     Intermediate between the <see cref="ServiceSelector"/> and the raw <see cref="ServiceDescriptor"/>.
 /// </summary>
 internal readonly record struct ServiceComponent
 {
@@ -97,10 +97,11 @@ internal readonly record struct ServiceComponent
     }
 
     /// <summary>
-    ///     Evaluate the <see cref="ServiceDescriptor"/> instances represented by this component, using the supplied
+    ///     Register the <see cref="ServiceDescriptor"/> instances represented by this component, using the supplied
     ///     <paramref name="sharingMode"/> to determine how a single implementation registered against multiple
     ///     service types shares its instance.
     /// </summary>
+    /// <param name="serviceCollection">The service collection to add the <see cref="ServiceDescriptor"/>(s) to.</param>
     /// <param name="sharingMode">The sharing mode to apply to this component.</param>
     /// <returns>The resulting service descriptors.</returns>
     /// <exception cref="InvalidOperationException">
@@ -109,18 +110,19 @@ internal readonly record struct ServiceComponent
     ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to share an instance
     ///     across multiple service types.
     /// </exception>
-    public IEnumerable<ServiceDescriptor> GetServiceDescriptors(SharingMode sharingMode)
+    public void AddServiceDescriptors(IServiceCollection serviceCollection, SharingMode sharingMode)
     {
         // No services to register
         if (this.services.Count == 0)
         {
-            return [];
+            return;
         }
 
         // Don't need to bother sharing with only one registration
         if (sharingMode == SharingMode.Independent || this.services.Count == 1)
         {
-            return GetIndependentServiceDescriptors();
+            AddIndependentServiceDescriptors(serviceCollection);
+            return;
         }
 
         // Sharing can't be done with generic types due to a limitation in Microsoft DI:
@@ -136,18 +138,22 @@ internal readonly record struct ServiceComponent
 
         if (sharingMode == SharingMode.Dependent)
         {
-            return GetDependentServiceDescriptors();
+            AddDependentServiceDescriptors(serviceCollection);
+            return;
         }
 
-        return GetSharedComponentServiceDescriptors();
+        AddSharedComponentServiceDescriptors(serviceCollection);
     }
 
-    private IEnumerable<ServiceDescriptor> GetIndependentServiceDescriptors()
+    private void AddIndependentServiceDescriptors(IServiceCollection serviceCollection)
     {
-        return this.services.Select(Registration);
+        foreach (var service in this.services)
+        {
+            serviceCollection.Add(Registration(service));
+        }
     }
 
-    private IEnumerable<ServiceDescriptor> GetSharedComponentServiceDescriptors()
+    private void AddSharedComponentServiceDescriptors(IServiceCollection serviceCollection)
     {
         var impl = this.implementation;
         Func<IServiceProvider, object?, object> factory;
@@ -156,14 +162,14 @@ internal readonly record struct ServiceComponent
         {
             // If registering the implementation, then no shared component is necessary. Register the service as-is and
             // forward without keys
-            yield return Registration(impl);
+            serviceCollection.Add(Registration(impl));
             factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
         }
         else
         {
             // Otherwise, create a shared component with a unique key to reference from each service
             var sharedKey = new SharedComponentKey();
-            yield return SharedComponentRegistration(impl, sharedKey);
+            serviceCollection.Add(SharedComponentRegistration(impl, sharedKey));
             factory = (serviceProvider, _) => serviceProvider.GetRequiredKeyedService(impl, sharedKey);
         }
 
@@ -175,11 +181,11 @@ internal readonly record struct ServiceComponent
                 continue;
             }
 
-            yield return FactoryRegistration(service, factory);
+            serviceCollection.Add(FactoryRegistration(service, factory));
         }
     }
 
-    private IEnumerable<ServiceDescriptor> GetDependentServiceDescriptors()
+    private void AddDependentServiceDescriptors(IServiceCollection serviceCollection)
     {
         var impl = this.implementation;
         Func<IServiceProvider, object?, object> factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
@@ -189,11 +195,11 @@ internal readonly record struct ServiceComponent
             // selected it as one of the service types, register it directly instead of pointing it at its own factory.
             if (service == this.implementation)
             {
-                yield return Registration(service);
+                serviceCollection.Add(Registration(service));
                 continue;
             }
 
-            yield return FactoryRegistration(service, factory);
+            serviceCollection.Add(FactoryRegistration(service, factory));
         }
     }
 
