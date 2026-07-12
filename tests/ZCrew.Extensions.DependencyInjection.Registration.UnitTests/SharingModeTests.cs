@@ -16,7 +16,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>();
 
         // Act
-        var result = source.AsSingleton();
+        var result = source.AsSingleton().ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -32,7 +32,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsSingleton();
+        var result = source.AsSingleton().ToServiceCollection();
 
         // Assert
         Assert.Contains(
@@ -51,7 +51,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsSingleton();
+        var result = source.AsSingleton().ToServiceCollection();
 
         // Assert
         var unkeyed = result.Where(d => d.ServiceKey is null).ToArray();
@@ -69,7 +69,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsSingletonDependent();
+        var result = source.AsSingletonDependent().ToServiceCollection();
 
         // Assert
         Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -85,7 +85,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsSingletonIndependent();
+        var result = source.AsSingletonIndependent().ToServiceCollection();
 
         // Assert
         Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -101,7 +101,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsScoped();
+        var result = source.AsScoped().ToServiceCollection();
 
         // Assert
         Assert.Contains(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -115,7 +115,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsScopedDependent();
+        var result = source.AsScopedDependent().ToServiceCollection();
 
         // Assert
         Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -130,7 +130,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsScopedIndependent();
+        var result = source.AsScopedIndependent().ToServiceCollection();
 
         // Assert
         Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -146,7 +146,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces();
 
         // Act
-        var result = source.AsTransient();
+        var result = source.AsTransient().ToServiceCollection();
 
         // Assert
         Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
@@ -188,7 +188,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
 
         // Act
-        var act = () => source.AsSingleton();
+        var act = () => source.AsSingleton().ToServiceCollection();
 
         // Assert
         var exception = Assert.Throws<InvalidOperationException>(act);
@@ -202,7 +202,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
 
         // Act
-        var act = () => source.AsSingletonDependent();
+        var act = () => source.AsSingletonDependent().ToServiceCollection();
 
         // Assert
         Assert.Throws<InvalidOperationException>(act);
@@ -215,7 +215,7 @@ public class SharingModeTests
         var source = Classes.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
 
         // Act
-        var result = source.AsSingletonIndependent();
+        var result = source.AsSingletonIndependent().ToServiceCollection();
 
         // Assert
         Assert.NotEmpty(result);

@@ -47,23 +47,28 @@ The library is a single project with one public API surface: `DecoratorServiceCo
 
 ### Registration Library
 
-A fluent API for convention-based service registration, modeled after Castle Windsor's registration API. The chain flows through four stages:
+A fluent API for convention-based service registration, modeled after Castle Windsor's registration API. Each stage is a concrete `public` class that derives from the next; skipping a stage is ordinary inheritance. The chain flows:
 
-**Entry points** (`Classes` / `Types`) → **Type selection** (`ITypeSelector`) → **Type filtering** (`ITypeFilter`) → **Service selection** (`IServiceSelector`) → **Terminal** (`IServiceSource` / `IServiceCollection`)
+**Entry points** (`Classes` / `Types`) → **Type selection** (`AssemblyTypeSelector`) → **Type filtering** (`TypeFilter`) → **Service selection** (`ServiceSelector`) → **Service key selection** (`ServiceKeySelector`) → **Lifetime selection** (`ServiceLifetimeSelector`) → **Terminal** (`ServiceSource` → `IServiceCollection`)
 
-| Stage | Interface | Implementations | Purpose |
-|-------|-----------|----------------|---------|
-| Entry | — | `Classes`, `Types` | Static factories: `From(types)`, `FromAssembly()`, `FromThisAssembly()` |
-| Type selection | `ITypeSelector`, `IAssemblyTypeSelector` | `EnumerableTypeSelector`, `AssemblyTypeSelector` | Select source types, optionally by visibility (`IncludePublicTypes`, `IncludeInternalTypes`) |
-| Type filtering | `ITypeFilter` | `TypeFilter` | Filter by namespace, predicate (`Where`), or base type (`BasedOn`) |
-| Service selection | `IServiceSelector` | `ServiceSelector` | Map impl→service type: `AsInterface()`, `AsAllInterfaces()`, `AsDefaultInterfaces()`, `AsSelf()`, `AsBase()`, etc. |
-| Terminal | `IServiceSource` | `ServiceCollectionSource`, `ServiceSource` (lazy) | The resulting `IServiceCollection` of `ServiceDescriptor`s |
+Inheritance runs base-first: `AssemblyTypeSelector : TypeFilter : ServiceSelector : ServiceKeySelector : ServiceLifetimeSelector : ServiceSource`.
+
+| Stage                 | Class                           | Purpose                                                                                                                                                                                                  |
+|-----------------------|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Entry                 | `Classes`, `Types`              | Static factories: `From(types)` returns `TypeFilter`; `FromAssembly()` / `FromThisAssembly()` return `AssemblyTypeSelector`                                                                              |
+| Type selection        | `AssemblyTypeSelector` (sealed) | Assembly scan with visibility scoping (`IncludePublicTypes`, `IncludeInternalTypes`, `IncludeAllTypes`), deferred until terminal enumeration                                                             |
+| Type filtering        | `TypeFilter`                    | Filter by namespace, predicate (`Where`), or base type (`BasedOn`); `AllTypes()` transitions on                                                                                                          |
+| Service selection     | `ServiceSelector`               | Map impl→service type: `As(...)`, `AsInterface()`, `AsAllInterfaces()`, `AsDefaultInterfaces()`, `AsSelf()`, `AsBase()`, etc.                                                                            |
+| Service key selection | `ServiceKeySelector`            | Assign keys: `Keyed()`, `Keyed(key)`, `Keyed(selector)`, or `Unkeyed()` (each returns `ServiceLifetimeSelector`)                                                                                         |
+| Lifetime selection    | `ServiceLifetimeSelector`       | Choose lifetime + sharing: `AsLifetime(...)`, `AsSingleton()`, `AsScoped()`, `AsTransient()`, `AsSingletonDependent()`, etc. (defaults to `Singleton` + `SharedComponent`); each returns `ServiceSource` |
+| Terminal              | `ServiceSource`                 | The resulting `IServiceCollection` of `ServiceDescriptor`s via `ToServiceCollection`                                                                                                                     |
 
 **Key design details:**
 - `Classes` filters to concrete, non-abstract classes; `Types` includes all type kinds (interfaces, structs, enums, etc.).
-- `ITypeSelector` has default interface implementations that bridge directly to `ITypeFilter` methods (in `ITypeSelector.ITypeFilter.cs`), and `ITypeFilter` similarly bridges to `IServiceSelector` (in `ITypeFilter.IServiceSelector.cs`). This allows callers to skip stages in the chain.
-- `TypeFilter` maintains an immutable chain — each call returns a new instance. It tracks `baseTypes` set via `BasedOn`, which default to `[typeof(object)]` (match everything) until explicitly overridden.
-- `LazyServiceCollection` defers evaluation until first access and is read-only (mutations throw `InvalidOperationException`).
+- **Skipping a stage is inheritance.** Each stage constructor computes its *default* transition and passes it to `base(...)` — selection defaults to self (`AsSelf`), key defaults to unkeyed, lifetime defaults to `Singleton` + `SharedComponent`. A skipped stage is just the default the constructor already installed. Stage methods (`Where`/`BasedOn`/`As`/`Keyed`) rebuild the next instance from their own raw fields, never from what was passed to `base(...)`, so defaults are never double-applied.
+- All stage classes have `internal` constructors (blocks external subclassing while letting the entry points and derived stages construct them). Only `AssemblyTypeSelector` is `sealed`.
+- The chain is immutable and fully lazy — each call returns a new instance, and no type source is enumerated (nor any assembly scanned) until the terminal `ToServiceCollection` call (or an equivalent bulk-add). Lifetime helpers (`AsLifetime` / `AsSingleton` / etc.) are also lazy: they return a `ServiceSource`, not an `IServiceCollection`. `TypeFilter` tracks `baseTypes` set via `BasedOn`, which default to `[typeof(object)]` (match everything) until explicitly overridden.
+- `ServiceCollectionExtensions` provides `AddSingleton`/`AddScoped`/`AddTransient` overloads — one per concrete stage class — so a chain stopped at any stage binds there instead of to MSDI's generic `AddSingleton<TService>(IServiceCollection, TService)` instance overload.
 - `TypeExtensions` (in the base DI project) provides helpers used by the registration API: `IsInNamespace`, `IsInSameNamespaceAs`, `GetInterfaceName` (strips leading `I`), and `GetTopLevelInterfaces` (most-derived interfaces only).
 
 ### Fixtures
@@ -98,6 +103,6 @@ services.AddTransient(Classes.FromThisAssembly().BasedOn(typeof(IValidator<>)).A
 services.Add(Classes.From(typeof(CustomerService)).AsInterface<ICustomerService>().AsSingletonDependent());
 ```
 
-Both forms work without importing `Microsoft.Extensions.DependencyInjection.Extensions` — the Registration project ships its own `Add(IServiceCollection)` extension to keep callers from needing it.
+Both forms work without importing `Microsoft.Extensions.DependencyInjection.Extensions` — the Registration project ships its own `Add(IServiceCollection)` / `Add(ServiceSource)` extensions to keep callers from needing it.
 
-The `Add{Singleton,Scoped,Transient}(chain)` extensions live in `ZCrew.Extensions.DependencyInjection.Registration.ServiceCollectionExtensions` and exist for every stage of the chain (`IServiceSource`, `IKeyedServiceSelector`, `IServiceSelector`, `ITypeFilter`, `ITypeSelector`, `IAssemblyTypeSelector`). Reserve `services.Add(chain.AsXxx())` for cases where a sharing mode (Dependent / Independent) demands the explicit terminal.
+The `Add{Singleton,Scoped,Transient}(chain)` extensions live in `ZCrew.Extensions.DependencyInjection.Registration.ServiceCollectionExtensions` and exist for every stage of the chain (`ServiceSource`, `ServiceLifetimeSelector`, `ServiceKeySelector`, `ServiceSelector`, `TypeFilter`, `AssemblyTypeSelector`). Reserve `services.Add(chain.AsXxx())` for cases where a sharing mode (Dependent / Independent) demands the explicit lifetime helper — `AsXxx()` returns a `ServiceSource`, which the `Add(ServiceSource)` overload accepts directly.

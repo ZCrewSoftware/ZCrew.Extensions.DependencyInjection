@@ -45,10 +45,10 @@ services.AddSingleton(
 
 ### Fluent Chain
 
-The API flows through four stages — each step narrows or transforms the set of registrations:
+The API flows through the following stages — each step narrows or transforms the set of registrations:
 
 ```
-Entry Point → Type Filtering → Service Selection → Registration
+Entry Point → Type Filtering → Service Selection → Keyed Selection → Lifetime Selection → Terminal
 ```
 
 ```csharp

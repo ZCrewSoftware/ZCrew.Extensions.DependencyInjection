@@ -1,6 +1,6 @@
 # Keyed Service Selectors
 
-After choosing a [service selector](service-selectors.md), you can optionally assign **service keys** to the resulting registrations using `Keyed`. This produces [keyed services](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#keyed-services) — registrations that are resolved by both their service type and a key.
+After choosing a [service selector](service-selectors.md), you can optionally assign **service keys** to the resulting registrations using `Keyed`. This produces [keyed services](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#keyed-services) — registrations that are resolved by both their service type and a key. `Keyed` (and `Unkeyed`) return a `ServiceLifetimeSelector`, so the chain can continue into [lifetime selection](shared-components.md) or terminate directly.
 
 ## `Keyed()`
 

@@ -1,22 +1,47 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-internal sealed class ServiceKeySelector : ServiceKeySelectorBase
+/// <summary>
+///     Assigns service keys to registrations produced by the service selection stage. This is an optional stage
+///     between <see cref="ServiceSelector"/> and <see cref="ServiceLifetimeSelector"/> in the registration fluent API.
+///     When the stage is skipped, the registrations pass through unkeyed.
+/// </summary>
+public class ServiceKeySelector : ServiceLifetimeSelector
 {
     private readonly IEnumerable<ServiceComponent> components;
 
+    // Single walk per terminal is verified by MultiEnumerationTests.
+    // ReSharper disable PossibleMultipleEnumeration
     internal ServiceKeySelector(IEnumerable<ServiceComponent> components)
+        : base(components)
     {
         this.components = components;
     }
+    // ReSharper restore PossibleMultipleEnumeration
 
-    /// <inheritdoc />
-    public override IServiceSource Unkeyed()
+    /// <summary>
+    ///     Explicitly avoid assigning a service key to each registration.
+    /// </summary>
+    public ServiceLifetimeSelector Unkeyed()
     {
-        return new ServiceSource(this.components);
+        return new ServiceLifetimeSelector(this.components);
     }
 
-    /// <inheritdoc />
-    public override IServiceSource Keyed()
+    /// <summary>
+    ///     Assigns a service key to each registration by convention: the implementation type name with the service
+    ///     type's interface name stripped. For example, <c>PayPalPaymentGateway</c> registered as
+    ///     <c>IPaymentGateway</c> yields key <c>"PayPal"</c>. Registrations where the auto-detected key would be
+    ///     empty are left unkeyed.
+    /// </summary>
+    /// <example>
+    ///     <code>
+    ///     Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
+    ///         .AsInterface&lt;IPaymentGateway&gt;()
+    ///         .Keyed()
+    ///     // PayPalPaymentGateway keyed as "PayPal"
+    ///     // StripePaymentGateway keyed as "Stripe"
+    ///     </code>
+    /// </example>
+    public ServiceLifetimeSelector Keyed()
     {
         return Keyed(
             (implementationType, serviceType) =>
@@ -37,8 +62,21 @@ internal sealed class ServiceKeySelector : ServiceKeySelectorBase
         );
     }
 
-    /// <inheritdoc />
-    public override IServiceSource Keyed(object? serviceKey)
+    /// <summary>
+    ///     Assigns the specified <paramref name="serviceKey"/> to all registrations. When
+    ///     <paramref name="serviceKey"/> is <see langword="null"/>, the registrations are returned unchanged.
+    /// </summary>
+    /// <param name="serviceKey">
+    ///     The service key to assign, or <see langword="null"/> to leave registrations unkeyed.
+    /// </param>
+    /// <example>
+    ///     <code>
+    ///     Classes.From(typeof(PayPalPaymentGateway))
+    ///         .AsInterface&lt;IPaymentGateway&gt;()
+    ///         .Keyed("myKey")
+    ///     </code>
+    /// </example>
+    public ServiceLifetimeSelector Keyed(object? serviceKey)
     {
         // Just skip the scan entirely
         if (serviceKey == null)
@@ -46,20 +84,47 @@ internal sealed class ServiceKeySelector : ServiceKeySelectorBase
             return Unkeyed();
         }
 
-        return new ServiceSource(this.components.Select(component => component.WithServiceKey(serviceKey)));
+        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKey)));
     }
 
-    /// <inheritdoc />
-    public override IServiceSource Keyed(Func<Type, object?> serviceKeySelector)
+    /// <summary>
+    ///     Assigns a service key to each registration using a function that receives the implementation type. When
+    ///     the function returns <see langword="null"/> for a descriptor, that descriptor is left unkeyed.
+    /// </summary>
+    /// <param name="serviceKeySelector">
+    ///     A function that receives the implementation type and returns the service key.
+    /// </param>
+    /// <example>
+    ///     <code>
+    ///     Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
+    ///         .AsInterface&lt;IPaymentGateway&gt;()
+    ///         .Keyed(type => type.Name)
+    ///     </code>
+    /// </example>
+    public ServiceLifetimeSelector Keyed(Func<Type, object?> serviceKeySelector)
     {
         return Keyed((implementationType, _) => serviceKeySelector(implementationType));
     }
 
-    /// <inheritdoc />
-    public override IServiceSource Keyed(Func<Type, Type, object?> serviceKeySelector)
+    /// <summary>
+    ///     Assigns a service key to each registration using a function that receives both the implementation type
+    ///     and the service type. When the function returns <see langword="null"/> for a descriptor, that descriptor
+    ///     is left unkeyed.
+    /// </summary>
+    /// <param name="serviceKeySelector">
+    ///     A function that receives the implementation type and service type and returns the service key.
+    /// </param>
+    /// <example>
+    ///     <code>
+    ///     Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
+    ///         .AsInterface&lt;IPaymentGateway&gt;()
+    ///         .Keyed((impl, svc) => $"{impl.Name}:{svc.Name}")
+    ///     </code>
+    /// </example>
+    public ServiceLifetimeSelector Keyed(Func<Type, Type, object?> serviceKeySelector)
     {
         ArgumentNullException.ThrowIfNull(serviceKeySelector);
-        return new ServiceSource(this.components.Select(component => component.WithServiceKey(serviceKeySelector)));
+        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKeySelector)));
     }
 
     private static ReadOnlySpan<char> StripGenericArity(ReadOnlySpan<char> name)

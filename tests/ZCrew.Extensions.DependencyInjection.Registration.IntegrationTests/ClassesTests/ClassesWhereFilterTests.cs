@@ -220,7 +220,7 @@ public class ClassesWhereFilterTests
     }
 
     [Fact]
-    public void BasedOn_WithAsLifetimeAndNoTerminal_ShouldFilterToImplementors()
+    public void BasedOn_WithAsLifetime_ShouldFilterToImplementors()
     {
         // Arrange
         var filter = Classes
@@ -228,7 +228,7 @@ public class ClassesWhereFilterTests
             .BasedOn<ICustomerService>();
 
         // Act
-        var result = filter.AsLifetime(ServiceLifetime.Scoped);
+        var result = filter.AsLifetime(ServiceLifetime.Scoped).ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);

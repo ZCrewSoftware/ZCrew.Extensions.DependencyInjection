@@ -49,7 +49,7 @@ var provider = Classes.FromThisAssembly()
     .BuildServiceProvider();
 ```
 
-The lifetime helpers (`AsSingleton`, `AsScoped`, `AsTransient`, and the `*Dependent` / `*Independent` variants, plus `AsLifetime(...)`) all return `IServiceCollection` directly, so you usually do not need a separate `.ToServiceCollection()` call.
+In v2 the lifetime helpers (`AsSingleton`, `AsScoped`, `AsTransient`, and the `*Dependent` / `*Independent` variants, plus `AsLifetime(...)`) returned `IServiceCollection` directly. Since the `ServiceLifetimeSelector` split they return a `ServiceSource`; call `.ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)` / `services.Add(...)`) to obtain the collection.
 
 ## Default sharing semantics changed
 

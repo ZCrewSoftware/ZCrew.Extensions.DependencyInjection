@@ -29,3 +29,4 @@ See [registration.md](registration.md) for the narrative guide and [registration
 ## Upgrading between versions
 
 - [v1 → v2](upgrades/v1-to-v2.md)
+- [v2 → v3](upgrades/v2-to-v3.md)

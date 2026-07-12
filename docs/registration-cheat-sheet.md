@@ -3,9 +3,9 @@
 Quick reference for `ZCrew.Extensions.DependencyInjection.Registration`. For narrative and design rationale, see [registration.md](registration.md).
 
 ```
-Classes/Types  →  IncludeXxxTypes  →  Where/BasedOn/InNamespace/...  →  AsXxx  →  Keyed  →  AsSingleton/AsScoped/AsTransient
-   entry             visibility                   filter               service     key             lifetime + sharing
-   ```
+Classes/Types → IncludeXxxTypes → Where/BasedOn/InNamespace/... → AsXxx  → Keyed → AsSingleton/AsScoped/AsTransient → ToServiceCollection/AddXxx
+    entry           visibility                filter              service    key          lifetime + sharing                    terminal
+```
 
 Each stage is optional after the entry point. Skip any stage and the next call applies sensible defaults.
 
@@ -23,7 +23,7 @@ Each stage is optional after the entry point. Skip any stage and the next call a
 
 ## Assembly visibility
 
-Only available after `FromAssembly*` (returns `IAssemblyTypeSelector`). Default is public types.
+Only available after `FromAssembly*` (returns `AssemblyTypeSelector`). Default is public types.
 
 | Method                   | Selects                                                                 |
 |--------------------------|-------------------------------------------------------------------------|
@@ -45,7 +45,7 @@ Only available after `FromAssembly*` (returns `IAssemblyTypeSelector`). Default 
 | `InNamespace(string [, bool includeSubnamespaces])`                 | Restrict to a namespace                                                   |
 | `InSameNamespaceAs<T>([bool])` / `InSameNamespaceAs(Type [, bool])` | Restrict to the namespace of another type                                 |
 
-`InNamespace*` returns `IServiceSelector` — namespace filtering commits to the service-selection stage.
+`InNamespace*` returns `ServiceSelector` — namespace filtering commits to the service-selection stage.
 
 ## Service selectors
 
@@ -85,7 +85,7 @@ See [keyed-service-selectors.md](keyed-service-selectors.md) for examples.
 
 ## Lifetime + sharing
 
-Terminal calls. They produce an `IServiceCollection`.
+The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a `ServiceSource` — finish it with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`).
 
 | Method                                 | Lifetime  | `SharingMode`                                                        |
 |----------------------------------------|-----------|----------------------------------------------------------------------|
@@ -116,7 +116,7 @@ services.AddScoped(   Classes.FromThisAssembly().BasedOn<IRepository>().AsInterf
 services.AddTransient(Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface());
 ```
 
-Overloads exist for every stage of the chain (`ITypeSelector`, `ITypeFilter`, `IServiceSelector`, `IKeyedServiceSelector`, `IServiceSource`), so you can stop the chain early.
+Overloads exist for every stage of the chain (`AssemblyTypeSelector`, `TypeFilter`, `ServiceSelector`, `ServiceKeySelector`, `ServiceLifetimeSelector`, `ServiceSource`), so you can stop the chain early.
 
 **Alternative (Windsor-style)** — set the lifetime on the chain and pass the result to `services.Add`.
 

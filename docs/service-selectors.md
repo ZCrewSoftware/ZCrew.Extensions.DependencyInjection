@@ -1,6 +1,6 @@
 # Service Selectors
 
-Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns an `IKeyedServiceSelector`, which can optionally be chained with [keyed service selection](keyed-service-selectors.md) via `Keyed`, or used directly as an `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
+Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceKeySelector`, which can optionally be chained with [keyed service selection](keyed-service-selectors.md) via `Keyed` and [lifetime selection](shared-components.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
 
 ## `AsAllInterfaces()`
 

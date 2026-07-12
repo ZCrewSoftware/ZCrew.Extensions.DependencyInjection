@@ -78,7 +78,7 @@ Classes.FromThisAssembly()
 
 ## Assembly type visibility
 
-When scanning an assembly (via `FromAssembly`, `FromAssemblyContaining`, or `FromThisAssembly`), the returned `IAssemblyTypeSelector` exposes visibility filters. Default is **public only**.
+When scanning an assembly (via `FromAssembly`, `FromAssemblyContaining`, or `FromThisAssembly`), the returned `AssemblyTypeSelector` exposes visibility filters. Default is **public only**.
 
 Given:
 

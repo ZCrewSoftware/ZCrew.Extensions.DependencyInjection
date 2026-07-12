@@ -27,15 +27,16 @@ This scans the assembly, finds every non-abstract class that implements a descen
 
 ## How it works
 
-The API is a fluent chain with five stages:
+The API is a fluent chain with six stages:
 
 1. **Entry point** — Choose where types come from (`Classes` for non-abstract classes, `Types` for everything)
 2. **Type selection** — Optionally control assembly visibility (`IncludeInternalTypes`, `IncludeAllTypes`)
 3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`)
 4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
 5. **Keyed service selection** — Optionally assign service keys via `Keyed`
+6. **Lifetime selection** — Optionally choose a lifetime and sharing mode (`AsSingleton`, `AsScoped`, `AsTransient`, `AsSingletonDependent`, …); defaults to `Singleton` + `SharedComponent`
 
-Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient` — overloads exist for every stage of the chain.
+Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient` — overloads exist for every stage of the chain — or call `.ToServiceCollection()` to produce an `IServiceCollection` directly.
 
 ## Quick patterns
 
