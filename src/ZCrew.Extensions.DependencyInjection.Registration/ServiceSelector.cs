@@ -19,19 +19,19 @@ internal sealed class ServiceSelector : ServiceSelectorBase
     }
 
     /// <inheritdoc />
-    public override IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector)
+    public override IServiceKeySelector As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
-        return new KeyedServiceSelector(
+        return new ServiceKeySelector(
             this.types.Select(type => new ServiceComponent(type, serviceSelector(type).ToArray()))
         );
     }
 
     /// <inheritdoc />
-    public override IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
+    public override IServiceKeySelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
-        return new KeyedServiceSelector(
+        return new ServiceKeySelector(
             this.types.Select(type =>
             {
                 var assignableBaseTypes = type.GetMatchingBaseTypes(this.baseTypes).ToArray();

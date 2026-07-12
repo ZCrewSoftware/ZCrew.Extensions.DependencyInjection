@@ -61,7 +61,7 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var descriptor = ServiceDescriptor.Transient<ICustomerService, CustomerService>();
-        var selector = CreateMock<IKeyedServiceSelector>(descriptor);
+        var selector = CreateMock<IServiceKeySelector>(descriptor);
         var services = new ServiceCollection();
 
         // Act
@@ -189,7 +189,7 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var descriptor = ServiceDescriptor.Transient<ICustomerService, CustomerService>();
-        var selector = CreateMock<IKeyedServiceSelector>(descriptor);
+        var selector = CreateMock<IServiceKeySelector>(descriptor);
         var services = new ServiceCollection();
 
         // Act
@@ -317,7 +317,7 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var descriptor = ServiceDescriptor.Singleton<ICustomerService, CustomerService>();
-        var selector = CreateMock<IKeyedServiceSelector>(descriptor);
+        var selector = CreateMock<IServiceKeySelector>(descriptor);
         var services = new ServiceCollection();
 
         // Act

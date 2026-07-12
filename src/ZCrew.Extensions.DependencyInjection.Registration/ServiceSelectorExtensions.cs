@@ -17,7 +17,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as CustomerRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsSelf()
+        public IServiceKeySelector AsSelf()
         {
             return selector.As(type => [type]);
         }
@@ -34,7 +34,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as IRepository
         ///     </code>
         /// </example>
-        public IKeyedServiceSelector AsBase()
+        public IServiceKeySelector AsBase()
         {
             return selector.As((_, baseTypes) => baseTypes);
         }

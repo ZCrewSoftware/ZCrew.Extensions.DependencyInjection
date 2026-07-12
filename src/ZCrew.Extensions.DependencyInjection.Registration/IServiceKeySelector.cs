@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     an optional stage between <see cref="IServiceSelector"/> and <see cref="IServiceSource"/> in the registration
 ///     fluent API.
 /// </summary>
-public interface IKeyedServiceSelector : IServiceSource
+public interface IServiceKeySelector : IServiceSource
 {
     /// <summary>
     ///     Explicitly avoid assigning a service key to each registration.

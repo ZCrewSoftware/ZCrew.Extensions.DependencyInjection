@@ -1,17 +1,17 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Base class for service selectors. Provides bridge implementations of <see cref="IKeyedServiceSelector"/>
+///     Base class for service selectors. Provides bridge implementations of <see cref="IServiceKeySelector"/>
 ///     methods that route through <see cref="ServiceSelectorExtensions.AsSelf(IServiceSelector)"/>, so subclasses
 ///     only need to implement the <see cref="IServiceSelector"/> methods themselves.
 /// </summary>
-internal abstract class ServiceSelectorBase : KeyedServiceSelectorBase, IServiceSelector
+internal abstract class ServiceSelectorBase : ServiceKeySelectorBase, IServiceSelector
 {
     /// <inheritdoc />
-    public abstract IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector);
+    public abstract IServiceKeySelector As(Func<Type, IEnumerable<Type>> serviceSelector);
 
     /// <inheritdoc />
-    public abstract IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector);
+    public abstract IServiceKeySelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector);
 
     /// <inheritdoc />
     public override IServiceSource Unkeyed()

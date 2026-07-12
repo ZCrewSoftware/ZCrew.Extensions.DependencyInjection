@@ -1,10 +1,10 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-internal sealed class KeyedServiceSelector : KeyedServiceSelectorBase
+internal sealed class ServiceKeySelector : ServiceKeySelectorBase
 {
     private readonly IEnumerable<ServiceComponent> components;
 
-    internal KeyedServiceSelector(IEnumerable<ServiceComponent> components)
+    internal ServiceKeySelector(IEnumerable<ServiceComponent> components)
     {
         this.components = components;
     }

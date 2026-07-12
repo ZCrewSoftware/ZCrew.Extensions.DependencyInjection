@@ -55,7 +55,7 @@ public static class ServiceCollectionExtensions
         ///     Adds the descriptors as <see cref="ServiceLifetime.Singleton"/> registrations.
         /// </summary>
         /// <param name="descriptors">The service descriptors to add.</param>
-        public IServiceCollection AddSingleton(IKeyedServiceSelector descriptors)
+        public IServiceCollection AddSingleton(IServiceKeySelector descriptors)
         {
             return services.AddSingleton(descriptors.ToServiceCollection());
         }
@@ -105,7 +105,7 @@ public static class ServiceCollectionExtensions
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
-        public IServiceCollection AddScoped(IKeyedServiceSelector descriptors)
+        public IServiceCollection AddScoped(IServiceKeySelector descriptors)
         {
             return services.AddScoped(descriptors.ToServiceCollection());
         }
@@ -147,7 +147,7 @@ public static class ServiceCollectionExtensions
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
-        public IServiceCollection AddTransient(IKeyedServiceSelector descriptors)
+        public IServiceCollection AddTransient(IServiceKeySelector descriptors)
         {
             return services.AddTransient(descriptors.ToServiceCollection());
         }

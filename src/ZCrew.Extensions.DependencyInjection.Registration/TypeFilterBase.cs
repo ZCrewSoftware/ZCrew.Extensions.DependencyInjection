@@ -17,13 +17,13 @@ internal abstract class TypeFilterBase : ServiceSelectorBase, ITypeFilter
     public abstract ITypeFilter BasedOn(params Type[] baseTypes);
 
     /// <inheritdoc />
-    public override IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector)
+    public override IServiceKeySelector As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         return AllTypes().As(serviceSelector);
     }
 
     /// <inheritdoc />
-    public override IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
+    public override IServiceKeySelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
     {
         return AllTypes().As(serviceSelector);
     }

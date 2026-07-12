@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Base class for keyed service selectors. Provides bridge implementations of <see cref="IServiceSource"/>
-///     methods that route through <see cref="Unkeyed"/>, so subclasses only need to implement the
-///     <see cref="IKeyedServiceSelector"/> methods themselves.
+///     Base class selecting service keys. Provides bridge implementations of <see cref="IServiceSource"/> methods that
+///     route through <see cref="Unkeyed"/>, so subclasses only need to implement the <see cref="IServiceKeySelector"/>
+///     methods themselves.
 /// </summary>
-internal abstract class KeyedServiceSelectorBase : IKeyedServiceSelector
+internal abstract class ServiceKeySelectorBase : IServiceKeySelector
 {
     /// <inheritdoc />
     public abstract IServiceSource Unkeyed();

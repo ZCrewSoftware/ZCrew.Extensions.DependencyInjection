@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class TypeFilterExtensions
