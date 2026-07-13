@@ -335,7 +335,7 @@ public class ClassesAttributeFilterTests
         var filter = Classes.From(typeof(RegionalCustomerStore));
 
         // Act
-        var act = () => filter.HasAttribute(typeof(string));
+        var act = () => filter.HasAttribute(typeof(string)).AsSelf().ToServiceCollection();
 
         // Assert
         Assert.Throws<ArgumentException>(act);
@@ -348,7 +348,7 @@ public class ClassesAttributeFilterTests
         var filter = Classes.From(typeof(RegionalCustomerStore));
 
         // Act
-        var act = () => filter.HasAttribute<object>();
+        var act = () => filter.HasAttribute<object>().AsSelf().ToServiceCollection();
 
         // Assert
         Assert.Throws<ArgumentException>(act);
@@ -361,7 +361,7 @@ public class ClassesAttributeFilterTests
         var filter = Classes.From(typeof(RegionalCustomerStore));
 
         // Act
-        var act = () => filter.HasAttribute(null!);
+        var act = () => filter.HasAttribute(null!).AsSelf().ToServiceCollection();
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -374,7 +374,7 @@ public class ClassesAttributeFilterTests
         var filter = Classes.From(typeof(RegionalCustomerStore));
 
         // Act
-        var act = () => filter.HasAttribute<RegionCacheAttribute>(null!);
+        var act = () => filter.HasAttribute<RegionCacheAttribute>(null!).AsSelf().ToServiceCollection();
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -387,7 +387,7 @@ public class ClassesAttributeFilterTests
         var filter = Classes.From(typeof(MultiTagged));
 
         // Act
-        var act = () => filter.HasAttributes<TagAttribute>(null!);
+        var act = () => filter.HasAttributes<TagAttribute>(null!).AsSelf().ToServiceCollection();
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);

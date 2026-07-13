@@ -1,5 +1,4 @@
 using Fixtures.SmallProject.Application.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 

@@ -1,3 +1,5 @@
+using ZCrew.Extensions.DependencyInjection.Registration;
+
 namespace Fixtures.SmallProject.Attributes;
 
 /// <summary>
@@ -95,3 +97,36 @@ public enum MarkedEnum
 
 [Meta]
 public class MarkedClass;
+
+/// <summary>
+///     Attribute implementing <see cref="IServiceKeyProvider"/> — supplies the service key read by the
+///     <c>KeyedByAttribute()</c> overloads. A <see langword="null"/> key exercises the "provider yields null →
+///     left unkeyed" path.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class ServiceKeyAttribute(object? key) : Attribute, IServiceKeyProvider
+{
+    public object? ServiceKey => key;
+}
+
+/// <summary>A second <see cref="IServiceKeyProvider"/> attribute, so a type can carry two and trigger ambiguity.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class AltServiceKeyAttribute(object? key) : Attribute, IServiceKeyProvider
+{
+    public object? ServiceKey => key;
+}
+
+[ServiceKey("customers")]
+public class KeyProvidedStore;
+
+[ServiceKey(null)]
+public class NullKeyProvidedStore;
+
+[ServiceKey("first")]
+[AltServiceKey("second")]
+public class MultiKeyProvidedStore;
+
+[ServiceKey("inherited-key")]
+public class KeyProvidedBase;
+
+public class KeyProvidedDerived : KeyProvidedBase;
