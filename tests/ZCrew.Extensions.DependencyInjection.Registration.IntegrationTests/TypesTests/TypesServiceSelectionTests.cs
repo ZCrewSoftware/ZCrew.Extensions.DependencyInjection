@@ -3,6 +3,7 @@ using Fixtures.SmallProject.Application.Services;
 using Fixtures.SmallProject.Domain.Entities;
 using Fixtures.SmallProject.Domain.Repositories;
 using Fixtures.SmallProject.Domain.Services;
+using Fixtures.SmallProject.Domain.ValueObjects;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Notifications;
 using Fixtures.SmallProject.Infrastructure.Persistence;
@@ -422,5 +423,347 @@ public class TypesServiceSelectionTests
         var descriptor = Assert.Single(result);
         Assert.Equal(typeof(SqlCustomerRepository), descriptor.ImplementationType);
         Assert.Equal(typeof(ICustomerRepository), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsAllInterfacesOrSelf_WhenInterfacesExist_ShouldRegisterAllInterfaces()
+    {
+        // Act
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+        Assert.Contains(typeof(IDisposable), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllInterfacesOrSelf_WhenNoInterfaces_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsAllInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Customer), descriptor.ServiceType);
+        Assert.Equal(typeof(Customer), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsAllNonSystemInterfacesOrSelf_WhenNonSystemInterfacesExist_ShouldRegisterNonSystemInterfaces()
+    {
+        // Act
+        var result = Types.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(IPaymentGateway), serviceTypes);
+        Assert.DoesNotContain(typeof(IDisposable), serviceTypes);
+        Assert.DoesNotContain(typeof(PayPalPaymentGateway), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllNonSystemInterfacesOrSelf_WhenOnlySystemInterfaces_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Address)).AsAllNonSystemInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Address), descriptor.ServiceType);
+        Assert.Equal(typeof(Address), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsDefaultInterfacesOrSelf_WhenConventionMatches_ShouldRegisterMatchingInterface()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsDefaultInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Equal(typeof(ICustomerService), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsDefaultInterfacesOrSelf_WhenNoConventionMatch_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(LegacyOrderProcessor)).AsDefaultInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(LegacyOrderProcessor), descriptor.ServiceType);
+        Assert.Equal(typeof(LegacyOrderProcessor), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsDefaultNonSystemInterfacesOrSelf_WhenConventionMatchesNonSystem_ShouldRegisterMatchingInterface()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsDefaultNonSystemInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Equal(typeof(ICustomerService), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsDefaultNonSystemInterfacesOrSelf_WhenNoMatch_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Address)).AsDefaultNonSystemInterfacesOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Address), descriptor.ServiceType);
+        Assert.Equal(typeof(Address), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsFirstInterfaceOrSelf_WhenInterfacesExist_ShouldRegisterFirstInterface()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsFirstInterfaceOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Contains(descriptor.ServiceType, typeof(CustomerService).GetInterfaces());
+    }
+
+    [Fact]
+    public void AsFirstInterfaceOrSelf_WhenNoInterfaces_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsFirstInterfaceOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Customer), descriptor.ServiceType);
+        Assert.Equal(typeof(Customer), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WithBasedOn_ShouldRegisterTopLevelDerivedInterface()
+    {
+        // Act
+        var result = Types
+            .From(typeof(SqlCustomerRepository))
+            .BasedOn(typeof(IRepository<>))
+            .AsInterfaceOrSelf()
+            .ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(SqlCustomerRepository), descriptor.ImplementationType);
+        Assert.Equal(typeof(ICustomerRepository), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WhenNoMatchingInterface_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsInterfaceOrSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Customer), descriptor.ServiceType);
+        Assert.Equal(typeof(Customer), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_T_WhenMatchingInterface_ShouldRegisterInterface()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf<ICustomerService>().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Equal(typeof(ICustomerService), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_T_WhenTypeHasNoMatchingInterface_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf<IPaymentGateway>().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ServiceType);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WithExplicitType_WhenMatching_ShouldRegisterInterface()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf(typeof(ICustomerService)).ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+        Assert.Equal(typeof(ICustomerService), descriptor.ServiceType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WithExplicitType_WhenNoMatch_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf(typeof(IPaymentGateway)).ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ServiceType);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WithExplicitType_WhenTypeIsNull_ShouldThrow()
+    {
+        // Act
+        var act = () => Types.From(typeof(Customer)).AsInterfaceOrSelf((Type)null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
+    }
+
+    [Fact]
+    public void AsInterfacesOrSelf_WithMultipleBaseTypes_ShouldRegisterDerivedInterfaces()
+    {
+        // Act
+        var result = Types
+            .From(typeof(CustomerService), typeof(OrderService))
+            .AsInterfacesOrSelf(typeof(ICustomerService), typeof(IOrderService))
+            .ToServiceCollection();
+
+        // Assert
+        Assert.Contains(
+            result,
+            d => d.ImplementationType == typeof(CustomerService) && d.ServiceType == typeof(ICustomerService)
+        );
+        Assert.Contains(
+            result,
+            d => d.ImplementationType == typeof(OrderService) && d.ServiceType == typeof(IOrderService)
+        );
+    }
+
+    [Fact]
+    public void AsInterfacesOrSelf_WhenNoMatchingInterface_ShouldRegisterSelf()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsInterfacesOrSelf(typeof(ICustomerService)).ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(Customer), descriptor.ServiceType);
+        Assert.Equal(typeof(Customer), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterfacesOrSelf_WhenInterfaceTypesIsNull_ShouldThrow()
+    {
+        // Act
+        var act = () => Types.From(typeof(Customer)).AsInterfacesOrSelf((Type[])null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
+    }
+
+    [Fact]
+    public void AsInterfaceOrSelf_WithMixedTypes_ShouldRegisterInterfacesAndSelfPerType()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService), typeof(Customer)).AsInterfaceOrSelf().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Contains(typeof(ICustomerService), serviceTypes);
+        Assert.Contains(typeof(Customer), serviceTypes);
+        Assert.DoesNotContain(typeof(CustomerService), serviceTypes);
+    }
+
+    [Fact]
+    public void AsAllInterfaces_WhenNoInterfaces_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsAllInterfaces().ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsAllNonSystemInterfaces_WhenNoInterfaces_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsAllNonSystemInterfaces().ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsAllNonSystemInterfaces_WhenOnlySystemInterfaces_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(Address)).AsAllNonSystemInterfaces().ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsDefaultNonSystemInterfaces_WhenNoMatch_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(LegacyOrderProcessor)).AsDefaultNonSystemInterfaces().ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsInterface_WhenNoMatchingInterface_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsInterface().ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsInterface_WithExplicitType_WhenNoMatch_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(CustomerService)).AsInterface(typeof(IPaymentGateway)).ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsInterfaces_WhenNoMatchingInterface_ShouldNotRegister()
+    {
+        // Act
+        var result = Types.From(typeof(Customer)).AsInterfaces(typeof(ICustomerService)).ToServiceCollection();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void AsInterfaces_WhenInterfaceTypesIsNull_ShouldThrow()
+    {
+        // Act
+        var act = () => Types.From(typeof(Customer)).AsInterfaces((Type[])null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
     }
 }
