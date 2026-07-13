@@ -1,6 +1,5 @@
 using System.Collections;
 using Fixtures.SmallProject.Application.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
@@ -50,6 +49,19 @@ public class ChainLazinessTests
     {
         // Arrange
         var chain = Types.From(new ThrowingTypeSequence()).Where(_ => true).AsSelf();
+
+        // Act
+        var terminate = () => chain.ToServiceCollection();
+
+        // Assert
+        Assert.Throws<InvalidOperationException>(terminate);
+    }
+
+    [Fact]
+    public void HasAttribute_WhenChainBuilt_ShouldNotEnumerateUntilTerminated()
+    {
+        // Arrange
+        var chain = Types.From(new ThrowingTypeSequence()).HasAttribute<ObsoleteAttribute>().AsSelf();
 
         // Act
         var terminate = () => chain.ToServiceCollection();

@@ -31,7 +31,7 @@ The API is a fluent chain with six stages:
 
 1. **Entry point** — Choose where types come from (`Classes` for non-abstract classes, `Types` for everything)
 2. **Type selection** — Optionally control assembly visibility (`IncludeInternalTypes`, `IncludeAllTypes`)
-3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`)
+3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`, `HasAttribute`)
 4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
 5. **Keyed service selection** — Optionally assign service keys via `Keyed`
 6. **Lifetime selection** — Optionally choose a lifetime and sharing mode (`AsSingleton`, `AsScoped`, `AsTransient`, `AsSingletonDependent`, …); defaults to `Singleton` + `SharedComponent`
@@ -110,6 +110,69 @@ services.AddTransient(
         .AsBase()
 );
 ```
+
+### Filter by attribute
+
+`HasAttribute` narrows to types decorated with a given attribute — handy for opt-in registration:
+
+```csharp
+services.AddSingleton(
+    Classes.FromThisAssembly()
+        .HasAttribute<ServiceAttribute>()
+        .AsInterface()
+);
+```
+
+Pass a condition to filter on the attribute's data:
+
+```csharp
+services.AddSingleton(
+    Classes.FromThisAssembly()
+        .HasAttribute<CacheableAttribute>(attr => attr.Region == "customers")
+        .AsSelf()
+);
+```
+
+The attribute type may also be a **marker interface** that several attributes implement. Matching is by
+assignability, so this catches any attribute assignable to the interface — and lets you filter on a property
+the interface defines:
+
+```csharp
+public interface IRegionAware { string Region { get; } }
+
+[AttributeUsage(AttributeTargets.Class)]
+public class CacheableAttribute(string region) : Attribute, IRegionAware
+{
+    public string Region => region;
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class PartitionedAttribute(string region) : Attribute, IRegionAware
+{
+    public string Region => region;
+}
+
+// Matches types carrying *either* attribute, filtered by the shared Region property:
+services.AddSingleton(
+    Classes.FromThisAssembly()
+        .HasAttribute<IRegionAware>(a => a.Region == "customers")
+        .AsSelf()
+);
+```
+
+When a type can carry **multiple** instances of an attribute (`AllowMultiple = true`), use `HasAttributes`
+(plural) to evaluate the whole set at once:
+
+```csharp
+services.AddSingleton(
+    Classes.FromThisAssembly()
+        .HasAttributes<TagAttribute>(tags => tags.Any(t => t.Name == "public"))
+        .AsSelf()
+);
+```
+
+Both `HasAttribute` and `HasAttributes` also have a non-generic `Type` overload and an optional `inherited`
+flag that controls whether attributes inherited from base types are considered.
 
 ## Entry points: `Classes` vs `Types`
 
