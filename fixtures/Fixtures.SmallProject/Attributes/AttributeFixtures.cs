@@ -131,3 +131,63 @@ public class KeyedDerived : KeyedBase;
 public class InheritableKeyedBase;
 
 public class InheritableKeyedDerived : InheritableKeyedBase;
+
+/// <summary>
+///     Empty service interfaces targeted by the <see cref="ServicesAttribute"/> fixtures below. Two are provided so a
+///     single implementation can be mapped to multiple service types (exercising the shared-component path).
+/// </summary>
+public interface IProvidedServiceA;
+
+public interface IProvidedServiceB;
+
+/// <summary>
+///     A second <see cref="IServiceTypesProvider"/> attribute. The shipped <see cref="ServicesAttribute"/> is
+///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-type
+///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
+///     <c>inherited</c> flag on the <see cref="IServiceTypesProvider"/> path.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class AltServicesAttribute(params Type[] serviceTypes) : Attribute, IServiceTypesProvider
+{
+    public IEnumerable<Type> ServiceTypes => serviceTypes;
+}
+
+[Services(typeof(IProvidedServiceA))]
+public class SingleServiceStore : IProvidedServiceA;
+
+[Services(typeof(IProvidedServiceA), typeof(IProvidedServiceB))]
+public class MultiServiceStore : IProvidedServiceA, IProvidedServiceB;
+
+// [Services] is declared Inherited = false, so its service types do not flow to ServicesDerived.
+[Services(typeof(IProvidedServiceA))]
+public class ServicesBase : IProvidedServiceA;
+
+public class ServicesDerived : ServicesBase;
+
+// AltServices is inheritable, so it exercises the inherited flag on the IServiceTypesProvider path.
+[AltServices(typeof(IProvidedServiceB))]
+public class InheritableServicesBase : IProvidedServiceB;
+
+public class InheritableServicesDerived : InheritableServicesBase;
+
+// Two IServiceTypesProvider attributes on one type -> AmbiguousMatchException.
+[Services(typeof(IProvidedServiceA))]
+[AltServices(typeof(IProvidedServiceB))]
+public class MultiServiceProvidedStore;
+
+/// <summary>
+///     Default <see cref="AttributeUsageAttribute"/> — <c>Inherited = true</c> — carrying a <see cref="Type"/> array
+///     but deliberately not implementing <see cref="IServiceTypesProvider"/>, so it exercises the projector overloads
+///     (<c>AsServicesFromAttribute&lt;TAttribute&gt;</c> / <c>AsServicesFromAttribute(Type, ...)</c>) and the
+///     inherited condition.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class ContractAttribute(params Type[] contracts) : Attribute
+{
+    public Type[] Contracts => contracts;
+}
+
+[Contract(typeof(IProvidedServiceA))]
+public class ContractBase;
+
+public class ContractDerived : ContractBase;
