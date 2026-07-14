@@ -2,6 +2,8 @@
 
 Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceKeySelector`, which can optionally be chained with [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-components.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
 
+Service types can also be declared with **attributes on the implementation type** via `AsServicesFromAttribute` (see [Selecting services from attributes](#selecting-services-from-attributes)).
+
 ## `AsAllInterfaces()`
 
 Registers each type against **every** interface it implements, including inherited and system interfaces:
@@ -313,6 +315,94 @@ CustomerValidator → IValidator<Customer>
 
 The open generic `IValidator<>` in `BasedOn` is resolved to the closed form (`IValidator<Order>`, `IValidator<Customer>`) for each implementation.
 
+## Selecting services from attributes
+
+Instead of computing service types from interfaces or delegates, `AsServicesFromAttribute` reads the target service types from an **attribute applied to the implementation type**. This keeps the service-type declaration next to the implementation it belongs to. All overloads share the same rules:
+
+- **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
+- **No match means no registration.** An implementation type without a matching attribute — or whose attribute yields no service types — is **not registered at all**. Use the `…OrSelf()` companion to register such a type against itself instead.
+- **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
+- **No assignability check.** The declared service types are used verbatim, exactly like the `As(delegate)` form. Declaring a service type the implementation does not satisfy fails at resolution time, not registration time.
+
+### `AsServicesFromAttribute()`
+
+Reads the service types from any attribute that implements the library's `IServiceTypesProvider` interface. The library ships a ready-made one — `[Services]` — so the common case needs no custom attribute:
+
+```csharp
+Classes.FromThisAssembly()
+    .AsServicesFromAttribute()
+```
+
+Given:
+
+```csharp
+[Services(typeof(ICustomerService), typeof(IAuditService))]
+public class CustomerService : ICustomerService, IAuditService { }
+```
+
+Registers:
+
+```
+CustomerService → ICustomerService
+CustomerService → IAuditService
+```
+
+When a single implementation is mapped to multiple service types, the default [shared-component](shared-components.md) sharing applies, so both service types resolve to the *same* instance.
+
+`[Services]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
+
+```csharp
+Classes.FromThisAssembly()
+    .AsServicesFromAttributeOrSelf()
+// A type without [Services] is registered as itself instead of being skipped.
+```
+
+To declare service types with your own attribute instead, implement `IServiceTypesProvider`:
+
+```csharp
+public interface IServiceTypesProvider
+{
+    IEnumerable<Type> ServiceTypes { get; }
+}
+```
+
+Whether such a custom attribute is picked up on derived types follows *its* own `[AttributeUsage(Inherited = …)]`; pass `AsServicesFromAttribute(inherited: false)` to ignore inherited attributes.
+
+### `AsServicesFromAttribute<TAttribute>(Func<TAttribute, IEnumerable<Type>>)`
+
+Projects a specific attribute — one that need not know anything about `IServiceTypesProvider` — through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+
+```csharp
+Classes.FromThisAssembly()
+    .AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts)
+```
+
+Given:
+
+```csharp
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class ContractAttribute(params Type[] contracts) : Attribute
+{
+    public Type[] Contracts => contracts;
+}
+
+[Contract(typeof(ICustomerService))]
+public class CustomerService : ICustomerService { }
+```
+
+Registers `CustomerService → ICustomerService`. Types without the attribute, or for which the selector yields no service types, are not registered (use `AsServicesFromAttributeOrSelf<TAttribute>(…)` to fall back to self). An `inherited` overload — `AsServicesFromAttribute<TAttribute>(bool inherited, Func<TAttribute, IEnumerable<Type>>)` — controls whether inherited attributes are inspected.
+
+### `AsServicesFromAttribute(Type, Func<Attribute, IEnumerable<Type>>)`
+
+The non-generic form, for when the attribute type is only known at runtime. The selector receives the matching attribute as `Attribute`, so it is cast before the service types are read:
+
+```csharp
+Classes.FromThisAssembly()
+    .AsServicesFromAttribute(typeof(ContractAttribute), attribute => ((ContractAttribute)attribute).Contracts)
+```
+
+This registers the same services as the generic overload above. An `inherited` overload — `AsServicesFromAttribute(Type, bool inherited, Func<Attribute, IEnumerable<Type>>)` — and an `AsServicesFromAttributeOrSelf(Type, …)` fallback are also available.
+
 ## Choosing the right selector
 
 | Scenario                           | Selector                     | Example                                         |
@@ -324,6 +414,7 @@ The open generic `IValidator<>` in `BasedOn` is resolved to the closed form (`IV
 | Register as the base type itself   | `AsBase()`                   | `OrderValidator` → `IValidator<Order>`          |
 | Register as the concrete type      | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
 | Custom logic                       | `As(delegate)`               | Full control via a function                     |
+| Service types from an attribute    | `AsServicesFromAttribute()`  | `[Services(typeof(ICustomerService))]`          |
 
 ## Type-based variants
 

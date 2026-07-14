@@ -66,6 +66,7 @@ Map each impl type to one or more service types.
 | `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                             |
 | `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                |
 | `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                       |
+| `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[Services(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
 
 For more on selector behavior see [service-selectors.md](service-selectors.md).
 
