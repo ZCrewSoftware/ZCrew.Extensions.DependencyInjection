@@ -1,3 +1,5 @@
+using ZCrew.Extensions.DependencyInjection.Registration;
+
 namespace Fixtures.SmallProject.Attributes;
 
 /// <summary>
@@ -95,3 +97,37 @@ public enum MarkedEnum
 
 [Meta]
 public class MarkedClass;
+
+/// <summary>
+///     A second <see cref="IServiceKeyProvider"/> attribute. The shipped <see cref="KeyedAttribute"/> is
+///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-key
+///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also
+///     exercises the <c>inherited</c> flag on the <see cref="IServiceKeyProvider"/> path.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class AltKeyedAttribute(object? key) : Attribute, IServiceKeyProvider
+{
+    public object? ServiceKey => key;
+}
+
+[Keyed("customers")]
+public class KeyProvidedStore;
+
+[Keyed(null)]
+public class NullKeyProvidedStore;
+
+[Keyed("first")]
+[AltKeyed("second")]
+public class MultiKeyProvidedStore;
+
+// [Keyed] is declared Inherited = false, so its key does not flow to KeyedDerived.
+[Keyed("base-key")]
+public class KeyedBase;
+
+public class KeyedDerived : KeyedBase;
+
+// AltKeyed is inheritable, so it exercises the inherited flag on the IServiceKeyProvider path.
+[AltKeyed("alt-base")]
+public class InheritableKeyedBase;
+
+public class InheritableKeyedDerived : InheritableKeyedBase;

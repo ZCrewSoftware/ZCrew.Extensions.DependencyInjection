@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection;
 ///     Extension methods on <see cref="Type"/> for namespace matching, attribute checking, and interface hierarchy
 ///     inspection used by the registration API.
 /// </summary>
-public static class TypeExtensions
+public static partial class TypeExtensions
 {
     extension(Type type)
     {
@@ -17,29 +17,6 @@ public static class TypeExtensions
         public bool IsAbstractClass
         {
             get => type is { IsAbstract: true, IsInterface: false };
-        }
-
-        /// <summary>
-        ///     Returns <see langword="true"/> if the type has the specified attribute applied.
-        /// </summary>
-        /// <typeparam name="TAttribute">The attribute type to check for.</typeparam>
-        public bool HasAttribute<TAttribute>()
-            where TAttribute : Attribute
-        {
-            return type.GetTypeInfo().IsDefined(typeof(TAttribute));
-        }
-
-        /// <summary>
-        ///     Returns <see langword="true"/> if the type has the specified attribute applied and the attribute matches
-        ///     the <paramref name="filter"/> predicate.
-        /// </summary>
-        /// <typeparam name="TAttribute">The attribute type to check for.</typeparam>
-        /// <param name="filter">A predicate to evaluate against the attribute instance.</param>
-        public bool HasAttribute<TAttribute>(Func<TAttribute, bool> filter)
-            where TAttribute : Attribute
-        {
-            var attribute = type.GetTypeInfo().GetCustomAttribute<TAttribute>();
-            return attribute != null && filter(attribute);
         }
 
         /// <summary>

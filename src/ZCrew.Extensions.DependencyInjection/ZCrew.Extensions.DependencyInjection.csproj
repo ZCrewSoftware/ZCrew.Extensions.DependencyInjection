@@ -20,5 +20,8 @@
     <Compile Update="ServiceCollectionExtensions.*.cs">
       <DependentUpon>ServiceCollectionExtensions.cs</DependentUpon>
     </Compile>
+    <Compile Update="TypeExtensions.*.cs">
+      <DependentUpon>TypeExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

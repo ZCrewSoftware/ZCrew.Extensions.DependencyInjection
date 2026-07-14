@@ -12,7 +12,7 @@ public static partial class TypeFilterExtensions
         /// <param name="attributeType">The attribute type or marker interface to search for.</param>
         public TypeFilter HasAttribute(Type attributeType)
         {
-            return filter.HasAttribute(attributeType, inherited: true);
+            return filter.Where(type => type.HasAttribute(attributeType));
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttribute<TAttribute>()
             where TAttribute : class
         {
-            return filter.HasAttribute<TAttribute>(inherited: true);
+            return filter.Where(type => type.HasAttribute<TAttribute>());
         }
 
         /// <summary>
@@ -37,8 +37,7 @@ public static partial class TypeFilterExtensions
         /// </param>
         public TypeFilter HasAttribute(Type attributeType, bool inherited)
         {
-            ValidateAttributeType(attributeType);
-            return filter.Where(type => type.GetCustomAttributes(inherited).Any(attributeType.IsInstanceOfType));
+            return filter.Where(type => type.HasAttribute(attributeType, inherited));
         }
 
         /// <summary>
@@ -53,8 +52,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttribute<TAttribute>(bool inherited)
             where TAttribute : class
         {
-            ValidateAttributeType(typeof(TAttribute));
-            return filter.Where(type => type.GetCustomAttributes(inherited).OfType<TAttribute>().Any());
+            return filter.Where(type => type.HasAttribute<TAttribute>(inherited));
         }
 
         /// <summary>
@@ -65,8 +63,7 @@ public static partial class TypeFilterExtensions
         /// <param name="condition">The additional condition to evaluate on a matching attribute.</param>
         public TypeFilter HasAttribute(Type attributeType, Func<Attribute, bool> condition)
         {
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.HasAttributes(attributeType, attributes => attributes.Any(condition));
+            return filter.Where(type => type.HasAttribute(attributeType, condition));
         }
 
         /// <summary>
@@ -78,8 +75,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttribute<TAttribute>(Func<TAttribute, bool> condition)
             where TAttribute : class
         {
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.HasAttributes<TAttribute>(attributes => attributes.Any(condition));
+            return filter.Where(type => type.HasAttribute(condition));
         }
 
         /// <summary>
@@ -93,8 +89,7 @@ public static partial class TypeFilterExtensions
         /// <param name="condition">The additional condition to evaluate on a matching attribute.</param>
         public TypeFilter HasAttribute(Type attributeType, bool inherited, Func<Attribute, bool> condition)
         {
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.HasAttributes(attributeType, inherited, attributes => attributes.Any(condition));
+            return filter.Where(type => type.HasAttribute(attributeType, inherited, condition));
         }
 
         /// <summary>
@@ -109,8 +104,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttribute<TAttribute>(bool inherited, Func<TAttribute, bool> condition)
             where TAttribute : class
         {
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.HasAttributes<TAttribute>(inherited, attributes => attributes.Any(condition));
+            return filter.Where(type => type.HasAttribute(inherited, condition));
         }
 
         /// <summary>
@@ -121,7 +115,7 @@ public static partial class TypeFilterExtensions
         /// <param name="condition">The additional condition to evaluate on the matching attributes, if any were found.</param>
         public TypeFilter HasAttributes(Type attributeType, Func<IEnumerable<Attribute>, bool> condition)
         {
-            return filter.HasAttributes(attributeType, inherited: true, condition);
+            return filter.Where(type => type.HasAttributes(attributeType, condition));
         }
 
         /// <summary>
@@ -133,7 +127,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttributes<TAttribute>(Func<IEnumerable<TAttribute>, bool> condition)
             where TAttribute : class
         {
-            return filter.HasAttributes(inherited: true, condition);
+            return filter.Where(type => type.HasAttributes(condition));
         }
 
         /// <summary>
@@ -147,16 +141,7 @@ public static partial class TypeFilterExtensions
         /// <param name="condition">The additional condition to evaluate on the matching attributes, if any were found.</param>
         public TypeFilter HasAttributes(Type attributeType, bool inherited, Func<IEnumerable<Attribute>, bool> condition)
         {
-            ValidateAttributeType(attributeType);
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.Where(type =>
-            {
-                var attributes = type.GetCustomAttributes(inherited)
-                    .Cast<Attribute>()
-                    .Where(attributeType.IsInstanceOfType)
-                    .ToArray();
-                return attributes.Length > 0 && condition(attributes);
-            });
+            return filter.Where(type => type.HasAttributes(attributeType, inherited, condition));
         }
 
         /// <summary>
@@ -171,34 +156,7 @@ public static partial class TypeFilterExtensions
         public TypeFilter HasAttributes<TAttribute>(bool inherited, Func<IEnumerable<TAttribute>, bool> condition)
             where TAttribute : class
         {
-            ValidateAttributeType(typeof(TAttribute));
-            ArgumentNullException.ThrowIfNull(condition);
-            return filter.Where(type =>
-            {
-                var attributes = type.GetCustomAttributes(inherited).OfType<TAttribute>().ToArray();
-                return attributes.Length > 0 && condition(attributes);
-            });
-        }
-    }
-
-    /// <summary>
-    ///     Ensures a requested attribute type can actually match a custom attribute: it must be an attribute
-    ///     type or an interface an attribute could implement. Anything else (e.g. <see cref="string"/>) can
-    ///     never match, so it is rejected rather than silently filtering everything out.
-    /// </summary>
-    private static void ValidateAttributeType(Type attributeType)
-    {
-        ArgumentNullException.ThrowIfNull(attributeType);
-        if (
-            !attributeType.IsInterface
-            && !attributeType.IsSubclassOf(typeof(Attribute))
-            && attributeType != typeof(Attribute)
-        )
-        {
-            throw new ArgumentException(
-                $"'{attributeType}' must be an attribute type or an interface.",
-                nameof(attributeType)
-            );
+            return filter.Where(type => type.HasAttributes(inherited, condition));
         }
     }
 }
