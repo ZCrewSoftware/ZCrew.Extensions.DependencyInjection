@@ -72,6 +72,98 @@ Sharing behavior is controlled by the `SharingMode` enum:
 
 Calling `AsLifetime(ServiceLifetime.Transient, SharingMode.SharedComponent)` or `AsLifetime(ServiceLifetime.Transient, SharingMode.Dependent)` throws `ArgumentException`. Sharing cannot apply to transient services, so the mismatch is surfaced eagerly rather than silently ignored.
 
+The methods above apply **one** lifetime to the whole chain. To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [Lifetime from attributes](#lifetime-from-attributes)). Both use `SharingMode.SharedComponent`, except that any component whose resolved lifetime is `Transient` is registered `Independent` — a transient can never share an instance.
+
+## Lifetime from attributes
+
+Instead of applying one lifetime to the whole chain, `AsLifetimeByAttribute` reads the lifetime from an **attribute applied to the implementation type**. This keeps the lifetime declaration next to the implementation it belongs to, so a single convention scan can register singletons, scoped services, and transients side by side. All overloads share the same rules:
+
+- **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
+- **No match means Singleton.** Implementation types without a matching attribute fall back to `ServiceLifetime.Singleton` — the same lifetime a skipped lifetime stage would use.
+- **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
+- **Transient components are registered independently.** Sharing defaults to `SharingMode.SharedComponent`, but a component whose resolved lifetime is `Transient` is registered `Independent`, because a transient can never share an instance.
+
+## `AsLifetimeByAttribute()`
+
+Reads the lifetime from any attribute that implements the library's `IServiceLifetimeProvider` interface. The library ships a ready-made one — `[Lifetime]` — so the common case needs no custom attribute:
+
+```csharp
+services.Add(
+    Classes.From(typeof(CustomerService), typeof(OrderService))
+        .AsInterface()
+        .AsLifetimeByAttribute()
+);
+```
+
+Given:
+
+```csharp
+[Lifetime(ServiceLifetime.Singleton)]
+public class CustomerService : ICustomerService { }
+
+[Lifetime(ServiceLifetime.Scoped)]
+public class OrderService : IOrderService { }
+```
+
+Registers:
+
+```
+CustomerService → ICustomerService (Singleton)
+OrderService    → IOrderService    (Scoped)
+```
+
+`[Lifetime]` is declared `Inherited = false` — matching `[Keyed]` — so a lifetime does not flow to subclasses by default (this also keeps runtime and source-generated registration in agreement, since a source generator only sees attributes declared directly on a type). Types with no `IServiceLifetimeProvider` attribute fall back to `ServiceLifetime.Singleton`.
+
+To declare lifetimes with your own attribute instead, implement `IServiceLifetimeProvider`:
+
+```csharp
+public interface IServiceLifetimeProvider
+{
+    ServiceLifetime Lifetime { get; }
+}
+```
+
+Whether such a custom attribute is picked up on derived types follows *its* own `[AttributeUsage(Inherited = …)]`; pass `AsLifetimeByAttribute(inherited: false)` to ignore inherited attributes.
+
+## `AsLifetimeByAttribute<TAttribute>(Func<TAttribute, ServiceLifetime>)`
+
+Projects a specific attribute — one that need not know anything about `IServiceLifetimeProvider` — through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+
+```csharp
+Classes.FromThisAssembly()
+    .BasedOn<IStore>()
+    .AsInterface()
+    .AsLifetimeByAttribute<LifestyleAttribute>(attribute => attribute.Lifetime)
+```
+
+Given:
+
+```csharp
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class LifestyleAttribute(ServiceLifetime lifetime) : Attribute
+{
+    public ServiceLifetime Lifetime => lifetime;
+}
+
+[Lifestyle(ServiceLifetime.Scoped)]
+public class CustomerStore : IStore { }
+```
+
+Registers `CustomerStore → IStore (Scoped)`. Types without the attribute fall back to `ServiceLifetime.Singleton`. An `inherited` overload — `AsLifetimeByAttribute<TAttribute>(bool inherited, Func<TAttribute, ServiceLifetime>)` — controls whether inherited attributes are inspected.
+
+## `AsLifetimeByAttribute(Type, Func<Attribute, ServiceLifetime>)`
+
+The non-generic form, for when the attribute type is only known at runtime. The selector receives the matching attribute as `Attribute`, so it is cast before the lifetime is read:
+
+```csharp
+Classes.FromThisAssembly()
+    .BasedOn<IStore>()
+    .AsInterface()
+    .AsLifetimeByAttribute(typeof(LifestyleAttribute), attribute => ((LifestyleAttribute)attribute).Lifetime)
+```
+
+This registers the same lifetimes as the generic overload above. An `inherited` overload — `AsLifetimeByAttribute(Type, bool inherited, Func<Attribute, ServiceLifetime>)` — is also available.
+
 ## `SharedComponent` vs `Dependent`
 
 Both modes produce one shared instance behind every service type. They differ in **who registers the implementation**:
@@ -153,3 +245,5 @@ The `TypeFilter.ConstructedGenericTypes()` and `TypeFilter.GenericTypeDefinition
 | Each service type should have its own instance                          | `AsSingletonIndependent()` / `AsScopedIndependent()`         |
 | New instance on every resolution                                        | `AsTransient()`                                              |
 | Open generic mapped to multiple service types                           | `AsSingletonIndependent()` / `AsScopedIndependent()`         |
+| Lifetime declared per type by an attribute                              | `AsLifetimeByAttribute(...)`                                 |
+| Lifetime computed per type by a delegate                                | `AsLifetime(Func<Type, ServiceLifetime>)`                    |

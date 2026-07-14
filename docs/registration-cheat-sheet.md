@@ -87,16 +87,18 @@ See [service-key-selectors.md](service-key-selectors.md) for examples.
 
 The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a `ServiceSource` — finish it with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`).
 
-| Method                                 | Lifetime  | `SharingMode`                                                        |
-|----------------------------------------|-----------|----------------------------------------------------------------------|
-| `AsSingleton()`                        | Singleton | `SharedComponent`                                                    |
-| `AsSingletonDependent()`               | Singleton | `Dependent`                                                          |
-| `AsSingletonIndependent()`             | Singleton | `Independent`                                                        |
-| `AsScoped()`                           | Scoped    | `SharedComponent`                                                    |
-| `AsScopedDependent()`                  | Scoped    | `Dependent`                                                          |
-| `AsScopedIndependent()`                | Scoped    | `Independent`                                                        |
-| `AsTransient()`                        | Transient | `Independent` (only valid mode)                                      |
-| `AsLifetime(lifetime [, sharingMode])` | Custom    | Defaults to `Independent` for Transient, `SharedComponent` otherwise |
+| Method                                    | Lifetime  | `SharingMode`                                                                                 |
+|-------------------------------------------|-----------|-----------------------------------------------------------------------------------------------|
+| `AsSingleton()`                           | Singleton | `SharedComponent`                                                                             |
+| `AsSingletonDependent()`                  | Singleton | `Dependent`                                                                                   |
+| `AsSingletonIndependent()`                | Singleton | `Independent`                                                                                 |
+| `AsScoped()`                              | Scoped    | `SharedComponent`                                                                             |
+| `AsScopedDependent()`                     | Scoped    | `Dependent`                                                                                   |
+| `AsScopedIndependent()`                   | Scoped    | `Independent`                                                                                 |
+| `AsTransient()`                           | Transient | `Independent` (only valid mode)                                                               |
+| `AsLifetime(lifetime [, sharingMode])`    | Custom    | Defaults to `Independent` for Transient, `SharedComponent` otherwise                          |
+| `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | `SharedComponent`, except Transient components (registered `Independent`)                     |
+| `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[Lifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
 
 `SharingMode` controls what happens when one impl is registered against multiple service types:
 

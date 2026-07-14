@@ -49,4 +49,26 @@ public class ServiceLifetimeSelector : ServiceSource
 
         return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetime)), sharingMode);
     }
+
+    /// <summary>
+    ///     Returns a new <see cref="ServiceSource"/> whose descriptors take the <see cref="ServiceLifetime"/> produced
+    ///     by <paramref name="lifetimeSelector"/> for each implementation type. The default sharing mode is used: for
+    ///     <see cref="ServiceLifetime.Transient"/> that is <see cref="SharingMode.Independent"/>; for others it is
+    ///     <see cref="SharingMode.SharedComponent"/>.
+    /// </summary>
+    /// <param name="lifetimeSelector">
+    ///     A function that receives the implementation type and returns the service lifetime.
+    /// </param>
+    /// <example>
+    ///     <code>
+    ///     Classes.From(typeof(CustomerService), typeof(OrderService))
+    ///         .AsInterface()
+    ///         .AsLifetime(type => type == typeof(OrderService) ? ServiceLifetime.Scoped : ServiceLifetime.Singleton)
+    ///     </code>
+    /// </example>
+    public ServiceSource AsLifetime(Func<Type, ServiceLifetime> lifetimeSelector)
+    {
+        ArgumentNullException.ThrowIfNull(lifetimeSelector);
+        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetimeSelector)), null);
+    }
 }

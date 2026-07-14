@@ -9,9 +9,20 @@ internal readonly record struct ServiceComponent
 {
     private readonly Type implementation;
     private readonly IReadOnlyList<Type> services;
-    private readonly ServiceLifetime lifetime = ServiceLifetime.Singleton;
+    private readonly ServiceLifetime? lifetime;
+    private readonly Func<Type, ServiceLifetime>? lifetimeProvider;
     private readonly object? serviceKey;
     private readonly Func<Type, Type, object?>? serviceKeyProvider;
+
+    /// <summary>
+    ///     The effective lifetime for this component: the value produced by the <see cref="lifetimeProvider"/> when
+    ///     one is set (evaluated against the implementation type), otherwise the fixed <see cref="lifetime"/>.
+    /// </summary>
+    /// <remarks>
+    ///     Either <see cref="implementation"/> or <see cref="lifetime"/> is set so the fallback is never hit.
+    /// </remarks>
+    private ServiceLifetime EffectiveLifetime =>
+        this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime ?? ServiceLifetime.Singleton;
 
     /// <summary>
     ///     Create a new service component.
@@ -30,12 +41,14 @@ internal readonly record struct ServiceComponent
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
     /// <param name="lifetime">The service lifetime.</param>
+    /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
     /// <param name="serviceKey">The shared service key.</param>
     /// <param name="serviceKeyProvider">The dynamic service key provider.</param>
     private ServiceComponent(
         Type implementation,
         IReadOnlyList<Type> services,
-        ServiceLifetime lifetime,
+        ServiceLifetime? lifetime,
+        Func<Type, ServiceLifetime>? lifetimeProvider,
         object? serviceKey,
         Func<Type, Type, object?>? serviceKeyProvider
     )
@@ -43,6 +56,7 @@ internal readonly record struct ServiceComponent
         this.implementation = implementation;
         this.services = services;
         this.lifetime = lifetime;
+        this.lifetimeProvider = lifetimeProvider;
         this.serviceKey = serviceKey;
         this.serviceKeyProvider = serviceKeyProvider;
     }
@@ -53,7 +67,7 @@ internal readonly record struct ServiceComponent
     /// <param name="lifetime">The lifetime.</param>
     public ServiceComponent WithLifetime(ServiceLifetime lifetime)
     {
-        if (lifetime == this.lifetime)
+        if (lifetime == this.lifetime && this.lifetimeProvider == null)
         {
             return this;
         }
@@ -62,6 +76,29 @@ internal readonly record struct ServiceComponent
             this.implementation,
             this.services,
             lifetime,
+            null,
+            this.serviceKey,
+            this.serviceKeyProvider
+        );
+    }
+
+    /// <summary>
+    ///     Indirectly set the <see cref="ServiceDescriptor.Lifetime"/> of the future <see cref="ServiceDescriptor"/>
+    ///     instances by evaluating the lifetime against the implementation type when resolving the descriptors.
+    /// </summary>
+    /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
+    public ServiceComponent WithLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
+    {
+        if (lifetimeProvider == this.lifetimeProvider)
+        {
+            return this;
+        }
+
+        return new ServiceComponent(
+            this.implementation,
+            this.services,
+            this.lifetime,
+            lifetimeProvider,
             this.serviceKey,
             this.serviceKeyProvider
         );
@@ -78,7 +115,14 @@ internal readonly record struct ServiceComponent
             return this;
         }
 
-        return new ServiceComponent(this.implementation, this.services, this.lifetime, serviceKey, null);
+        return new ServiceComponent(
+            this.implementation,
+            this.services,
+            this.lifetime,
+            this.lifetimeProvider,
+            serviceKey,
+            null
+        );
     }
 
     /// <summary>
@@ -93,7 +137,14 @@ internal readonly record struct ServiceComponent
             return this;
         }
 
-        return new ServiceComponent(this.implementation, this.services, this.lifetime, null, serviceKeyProvider);
+        return new ServiceComponent(
+            this.implementation,
+            this.services,
+            this.lifetime,
+            this.lifetimeProvider,
+            null,
+            serviceKeyProvider
+        );
     }
 
     /// <summary>
@@ -102,7 +153,10 @@ internal readonly record struct ServiceComponent
     ///     service types shares its instance.
     /// </summary>
     /// <param name="serviceCollection">The service collection to add the <see cref="ServiceDescriptor"/>(s) to.</param>
-    /// <param name="sharingMode">The sharing mode to apply to this component.</param>
+    /// <param name="sharingMode">
+    ///     The sharing mode to apply to this component or <see langword="null"/> if the lifetime is dynamic and the
+    ///     default sharing mode should be used instead.
+    /// </param>
     /// <returns>The resulting service descriptors.</returns>
     /// <exception cref="InvalidOperationException">
     ///     Thrown when sharing is requested for an open generic implementation. Microsoft's container does not
@@ -110,7 +164,7 @@ internal readonly record struct ServiceComponent
     ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to share an instance
     ///     across multiple service types.
     /// </exception>
-    public void AddServiceDescriptors(IServiceCollection serviceCollection, SharingMode sharingMode)
+    public void AddServiceDescriptors(IServiceCollection serviceCollection, SharingMode? sharingMode)
     {
         // No services to register
         if (this.services.Count == 0)
@@ -118,8 +172,12 @@ internal readonly record struct ServiceComponent
             return;
         }
 
+        // When dealing with a dynamic lifetime the sharing mode can't be set
+        var componentSharingMode = sharingMode ?? EffectiveLifetime.DefaultSharingMode();
+
         // Don't need to bother sharing with only one registration
-        if (sharingMode == SharingMode.Independent || this.services.Count == 1)
+        if (componentSharingMode == SharingMode.Independent || this.services.Count == 1
+        )
         {
             AddIndependentServiceDescriptors(serviceCollection);
             return;
@@ -136,7 +194,7 @@ internal readonly record struct ServiceComponent
                 "For more information, see: https://github.com/dotnet/runtime/issues/41050");
         }
 
-        if (sharingMode == SharingMode.Dependent)
+        if (componentSharingMode == SharingMode.Dependent)
         {
             AddDependentServiceDescriptors(serviceCollection);
             return;
@@ -205,30 +263,32 @@ internal readonly record struct ServiceComponent
 
     private ServiceDescriptor Registration(Type service)
     {
+        var lifetime = EffectiveLifetime;
         if (this.serviceKeyProvider != null)
         {
             var specificServiceKey = this.serviceKeyProvider(this.implementation, service);
-            return new ServiceDescriptor(service, specificServiceKey, this.implementation, this.lifetime);
+            return new ServiceDescriptor(service, specificServiceKey, this.implementation, lifetime);
         }
         // If the service key is null then it's a non-keyed service anyway
-        return new ServiceDescriptor(service, this.serviceKey, this.implementation, this.lifetime);
+        return new ServiceDescriptor(service, this.serviceKey, this.implementation, lifetime);
     }
 
     private ServiceDescriptor FactoryRegistration(Type service, Func<IServiceProvider, object?, object> factory)
     {
+        var lifetime = EffectiveLifetime;
         if (this.serviceKeyProvider != null)
         {
             var specificServiceKey = this.serviceKeyProvider(this.implementation, service);
-            return new ServiceDescriptor(service, specificServiceKey, factory, this.lifetime);
+            return new ServiceDescriptor(service, specificServiceKey, factory, lifetime);
         }
 
         // If the service key is null then it's a non-keyed service anyway
-        return new ServiceDescriptor(service, this.serviceKey, factory, this.lifetime);
+        return new ServiceDescriptor(service, this.serviceKey, factory, lifetime);
     }
 
     private ServiceDescriptor SharedComponentRegistration(Type service, SharedComponentKey key)
     {
-        return new ServiceDescriptor(service, key, service, this.lifetime);
+        return new ServiceDescriptor(service, key, service, EffectiveLifetime);
     }
 
     private readonly record struct SharedComponentKey
