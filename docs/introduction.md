@@ -22,6 +22,7 @@ See [decorators.md](decorators.md).
 - **Type filtering** via `Where`, `BasedOn`, `InNamespace`, `NameEndsWith`, and generic-type filters
 - **Service selection** via `AsInterface`, `AsDefaultInterfaces`, `AsSelf`, `AsBase`, and custom delegates
 - **Keyed registration** with auto-detection or custom key selectors
+- **Lifetime selection** per chain (`AsSingleton`, `AsScoped`, `AsTransient`) or per type from a `[Lifetime]` attribute (`AsLifetimeByAttribute`)
 - **Sharing modes** that control whether one impl registered against multiple service types resolves to a shared instance, a factory-resolved dependent, or independent instances per service type
 
 See [registration.md](registration.md) for the narrative guide and [registration-cheat-sheet.md](registration-cheat-sheet.md) for a one-page API reference.

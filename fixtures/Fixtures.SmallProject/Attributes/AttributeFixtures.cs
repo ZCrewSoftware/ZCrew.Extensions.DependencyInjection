@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using ZCrew.Extensions.DependencyInjection.Registration;
 
 namespace Fixtures.SmallProject.Attributes;
@@ -191,3 +192,79 @@ public class ContractAttribute(params Type[] contracts) : Attribute
 public class ContractBase;
 
 public class ContractDerived : ContractBase;
+
+/// <summary>
+///     Marker interface implemented by attributes that carry a <see cref="ServiceLifetime"/>. Exercises attribute
+///     filtering by an interface the attribute implements (rather than by the concrete attribute type), including
+///     reading a property the interface defines.
+/// </summary>
+public interface ILifestyleAware
+{
+    ServiceLifetime Lifetime { get; }
+}
+
+/// <summary>
+///     A projection attribute exposing a <see cref="ServiceLifetime"/>, unrelated to
+///     <see cref="IServiceLifetimeProvider"/>. Declared <c>Inherited = true</c> (the default) so it also exercises
+///     the <c>inherited</c> flag on the projection overloads.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class LifestyleAttribute(ServiceLifetime lifetime) : Attribute, ILifestyleAware
+{
+    public ServiceLifetime Lifetime => lifetime;
+}
+
+/// <summary>
+///     A second <see cref="IServiceLifetimeProvider"/> attribute. The shipped <see cref="LifetimeAttribute"/> is
+///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two lifetime attributes
+///     (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
+///     <c>inherited</c> flag on the <see cref="IServiceLifetimeProvider"/> path.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class AltLifetimeAttribute(ServiceLifetime lifetime) : Attribute, IServiceLifetimeProvider
+{
+    public ServiceLifetime Lifetime => lifetime;
+}
+
+public interface ILifetimeAlpha;
+
+public interface ILifetimeBeta;
+
+[Lifetime(ServiceLifetime.Scoped)]
+public class ScopedLifetimeStore;
+
+[Lifetime(ServiceLifetime.Transient)]
+public class TransientLifetimeStore;
+
+[Lifetime(ServiceLifetime.Singleton)]
+public class SingletonLifetimeStore;
+
+[Lifetime(ServiceLifetime.Scoped)]
+[AltLifetime(ServiceLifetime.Transient)]
+public class MultiLifetimeStore;
+
+// [Lifetime] is declared Inherited = false, so its lifetime does not flow to LifetimeDerived.
+[Lifetime(ServiceLifetime.Scoped)]
+public class LifetimeBase;
+
+public class LifetimeDerived : LifetimeBase;
+
+// AltLifetime is inheritable, so it exercises the inherited flag on the IServiceLifetimeProvider path.
+[AltLifetime(ServiceLifetime.Scoped)]
+public class InheritableLifetimeBase;
+
+public class InheritableLifetimeDerived : InheritableLifetimeBase;
+
+// Lifestyle is inheritable, so it exercises the inherited flag on the projection overloads.
+[Lifestyle(ServiceLifetime.Scoped)]
+public class LifestyleBase;
+
+public class LifestyleDerived : LifestyleBase;
+
+// Multi-interface implementations that declare their own lifetime, for verifying that Singleton components still
+// share one instance while Transient components are registered independently.
+[Lifetime(ServiceLifetime.Singleton)]
+public class SingletonMultiStore : ILifetimeAlpha, ILifetimeBeta;
+
+[Lifetime(ServiceLifetime.Transient)]
+public class TransientMultiStore : ILifetimeAlpha, ILifetimeBeta;
