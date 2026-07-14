@@ -81,7 +81,7 @@ Optional, applied after service selection.
 | `Keyed(Func<Type, object?>)`       | Key from implementation type                                                                               |
 | `Keyed(Func<Type, Type, object?>)` | Key from `(implementation, serviceType)`                                                                   |
 
-See [keyed-service-selectors.md](keyed-service-selectors.md) for examples.
+See [service-key-selectors.md](service-key-selectors.md) for examples.
 
 ## Lifetime + sharing
 

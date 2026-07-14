@@ -6,9 +6,9 @@
     <File Path="docs/castle-windsor-comparison.md" />
     <File Path="docs/decorators.md" />
     <File Path="docs/introduction.md" />
-    <File Path="docs/keyed-service-selectors.md" />
     <File Path="docs/registration-cheat-sheet.md" />
     <File Path="docs/registration.md" />
+    <File Path="docs/service-key-selectors.md" />
     <File Path="docs/service-selectors.md" />
     <File Path="docs/shared-components.md" />
     <File Path="docs/type-filters.md" />

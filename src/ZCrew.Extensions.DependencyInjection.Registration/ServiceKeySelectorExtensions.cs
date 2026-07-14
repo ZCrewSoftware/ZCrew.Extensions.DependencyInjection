@@ -57,7 +57,7 @@ public static class ServiceKeySelectorExtensions
         /// <example>
         ///     <code>
         ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsInterface()
-        ///         .KeyedByAttribute&lt;ServiceKeyAttribute&gt;(attribute => attribute.Key)
+        ///         .KeyedByAttribute&lt;RegionAttribute&gt;(attribute => attribute.Region)
         ///     </code>
         /// </example>
         /// <exception cref="AmbiguousMatchException">
@@ -108,7 +108,7 @@ public static class ServiceKeySelectorExtensions
         /// <example>
         ///     <code>
         ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsInterface()
-        ///         .KeyedByAttribute(typeof(ServiceKeyAttribute), attribute => ((ServiceKeyAttribute)attribute).Key)
+        ///         .KeyedByAttribute(typeof(RegionAttribute), attribute => ((RegionAttribute)attribute).Region)
         ///     </code>
         /// </example>
         /// <exception cref="AmbiguousMatchException">

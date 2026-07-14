@@ -5,6 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Represents a provider for a <see cref="ServiceDescriptor.ServiceKey"/>.
 /// </summary>
+/// <seealso cref="KeyedAttribute"/>
 public interface IServiceKeyProvider
 {
     /// <summary>

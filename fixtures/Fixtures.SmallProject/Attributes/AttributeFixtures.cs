@@ -99,34 +99,35 @@ public enum MarkedEnum
 public class MarkedClass;
 
 /// <summary>
-///     Attribute implementing <see cref="IServiceKeyProvider"/> — supplies the service key read by the
-///     <c>KeyedByAttribute()</c> overloads. A <see langword="null"/> key exercises the "provider yields null →
-///     left unkeyed" path.
+///     A second <see cref="IServiceKeyProvider"/> attribute. The shipped <see cref="KeyedAttribute"/> is
+///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-key
+///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also
+///     exercises the <c>inherited</c> flag on the <see cref="IServiceKeyProvider"/> path.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-public class ServiceKeyAttribute(object? key) : Attribute, IServiceKeyProvider
+public class AltKeyedAttribute(object? key) : Attribute, IServiceKeyProvider
 {
     public object? ServiceKey => key;
 }
 
-/// <summary>A second <see cref="IServiceKeyProvider"/> attribute, so a type can carry two and trigger ambiguity.</summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class AltServiceKeyAttribute(object? key) : Attribute, IServiceKeyProvider
-{
-    public object? ServiceKey => key;
-}
-
-[ServiceKey("customers")]
+[Keyed("customers")]
 public class KeyProvidedStore;
 
-[ServiceKey(null)]
+[Keyed(null)]
 public class NullKeyProvidedStore;
 
-[ServiceKey("first")]
-[AltServiceKey("second")]
+[Keyed("first")]
+[AltKeyed("second")]
 public class MultiKeyProvidedStore;
 
-[ServiceKey("inherited-key")]
-public class KeyProvidedBase;
+// [Keyed] is declared Inherited = false, so its key does not flow to KeyedDerived.
+[Keyed("base-key")]
+public class KeyedBase;
 
-public class KeyProvidedDerived : KeyProvidedBase;
+public class KeyedDerived : KeyedBase;
+
+// AltKeyed is inheritable, so it exercises the inherited flag on the IServiceKeyProvider path.
+[AltKeyed("alt-base")]
+public class InheritableKeyedBase;
+
+public class InheritableKeyedDerived : InheritableKeyedBase;

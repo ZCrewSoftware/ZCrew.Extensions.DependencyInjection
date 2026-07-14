@@ -69,10 +69,27 @@ public class ServiceKeySelectorExtensionsTests
     }
 
     [Fact]
-    public void KeyedByAttribute_WhenInheritedDefault_ShouldKeyDerivedFromBase()
+    public void KeyedByAttribute_WhenAttributeIsNonInherited_ShouldKeyOnlyDeclaringType()
+    {
+        // Arrange — [Keyed] is declared Inherited = false, so the key does not flow to derived types
+        var source = Classes.From(typeof(KeyedBase), typeof(KeyedDerived)).AsSelf();
+
+        // Act
+        var result = source.KeyedByAttribute().ToServiceCollection();
+
+        // Assert
+        Assert.Contains(
+            result,
+            d => d.IsKeyedService && Equals(d.ServiceKey, "base-key") && d.KeyedImplementationType == typeof(KeyedBase)
+        );
+        Assert.Contains(result, d => !d.IsKeyedService && d.ImplementationType == typeof(KeyedDerived));
+    }
+
+    [Fact]
+    public void KeyedByAttribute_WhenInheritedDefaultAndAttributeInheritable_ShouldKeyDerivedFromBase()
     {
         // Arrange
-        var source = Classes.From(typeof(KeyProvidedDerived)).AsSelf();
+        var source = Classes.From(typeof(InheritableKeyedDerived)).AsSelf();
 
         // Act
         var result = source.KeyedByAttribute().ToServiceCollection();
@@ -80,15 +97,15 @@ public class ServiceKeySelectorExtensionsTests
         // Assert
         var descriptor = Assert.Single(result);
         Assert.True(descriptor.IsKeyedService);
-        Assert.Equal("inherited-key", descriptor.ServiceKey);
-        Assert.Equal(typeof(KeyProvidedDerived), descriptor.KeyedImplementationType);
+        Assert.Equal("alt-base", descriptor.ServiceKey);
+        Assert.Equal(typeof(InheritableKeyedDerived), descriptor.KeyedImplementationType);
     }
 
     [Fact]
     public void KeyedByAttribute_WhenInheritedFalse_ShouldLeaveDerivedUnkeyed()
     {
         // Arrange
-        var source = Classes.From(typeof(KeyProvidedDerived)).AsSelf();
+        var source = Classes.From(typeof(InheritableKeyedDerived)).AsSelf();
 
         // Act
         var result = source.KeyedByAttribute(inherited: false).ToServiceCollection();
@@ -96,7 +113,7 @@ public class ServiceKeySelectorExtensionsTests
         // Assert
         var descriptor = Assert.Single(result);
         Assert.False(descriptor.IsKeyedService);
-        Assert.Equal(typeof(KeyProvidedDerived), descriptor.ImplementationType);
+        Assert.Equal(typeof(InheritableKeyedDerived), descriptor.ImplementationType);
     }
 
     [Fact]
