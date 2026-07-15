@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
@@ -13,16 +14,6 @@ internal readonly record struct ServiceComponent
     private readonly Func<Type, ServiceLifetime>? lifetimeProvider;
     private readonly object? serviceKey;
     private readonly Func<Type, Type, object?>? serviceKeyProvider;
-
-    /// <summary>
-    ///     The effective lifetime for this component: the value produced by the <see cref="lifetimeProvider"/> when
-    ///     one is set (evaluated against the implementation type), otherwise the fixed <see cref="lifetime"/>.
-    /// </summary>
-    /// <remarks>
-    ///     Either <see cref="implementation"/> or <see cref="lifetime"/> is set so the fallback is never hit.
-    /// </remarks>
-    private ServiceLifetime EffectiveLifetime =>
-        this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime ?? ServiceLifetime.Singleton;
 
     /// <summary>
     ///     Create a new service component.
@@ -148,23 +139,22 @@ internal readonly record struct ServiceComponent
     }
 
     /// <summary>
-    ///     Register the <see cref="ServiceDescriptor"/> instances represented by this component, using the supplied
-    ///     <paramref name="sharingMode"/> to determine how a single implementation registered against multiple
-    ///     service types shares its instance.
+    ///     Register the <see cref="ServiceDescriptor"/> instances represented by this component. Each service type is
+    ///     registered directly against the implementation when the lifetime is
+    ///     <see cref="ServiceLifetime.Transient"/>, when there is only a single service type, or when the
+    ///     implementation is not itself one of the selected service types. Otherwise (a
+    ///     <see cref="ServiceLifetime.Scoped"/> or <see cref="ServiceLifetime.Singleton"/> component with multiple
+    ///     service types that include the implementation) the implementation is registered once and the remaining
+    ///     service types are forwarded to it so they resolve to a single shared instance.
     /// </summary>
     /// <param name="serviceCollection">The service collection to add the <see cref="ServiceDescriptor"/>(s) to.</param>
-    /// <param name="sharingMode">
-    ///     The sharing mode to apply to this component or <see langword="null"/> if the lifetime is dynamic and the
-    ///     default sharing mode should be used instead.
-    /// </param>
-    /// <returns>The resulting service descriptors.</returns>
     /// <exception cref="InvalidOperationException">
-    ///     Thrown when sharing is requested for an open generic implementation. Microsoft's container does not
-    ///     support factory-based resolution of open generics
-    ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to share an instance
-    ///     across multiple service types.
+    ///     Thrown when the shared-component path is taken for an open generic implementation. Microsoft's container
+    ///     does not support factory-based resolution of open generics
+    ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to forward multiple
+    ///     service types to a single instance.
     /// </exception>
-    public void AddServiceDescriptors(IServiceCollection serviceCollection, SharingMode? sharingMode)
+    public void AddServiceDescriptors(IServiceCollection serviceCollection)
     {
         // No services to register
         if (this.services.Count == 0)
@@ -172,14 +162,14 @@ internal readonly record struct ServiceComponent
             return;
         }
 
-        // When dealing with a dynamic lifetime the sharing mode can't be set
-        var componentSharingMode = sharingMode ?? EffectiveLifetime.DefaultSharingMode();
+        var lifetime = this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime;
+        Debug.Assert(lifetime != null, "Lifetime always should have been set");
 
-        // Don't need to bother sharing with only one registration
-        if (componentSharingMode == SharingMode.Independent || this.services.Count == 1
-        )
+        // Shortcut for when there is only 1 - this also skips the open generic check
+        // This also doesn't register a shared component if the implementation isn't in the service list
+        if (lifetime == ServiceLifetime.Transient || this.services.Count == 1 || !this.services.Contains(this.implementation))
         {
-            AddIndependentServiceDescriptors(serviceCollection);
+            AddIndependentServiceDescriptors(lifetime.Value, serviceCollection);
             return;
         }
 
@@ -194,115 +184,46 @@ internal readonly record struct ServiceComponent
                 "For more information, see: https://github.com/dotnet/runtime/issues/41050");
         }
 
-        if (componentSharingMode == SharingMode.Dependent)
-        {
-            AddDependentServiceDescriptors(serviceCollection);
-            return;
-        }
-
-        AddSharedComponentServiceDescriptors(serviceCollection);
+        AddComponentServiceDescriptors(lifetime.Value, serviceCollection);
     }
 
-    private void AddIndependentServiceDescriptors(IServiceCollection serviceCollection)
+    private void AddIndependentServiceDescriptors(ServiceLifetime lifetime, IServiceCollection serviceCollection)
     {
         foreach (var service in this.services)
         {
-            serviceCollection.Add(Registration(service));
+            serviceCollection.Add(Registration(lifetime, service));
         }
     }
 
-    private void AddSharedComponentServiceDescriptors(IServiceCollection serviceCollection)
-    {
-        var impl = this.implementation;
-        Func<IServiceProvider, object?, object> factory;
-
-        if (this.services.Contains(impl))
-        {
-            // If registering the implementation, then no shared component is necessary. Register the service as-is and
-            // forward without keys
-            serviceCollection.Add(Registration(impl));
-            factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
-        }
-        else
-        {
-            // Otherwise, create a shared component with a unique key to reference from each service
-            var sharedKey = new SharedComponentKey();
-            serviceCollection.Add(SharedComponentRegistration(impl, sharedKey));
-            factory = (serviceProvider, _) => serviceProvider.GetRequiredKeyedService(impl, sharedKey);
-        }
-
-        foreach (var service in this.services)
-        {
-            // Skip forwarding the service to itself. It was registered above
-            if (service == this.implementation)
-            {
-                continue;
-            }
-
-            serviceCollection.Add(FactoryRegistration(service, factory));
-        }
-    }
-
-    private void AddDependentServiceDescriptors(IServiceCollection serviceCollection)
+    private void AddComponentServiceDescriptors(ServiceLifetime lifetime, IServiceCollection serviceCollection)
     {
         var impl = this.implementation;
         Func<IServiceProvider, object?, object> factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
         foreach (var service in this.services)
         {
-            // In Dependent mode the implementation must already be registered elsewhere. If the user happens to have
-            // selected it as one of the service types, register it directly instead of pointing it at its own factory.
-            if (service == this.implementation)
+            // Skip forwarding the service to itself
+            if (service == impl)
             {
-                serviceCollection.Add(Registration(service));
+                serviceCollection.Add(Registration(lifetime, impl));
                 continue;
             }
 
-            serviceCollection.Add(FactoryRegistration(service, factory));
+            serviceCollection.Add(ForwardRegistration(lifetime, service, factory));
         }
     }
 
-    private ServiceDescriptor Registration(Type service)
+    private ServiceDescriptor Registration(ServiceLifetime lifetime, Type service)
     {
-        var lifetime = EffectiveLifetime;
-        if (this.serviceKeyProvider != null)
-        {
-            var specificServiceKey = this.serviceKeyProvider(this.implementation, service);
-            return new ServiceDescriptor(service, specificServiceKey, this.implementation, lifetime);
-        }
-        // If the service key is null then it's a non-keyed service anyway
-        return new ServiceDescriptor(service, this.serviceKey, this.implementation, lifetime);
+        var serviceKey = this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey;
+        return new ServiceDescriptor(service, serviceKey, this.implementation, lifetime);
     }
 
-    private ServiceDescriptor FactoryRegistration(Type service, Func<IServiceProvider, object?, object> factory)
+    private ServiceDescriptor ForwardRegistration(
+        ServiceLifetime lifetime,
+        Type service,
+        Func<IServiceProvider, object?, object> factory)
     {
-        var lifetime = EffectiveLifetime;
-        if (this.serviceKeyProvider != null)
-        {
-            var specificServiceKey = this.serviceKeyProvider(this.implementation, service);
-            return new ServiceDescriptor(service, specificServiceKey, factory, lifetime);
-        }
-
-        // If the service key is null then it's a non-keyed service anyway
-        return new ServiceDescriptor(service, this.serviceKey, factory, lifetime);
-    }
-
-    private ServiceDescriptor SharedComponentRegistration(Type service, SharedComponentKey key)
-    {
-        return new ServiceDescriptor(service, key, service, EffectiveLifetime);
-    }
-
-    private readonly record struct SharedComponentKey
-    {
-        private readonly string key;
-
-        public SharedComponentKey()
-        {
-            this.key = $"ZCrew:SharedComponent:{Guid.NewGuid():N}";
-        }
-
-        public override string ToString()
-        {
-            return this.key;
-        }
+        var specificServiceKey = this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey;
+        return new ServiceDescriptor(service, specificServiceKey, factory, lifetime);
     }
 }

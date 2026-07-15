@@ -10,12 +10,10 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 public class ServiceSource
 {
     private readonly IEnumerable<ServiceComponent> components;
-    private readonly SharingMode? sharingMode;
 
-    internal ServiceSource(IEnumerable<ServiceComponent> components, SharingMode? sharingMode)
+    internal ServiceSource(IEnumerable<ServiceComponent> components)
     {
         this.components = components;
-        this.sharingMode = sharingMode;
     }
 
     /// <summary>
@@ -27,7 +25,7 @@ public class ServiceSource
     {
         foreach (var component in this.components)
         {
-            component.AddServiceDescriptors(serviceCollection, this.sharingMode);
+            component.AddServiceDescriptors(serviceCollection);
         }
         return serviceCollection;
     }

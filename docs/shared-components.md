@@ -1,78 +1,84 @@
 # Shared Components
 
-When a single implementation is registered against multiple service types — for example, `CustomerService` registered as both `ICustomerService` and `IAuditable` — it is often desirable for every service type to resolve to the **same instance** within a given scope or process. This mirrors Castle Windsor's [shared component](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md#components-with-multiple-services-forwarded-types) model.
+When a single implementation is registered against multiple service types — for example, `PayPalPaymentGateway` registered as both `IPaymentGateway` and `IDisposable` — you sometimes want every service type to resolve to the **same instance** within a given scope or process. This mirrors Castle Windsor's [shared component](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md#components-with-multiple-services-forwarded-types) model.
 
 Microsoft's container does not do this by default. Adding two `Singleton` registrations for the same implementation type produces **two separate instances**:
 
 ```csharp
-services.AddSingleton<ICustomerService, CustomerService>();
-services.AddSingleton<IAuditable, CustomerService>();
-// Two distinct CustomerService instances are created
+services.AddSingleton<IPaymentGateway, PayPalPaymentGateway>();
+services.AddSingleton<IDisposable, PayPalPaymentGateway>();
+// Two distinct PayPalPaymentGateway instances are created
 ```
 
-A shared component fixes this: the implementation is registered once and every other service type resolves through that single registration. The result is one `Singleton` (or per-scope `Scoped`) instance behind every service type.
+## When sharing applies
 
-## How shared components work
+Sharing is **automatic** — there is no separate mode to configure. Whether an implementation is shared across its service types is decided from just two things:
 
-Given a [service selector](service-selectors.md) that maps a single implementation to multiple service types, the library registers:
+1. The resolved **lifetime**. `Transient` registrations are never shared — a transient produces a new instance on every resolution by definition.
+2. Whether the **implementation type is itself one of the selected service types**.
 
-1. The implementation itself, either directly (if it is one of the selected service types) or under a hidden shared key.
-2. A factory-based descriptor for every other service type that resolves through the implementation registration.
+A shared component is produced only when **all** of the following hold:
 
-For example:
+- the lifetime is `Singleton` or `Scoped`,
+- the implementation is mapped to **more than one** service type, and
+- the implementation type is **one of those selected service types**.
+
+In that case the implementation is registered once (as itself) and every other service type is registered as a factory that resolves back through it, so they all share a single instance. In every other case — a single service type, a transient lifetime, or a selection that does not include the implementation — each service type is registered directly against the implementation, independently, exactly like separate `services.AddSingleton(...)` calls.
+
+## How to select the implementation as a service
+
+The built-in interface selectors (`AsInterface`, `AsAllInterfaces`, `AsDefaultInterfaces`, …) map an implementation to its **interfaces only** — the concrete implementation type is not among them, so those registrations are independent. To share one instance you must include the implementation itself in the selected services, for example with a custom `As(...)` selection:
 
 ```csharp
 services.AddSingleton(
-    Classes.From(typeof(CustomerService))
-        .AsAllNonSystemInterfaces()
+    Classes.From(typeof(PayPalPaymentGateway))
+        .As(type => type.GetInterfaces().Prepend(type)) // the implementation plus its interfaces
 );
 ```
 
 Given:
 
 ```csharp
-public interface ICustomerService { }
-public interface IAuditable { }
-public class CustomerService : ICustomerService, IAuditable { }
+public interface IPaymentGateway : IDisposable { }
+public class PayPalPaymentGateway : IPaymentGateway { }
 ```
 
-Conceptually, the container ends up with:
+the container ends up with:
 
 ```
-CustomerService    → CustomerService (singleton, hidden shared key)
-ICustomerService   → resolves to the singleton above
-IAuditable         → resolves to the singleton above
+PayPalPaymentGateway → PayPalPaymentGateway (singleton, registered directly)
+IPaymentGateway      → resolves to the PayPalPaymentGateway singleton
+IDisposable          → resolves to the PayPalPaymentGateway singleton
 ```
 
-Resolving `ICustomerService` and `IAuditable` from the same provider yields the **same `CustomerService` instance**.
+Resolving `IPaymentGateway` and `IDisposable` from the same provider yields the **same `PayPalPaymentGateway` instance**. `AsServicesFromAttribute` shares in the same way when the attribute lists the implementation type among the provided services.
 
-## Sharing modes
-
-Sharing behavior is controlled by the `SharingMode` enum:
-
-| Mode                          | Behavior                                                                                                                                                                                               |
-|-------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SharingMode.SharedComponent` | Default for `Singleton` and `Scoped`. The implementation is registered once and every service type resolves to it.                                                                                     |
-| `SharingMode.Dependent`       | Each service type is registered as a factory that resolves the implementation. The implementation must already be registered somewhere — either as one of the selected service types or by the caller. |
-| `SharingMode.Independent`     | Default for `Transient`. Every service type is registered independently — no shared instance.                                                                                                          |
+By contrast, `AsAllInterfaces().AsSingleton()` maps the implementation to `IPaymentGateway` and `IDisposable` **without** the implementation itself, so each interface is registered independently and resolves to its own instance.
 
 ## Lifetime methods
 
-`ServiceLifetimeSelector` exposes lifetime methods that combine a `ServiceLifetime` with a sharing mode. Each returns a `ServiceSource`; finish the chain with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`):
+`ServiceLifetimeSelector` chooses the lifetime for the whole chain. Each returns a `ServiceSource`; finish the chain with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`):
 
-| Method                       | Sharing mode      | Behavior                                                                  |
-|------------------------------|-------------------|---------------------------------------------------------------------------|
-| `AsSingleton()`              | `SharedComponent` | One singleton instance shared across every selected service type.         |
-| `AsSingletonDependent()`     | `Dependent`       | Singleton factories that resolve an implementation registered elsewhere.  |
-| `AsSingletonIndependent()`   | `Independent`     | A separate singleton instance per service type.                           |
-| `AsScoped()`                 | `SharedComponent` | One per-scope instance shared across every selected service type.         |
-| `AsScopedDependent()`        | `Dependent`       | Per-scope factories that resolve an implementation registered elsewhere.  |
-| `AsScopedIndependent()`      | `Independent`     | A separate per-scope instance per service type.                           |
-| `AsTransient()`              | `Independent`     | A new instance per resolution. Sharing is not meaningful for transients.  |
+| Method          | Behavior                                                                                                                |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------|
+| `AsSingleton()` | One instance per container. Shared across the selected service types when the implementation is one of them.            |
+| `AsScoped()`    | One instance per scope. Shared across the selected service types within a scope when the implementation is one of them. |
+| `AsTransient()` | A new instance on every resolution. Never shared.                                                                       |
 
-Calling `AsLifetime(ServiceLifetime.Transient, SharingMode.SharedComponent)` or `AsLifetime(ServiceLifetime.Transient, SharingMode.Dependent)` throws `ArgumentException`. Sharing cannot apply to transient services, so the mismatch is surfaced eagerly rather than silently ignored.
+To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [Lifetime from attributes](#lifetime-from-attributes)). The same sharing rules are applied per component, based on the lifetime resolved for it.
 
-The methods above apply **one** lifetime to the whole chain. To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [Lifetime from attributes](#lifetime-from-attributes)). Both use `SharingMode.SharedComponent`, except that any component whose resolved lifetime is `Transient` is registered `Independent` — a transient can never share an instance.
+## Single-service short-circuit
+
+When a selector maps an implementation to **one** service type, there is nothing to share, so the implementation is registered directly against that service type:
+
+```csharp
+Classes.FromAssemblyContaining<CustomerService>()
+    .AsFirstInterface() // selects only one service
+    .AsSingleton()
+// CustomerService → ICustomerService (direct registration)
+```
+
+`AsSingleton()` and `AsScoped()` are therefore always safe as the default — factory forwarding only happens when multiple service types are involved and the implementation is one of them.
 
 ## Lifetime from attributes
 
@@ -81,7 +87,7 @@ Instead of applying one lifetime to the whole chain, `AsLifetimeByAttribute` rea
 - **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
 - **No match means Singleton.** Implementation types without a matching attribute fall back to `ServiceLifetime.Singleton` — the same lifetime a skipped lifetime stage would use.
 - **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
-- **Transient components are registered independently.** Sharing defaults to `SharingMode.SharedComponent`, but a component whose resolved lifetime is `Transient` is registered `Independent`, because a transient can never share an instance.
+- **Transient components are never shared.** A component whose resolved lifetime is `Transient` registers each service type independently, because a transient can never share an instance.
 
 ## `AsLifetimeByAttribute()`
 
@@ -164,53 +170,6 @@ Classes.FromThisAssembly()
 
 This registers the same lifetimes as the generic overload above. An `inherited` overload — `AsLifetimeByAttribute(Type, bool inherited, Func<Attribute, ServiceLifetime>)` — is also available.
 
-## `SharedComponent` vs `Dependent`
-
-Both modes produce one shared instance behind every service type. They differ in **who registers the implementation**:
-
-- `SharedComponent` registers the implementation once (under a hidden shared key if it wasn't one of the selected service types, or as itself if it was), then points every service type at that registration. The library handles everything.
-- `Dependent` does not add a separate hidden registration for the implementation. The implementation must already be in the container — either because it appears in the selected service types (e.g. via a separate `AsSelf()` selection), or because the caller registered it separately.
-
-> **Warning:** If you use `Dependent` and the implementation type is not registered anywhere, resolution will throw at runtime. Prefer `SharedComponent` (the default) unless you have a specific reason to manage the implementation registration yourself.
-
-A safe `Dependent` example, where a separate `AsSelf()` registration ensures the implementation is in the container:
-
-```csharp
-services.AddSingleton(Classes.From(typeof(CustomerService)).AsSelf());
-services.Add(
-    Classes.From(typeof(CustomerService))
-        .AsInterface<ICustomerService>()
-        .AsSingletonDependent()
-);
-// CustomerService  → CustomerService (direct registration)
-// ICustomerService → forwards to CustomerService
-```
-
-Another safe use is when the implementation is registered through plain `Microsoft.Extensions.DependencyInjection`:
-
-```csharp
-services.AddSingleton<CustomerService>();
-services.Add(
-    Classes.From(typeof(CustomerService))
-        .AsInterface<ICustomerService>()
-        .AsSingletonDependent()
-);
-// ICustomerService → forwards to the CustomerService registered above
-```
-
-## Single-service short-circuit
-
-When a selector maps an implementation to **one** service type, sharing adds no value and is skipped. The resulting registration is identical to `Independent`:
-
-```csharp
-Classes.FromAssemblyContaining<CustomerService>()
-    .AsFirstInterface() // Selects only 1 service
-    .AsSingleton()
-// CustomerService → ICustomerService (direct registration, no shared component)
-```
-
-This means `AsSingleton()` and `AsScoped()` are always safe to use as the default — it only incurs the shared-component cost when multiple service types are involved.
-
 ## Open generic limitation
 
 Microsoft's container does not support factory-based resolution of open generic types (see [dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)):
@@ -220,30 +179,27 @@ Microsoft's container does not support factory-based resolution of open generic 
 services.AddSingleton(typeof(IRepository<>), sp => sp.GetRequiredService(typeof(Repository<>)));
 ```
 
-Because sharing relies on factory resolution, it cannot work for open generic implementations. Rather than silently producing registrations that fail at runtime, this case is detected and fails fast at registration time:
+Because a shared component forwards its other service types through a factory, it cannot be produced for an open generic implementation. This case is detected and fails fast at registration time — but only when the shared-component path is actually taken (the open generic implementation is one of multiple selected service types under a `Singleton` or `Scoped` lifetime):
 
 ```csharp
 Classes.FromAssemblyContaining(typeof(Repository<>))
     .BasedOn(typeof(IRepository<>))
-    .AsAllNonSystemInterfaces() // maps Repository<> to multiple open generic interfaces
+    .As(type => type.GetInterfaces().Prepend(type)) // implementation plus its open generic interfaces
     .AsSingleton()
 // Throws InvalidOperationException:
 //   "Open generic services can not be forwarded."
 ```
 
-To register open generics that target multiple service types, switch to `AsSingletonIndependent()` (or the scoped equivalent). Each service type will be an independent registration, which is the same behavior you would get from raw `services.AddSingleton(typeof(IFoo<>), typeof(Foo<>))` calls.
+Mapping an open generic implementation to its interfaces **without** including the implementation itself (the usual `AsInterface()` / `AsAllInterfaces()` case) registers each service type independently and does not throw — the same behavior you would get from raw `services.AddSingleton(typeof(IFoo<>), typeof(Foo<>))` calls.
 
-If having independent services is unacceptable then there may need to be separate service registration or design changes to the service (if the service has a code smell).
-The `TypeFilter.ConstructedGenericTypes()` and `TypeFilter.GenericTypeDefinitions()` can be used to only select closed and open generic types respectively.
+If a shared single instance is required for an open generic, there may need to be separate service registration or design changes to the service (if the service has a code smell). The `TypeFilter.ConstructedGenericTypes()` and `TypeFilter.GenericTypeDefinitions()` can be used to only select closed and open generic types respectively.
 
-## Choosing the right method
+## Choosing the right lifetime
 
-| Scenario                                                                | Method                                                       |
-|-------------------------------------------------------------------------|--------------------------------------------------------------|
-| Multiple service types should share one instance                        | `AsSingleton()` / `AsScoped()`                               |
-| Forward additional service types to an impl that's already registered   | `AsSingletonDependent()` / `AsScopedDependent()`             |
-| Each service type should have its own instance                          | `AsSingletonIndependent()` / `AsScopedIndependent()`         |
-| New instance on every resolution                                        | `AsTransient()`                                              |
-| Open generic mapped to multiple service types                           | `AsSingletonIndependent()` / `AsScopedIndependent()`         |
-| Lifetime declared per type by an attribute                              | `AsLifetimeByAttribute(...)`                                 |
-| Lifetime computed per type by a delegate                                | `AsLifetime(Func<Type, ServiceLifetime>)`                    |
+| Scenario                                                                 | Method                                                                             |
+|--------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| Multiple service types (including the implementation) share one instance | `AsSingleton()` / `AsScoped()` with a selection that includes the implementation   |
+| Each service type should have its own instance                           | Map interfaces only (e.g. `AsAllInterfaces()`) with `AsSingleton()` / `AsScoped()` |
+| New instance on every resolution                                         | `AsTransient()`                                                                    |
+| Lifetime declared per type by an attribute                               | `AsLifetimeByAttribute(...)`                                                       |
+| Lifetime computed per type by a delegate                                 | `AsLifetime(Func<Type, ServiceLifetime>)`                                          |

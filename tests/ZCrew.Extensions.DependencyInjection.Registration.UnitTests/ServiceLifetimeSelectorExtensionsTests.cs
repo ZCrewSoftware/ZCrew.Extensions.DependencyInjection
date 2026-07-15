@@ -396,16 +396,16 @@ public class ServiceLifetimeSelectorExtensionsTests
         var result = source.AsLifetimeByAttribute().ToServiceCollection();
 
         // Assert
-        Assert.DoesNotContain(result, d => IsSharedComponentKey(d.ServiceKey));
         Assert.All(result, d => Assert.Null(d.ImplementationFactory));
         Assert.All(result, d => Assert.Equal(typeof(TransientMultiStore), d.ImplementationType));
         Assert.All(result, d => Assert.Equal(ServiceLifetime.Transient, d.Lifetime));
     }
 
     [Fact]
-    public void AsLifetimeByAttribute_WhenSingletonAndMultipleInterfaces_ShouldShareOneInstance()
+    public void AsLifetimeByAttribute_WhenSingletonAndMultipleInterfaces_ShouldApplySingletonToEachIndependently()
     {
-        // Arrange
+        // Arrange — the implementation is not one of the selected services, so each interface is registered
+        // independently rather than sharing a single instance.
         var services = Classes
             .From(typeof(SingletonMultiStore))
             .AsAllInterfaces()
@@ -418,12 +418,7 @@ public class ServiceLifetimeSelectorExtensionsTests
         var beta = provider.GetRequiredService<ILifetimeBeta>();
 
         // Assert
-        Assert.Same(alpha, beta);
+        Assert.NotSame(alpha, beta);
         Assert.All(services, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
-    }
-
-    private static bool IsSharedComponentKey(object? serviceKey)
-    {
-        return serviceKey?.ToString()?.StartsWith("ZCrew:SharedComponent:", StringComparison.Ordinal) == true;
     }
 }

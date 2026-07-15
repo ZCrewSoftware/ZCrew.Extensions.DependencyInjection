@@ -4,7 +4,7 @@ Quick reference for `ZCrew.Extensions.DependencyInjection.Registration`. For nar
 
 ```
 Classes/Types → IncludeXxxTypes → Where/BasedOn/InNamespace/... → AsXxx  → Keyed → AsSingleton/AsScoped/AsTransient → ToServiceCollection/AddXxx
-    entry           visibility                filter              service    key          lifetime + sharing                    terminal
+    entry           visibility                filter              service    key               lifetime                         terminal
 ```
 
 Each stage is optional after the entry point. Skip any stage and the next call applies sensible defaults.
@@ -51,21 +51,21 @@ Only available after `FromAssembly*` (returns `AssemblyTypeSelector`). Default i
 
 Map each impl type to one or more service types.
 
-| Method                                                                                      | Service types                                                                                 |
-|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `AsSelf()`                                                                                  | The implementation type                                                                       |
-| `AsBase()`                                                                                  | The base types set via `BasedOn` (use with open generics: `BasedOn(typeof(IFoo<>)).AsBase()`) |
-| `AsAllInterfaces()`                                                                         | Every interface implemented                                                                   |
-| `AsAllNonSystemInterfaces()`                                                                | Every interface except `System.*`                                                             |
-| `AsDefaultInterfaces()`                                                                     | Interfaces whose name appears in the class name (e.g. `CustomerService` → `ICustomerService`) |
-| `AsDefaultNonSystemInterfaces()`                                                            | Default interfaces, excluding `System.*`                                                      |
-| `AsFirstInterface()`                                                                        | The first interface in metadata order                                                         |
-| `AsInterface()`                                                                             | Top-level interfaces derived from `BasedOn` types                                             |
-| `AsInterface<T>()` / `AsInterface(Type)`                                                    | Top-level interfaces derived from `T`                                                         |
-| `AsInterfaces(params Type[])`                                                               | Top-level interfaces derived from the given types                                             |
-| `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                             |
-| `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                |
-| `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                       |
+| Method                                                                                      | Service types                                                                                             |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `AsSelf()`                                                                                  | The implementation type                                                                                   |
+| `AsBase()`                                                                                  | The base types set via `BasedOn` (use with open generics: `BasedOn(typeof(IFoo<>)).AsBase()`)             |
+| `AsAllInterfaces()`                                                                         | Every interface implemented                                                                               |
+| `AsAllNonSystemInterfaces()`                                                                | Every interface except `System.*`                                                                         |
+| `AsDefaultInterfaces()`                                                                     | Interfaces whose name appears in the class name (e.g. `CustomerService` → `ICustomerService`)             |
+| `AsDefaultNonSystemInterfaces()`                                                            | Default interfaces, excluding `System.*`                                                                  |
+| `AsFirstInterface()`                                                                        | The first interface in metadata order                                                                     |
+| `AsInterface()`                                                                             | Top-level interfaces derived from `BasedOn` types                                                         |
+| `AsInterface<T>()` / `AsInterface(Type)`                                                    | Top-level interfaces derived from `T`                                                                     |
+| `AsInterfaces(params Type[])`                                                               | Top-level interfaces derived from the given types                                                         |
+| `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                                         |
+| `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                            |
+| `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                                   |
 | `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[Services(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
 
 For more on selector behavior see [service-selectors.md](service-selectors.md).
@@ -84,30 +84,22 @@ Optional, applied after service selection.
 
 See [service-key-selectors.md](service-key-selectors.md) for examples.
 
-## Lifetime + sharing
+## Lifetime
 
 The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a `ServiceSource` — finish it with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`).
 
-| Method                                    | Lifetime  | `SharingMode`                                                                                 |
+| Method                                    | Lifetime  | Notes                                                                                         |
 |-------------------------------------------|-----------|-----------------------------------------------------------------------------------------------|
-| `AsSingleton()`                           | Singleton | `SharedComponent`                                                                             |
-| `AsSingletonDependent()`                  | Singleton | `Dependent`                                                                                   |
-| `AsSingletonIndependent()`                | Singleton | `Independent`                                                                                 |
-| `AsScoped()`                              | Scoped    | `SharedComponent`                                                                             |
-| `AsScopedDependent()`                     | Scoped    | `Dependent`                                                                                   |
-| `AsScopedIndependent()`                   | Scoped    | `Independent`                                                                                 |
-| `AsTransient()`                           | Transient | `Independent` (only valid mode)                                                               |
-| `AsLifetime(lifetime [, sharingMode])`    | Custom    | Defaults to `Independent` for Transient, `SharedComponent` otherwise                          |
-| `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | `SharedComponent`, except Transient components (registered `Independent`)                     |
+| `AsSingleton()`                           | Singleton | One instance per container                                                                    |
+| `AsScoped()`                              | Scoped    | One instance per scope                                                                        |
+| `AsTransient()`                           | Transient | New instance per resolution                                                                   |
+| `AsLifetime(ServiceLifetime)`             | Custom    | Explicit lifetime for the whole chain                                                         |
+| `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | Lifetime computed from the implementation type                                                |
 | `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[Lifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
 
-`SharingMode` controls what happens when one impl is registered against multiple service types:
+Skipping the stage defaults to `Singleton`.
 
-- **`SharedComponent`** — one instance, every service type resolves to it.
-- **`Dependent`** — each service type is a factory that resolves the impl from elsewhere (you must register it separately, e.g. with a second `AsSelf()` selection).
-- **`Independent`** — each service type gets its own instance.
-
-See [shared-components.md](shared-components.md) for the full model.
+**Sharing is automatic.** When one implementation is mapped to multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it, so they resolve to a single shared instance. Otherwise — a single service type, a transient lifetime, or a selection that excludes the implementation — each service type is registered independently. See [shared-components.md](shared-components.md) for the full model.
 
 ## Adding to the container
 
@@ -184,10 +176,12 @@ services.AddSingleton(
 
 **Hosted Services with Shared Instance**
 
+Include the implementation itself in the selection so the host and any injected interface resolve to one instance:
+
 ```csharp
 services.AddSingleton(
     Classes.FromAssemblyContaining<Startup>()
         .BasedOn<IHostedService>()
-        .AsAllTypes()
+        .As(type => type.AsAllTypes())
 );
 ```

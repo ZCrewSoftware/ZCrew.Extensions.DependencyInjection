@@ -23,7 +23,7 @@ See [decorators.md](decorators.md).
 - **Service selection** via `AsInterface`, `AsDefaultInterfaces`, `AsSelf`, `AsBase`, and custom delegates
 - **Keyed registration** with auto-detection or custom key selectors
 - **Lifetime selection** per chain (`AsSingleton`, `AsScoped`, `AsTransient`) or per type from a `[Lifetime]` attribute (`AsLifetimeByAttribute`)
-- **Sharing modes** that control whether one impl registered against multiple service types resolves to a shared instance, a factory-resolved dependent, or independent instances per service type
+- **Automatic instance sharing** — when one impl is registered (including itself) against multiple service types under a singleton or scoped lifetime, they all resolve to a single shared instance
 
 See [registration.md](registration.md) for the narrative guide and [registration-cheat-sheet.md](registration-cheat-sheet.md) for a one-page API reference.
 

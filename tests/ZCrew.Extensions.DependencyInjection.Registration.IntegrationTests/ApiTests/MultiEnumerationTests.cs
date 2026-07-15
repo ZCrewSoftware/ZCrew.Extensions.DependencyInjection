@@ -17,7 +17,7 @@ public class MultiEnumerationTests
         var source = new CountingSource<ServiceComponent>(Components());
 
         // Act
-        _ = new ServiceSource(source, SharingMode.SharedComponent);
+        _ = new ServiceSource(source);
 
         // Assert
         Assert.Equal(0, source.EnumerationCount);
@@ -26,9 +26,12 @@ public class MultiEnumerationTests
     [Fact]
     public void ServiceSource_WhenTerminated_ShouldEnumerateComponentsOnce()
     {
-        // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
-        var serviceSource = new ServiceSource(source, SharingMode.SharedComponent);
+        // Arrange — a ServiceSource holds finalized components, so give them a lifetime (the lifetime stage would
+        // normally do this before a ServiceSource is produced).
+        var source = new CountingSource<ServiceComponent>(
+            Components().Select(component => component.WithLifetime(ServiceLifetime.Singleton))
+        );
+        var serviceSource = new ServiceSource(source);
 
         // Act
         _ = serviceSource.ToServiceCollection();

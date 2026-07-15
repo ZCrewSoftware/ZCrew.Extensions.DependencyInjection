@@ -68,15 +68,15 @@ Windsor uses [DynamicProxy interceptors](https://github.com/castleproject/Core/b
 
 ## Behavioral differences
 
-- **Shared-component default** — `AsSingleton()` / `AsScoped()` share one instance across all service types (Windsor default). Plain MS DI gives separate instances. Use `AsSingletonIndependent()` / `AsScopedIndependent()` to opt out. See [shared-components.md](shared-components.md).
-- **Open generic forwarding** — MS DI ([dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)) can't resolve open generics through factories, so shared-component mode fails fast at registration when applied to open generics. Use `AsSingletonIndependent()` / `AsScopedIndependent()`. See [Open generic limitation](shared-components.md#open-generic-limitation).
+- **Automatic instance sharing** — mapping one impl to multiple service types *that include the impl itself* shares one instance across them under `AsSingleton()` / `AsScoped()` (Windsor default). Plain MS DI gives separate instances. Selecting only interfaces (e.g. `AsAllInterfaces()`) keeps them independent. See [shared-components.md](shared-components.md).
+- **Open generic forwarding** — MS DI ([dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)) can't resolve open generics through factories, so the shared-component path fails fast at registration when an open generic implementation would be forwarded. Selecting only interfaces registers each independently instead. See [Open generic limitation](shared-components.md#open-generic-limitation).
 - **Idempotent `IDisposable` is required** — see below.
 
 ### Idempotent `IDisposable`
 
-Windsor disposes each instance exactly once. MS DI's disposal is per-`ServiceDescriptor`, so shared-component mode (which produces multiple descriptors pointing at the same instance) can route `Dispose()` through more than one path during scope teardown.
+Windsor disposes each instance exactly once. MS DI's disposal is per-`ServiceDescriptor`, so a shared component (which produces multiple descriptors pointing at the same instance) can route `Dispose()` through more than one path during scope teardown.
 
-`Dispose()` must therefore be idempotent for any impl registered with `AsSingleton()` / `AsScoped()` against multiple service types:
+`Dispose()` must therefore be idempotent for any impl shared across multiple service types under `AsSingleton()` / `AsScoped()` (that is, whenever the impl is selected alongside its other service types):
 
 ```csharp
 public class CustomerService : ICustomerService, IAuditable, IDisposable

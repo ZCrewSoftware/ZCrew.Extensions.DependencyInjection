@@ -63,7 +63,7 @@ public class ChainEnumerationTests
     }
 
     [Fact]
-    public void AllInterfacesSharedComponentTerminal_ShouldEnumerateSourceExactlyOnce()
+    public void AllInterfacesTerminal_ShouldEnumerateSourceExactlyOnce()
     {
         // Arrange
         var source = new CountingTypeSource(SourceTypes);

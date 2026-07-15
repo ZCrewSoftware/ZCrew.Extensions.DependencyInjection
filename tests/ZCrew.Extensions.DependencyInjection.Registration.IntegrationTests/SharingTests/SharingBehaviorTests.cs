@@ -7,41 +7,53 @@ namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.Sha
 public class SharingBehaviorTests
 {
     [Fact]
-    public void AsSingleton_WhenMultipleServices_ShouldShareSingleInstance()
+    public void AsSingleton_WhenImplIsSelectedAmongMultipleServices_ShouldShareSingleInstance()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingleton().ToServiceCollection();
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .As(type => type.GetInterfaces().Prepend(type))
+            .AsSingleton()
+            .ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
+        var impl = provider.GetRequiredService<PayPalPaymentGateway>();
         var gateway = provider.GetRequiredService<IPaymentGateway>();
-        var disposable = provider.GetRequiredService<IDisposable>();
 
         // Assert
-        Assert.Same(gateway, disposable);
+        Assert.Same(impl, gateway);
     }
 
     [Fact]
-    public void AsScoped_WhenMultipleServices_ShouldShareInstanceWithinScope()
+    public void AsScoped_WhenImplIsSelectedAmongMultipleServices_ShouldShareInstanceWithinScope()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped().ToServiceCollection();
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .As(type => type.GetInterfaces().Prepend(type))
+            .AsScoped()
+            .ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
         using var scope = provider.CreateScope();
+        var impl = scope.ServiceProvider.GetRequiredService<PayPalPaymentGateway>();
         var gateway = scope.ServiceProvider.GetRequiredService<IPaymentGateway>();
-        var disposable = scope.ServiceProvider.GetRequiredService<IDisposable>();
 
         // Assert
-        Assert.Same(gateway, disposable);
+        Assert.Same(impl, gateway);
     }
 
     [Fact]
-    public void AsScoped_WhenMultipleServices_ShouldGiveDifferentInstancesAcrossScopes()
+    public void AsScoped_WhenImplIsSelectedAmongMultipleServices_ShouldGiveDifferentInstancesAcrossScopes()
     {
         // Arrange
-        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsScoped().ToServiceCollection();
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .As(type => type.GetInterfaces().Prepend(type))
+            .AsScoped()
+            .ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -61,53 +73,11 @@ public class SharingBehaviorTests
     }
 
     [Fact]
-    public void AsSingletonDependent_WhenImplIsRegisteredViaAsSelf_ShouldShareWithImplRegistration()
+    public void AsSingleton_WhenImplIsNotSelected_ShouldGiveEachServiceItsOwnInstance()
     {
-        // Arrange
-        IServiceCollection services = new ServiceCollection();
-        services.Add(Classes.From(typeof(PayPalPaymentGateway)).AsSelf().AsSingleton().ToServiceCollection());
-        services.Add(
-            Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingletonDependent().ToServiceCollection()
-        );
-        var provider = services.BuildServiceProvider();
-
-        // Act
-        var direct = provider.GetRequiredService<PayPalPaymentGateway>();
-        var viaInterface = provider.GetRequiredService<IPaymentGateway>();
-
-        // Assert
-        Assert.Same(direct, viaInterface);
-    }
-
-    [Fact]
-    public void AsSingletonDependent_WhenImplIsNotRegistered_ShouldThrowAtResolution()
-    {
-        // Arrange — multiple services force the forwarding path (single-service mappings short-circuit to direct
-        // registration regardless of sharing mode, so Dependent's "must have impl registered" contract only kicks in
-        // when more than one service is mapped).
-        var services = Classes
-            .From(typeof(PayPalPaymentGateway))
-            .AsAllInterfaces()
-            .AsSingletonDependent()
-            .ToServiceCollection();
-        var provider = services.BuildServiceProvider();
-
-        // Act
-        var act = () => provider.GetRequiredService<IPaymentGateway>();
-
-        // Assert
-        Assert.Throws<InvalidOperationException>(act);
-    }
-
-    [Fact]
-    public void AsSingletonIndependent_WhenMultipleServices_ShouldGiveEachServiceItsOwnInstance()
-    {
-        // Arrange
-        var services = Classes
-            .From(typeof(PayPalPaymentGateway))
-            .AsAllInterfaces()
-            .AsSingletonIndependent()
-            .ToServiceCollection();
+        // Arrange — the implementation is not one of the selected services (only its interfaces are), so each
+        // service type is registered independently and no instance is shared.
+        var services = Classes.From(typeof(PayPalPaymentGateway)).AsAllInterfaces().AsSingleton().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
         // Act

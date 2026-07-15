@@ -163,7 +163,7 @@ services.AddScoped(
 );
 ```
 
-A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful when you need a sharing mode that has no bulk-add equivalent — e.g. `chain.AsSingletonDependent()` for factory-only forwarding.
+A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful for per-type lifetime helpers that have no bulk-add equivalent — e.g. `chain.AsLifetimeByAttribute()`.
 
 ## Documentation
 

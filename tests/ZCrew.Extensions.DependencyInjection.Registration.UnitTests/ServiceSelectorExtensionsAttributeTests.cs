@@ -29,7 +29,7 @@ public class ServiceSelectorExtensionsAttributeTests
         // Act
         var result = source.AsServicesFromAttribute().ToServiceCollection();
 
-        // Assert — the default SharedComponent sharing also self-backs MultiServiceStore, so assert on presence.
+        // Assert — each attribute-provided service type is registered against the implementation.
         Assert.Contains(result, d => d.ServiceType == typeof(IProvidedServiceA));
         Assert.Contains(result, d => d.ServiceType == typeof(IProvidedServiceB));
     }
