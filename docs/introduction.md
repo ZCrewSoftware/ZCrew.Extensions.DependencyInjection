@@ -20,7 +20,7 @@ See [decorators.md](decorators.md).
 
 - **Assembly scanning** with visibility controls (`IncludePublicTypes`, `IncludeInternalTypes`, `IncludeAllTypes`)
 - **Type filtering** via `Where`, `BasedOn`, `InNamespace`, `NameEndsWith`, and generic-type filters
-- **Service selection** via `AsInterface`, `AsDefaultInterfaces`, `AsSelf`, `AsBase`, and custom delegates
+- **Service selection** via `AsInterface`, `AsDefaultInterfaces`, `AsSelf`, `AsBase`, and custom delegates — chainable to register the union of several selectors (e.g. `AsSelf().AsAllInterfaces()`)
 - **Keyed registration** with auto-detection or custom key selectors
 - **Lifetime selection** per chain (`AsSingleton`, `AsScoped`, `AsTransient`) or per type from a `[Lifetime]` attribute (`AsLifetimeByAttribute`)
 - **Automatic instance sharing** — when one impl is registered (including itself) against multiple service types under a singleton or scoped lifetime, they all resolve to a single shared instance

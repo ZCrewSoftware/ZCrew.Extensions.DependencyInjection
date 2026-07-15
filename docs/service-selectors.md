@@ -1,8 +1,22 @@
 # Service Selectors
 
-Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceKeySelector`, which can optionally be chained with [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-components.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
+Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceSelector`, so selectors can be **chained** (e.g. `AsSelf().AsAllInterfaces()`) — see [Combining selectors](#combining-selectors) — and the chain then flows into [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-components.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
 
 Service types can also be declared with **attributes on the implementation type** via `AsServicesFromAttribute` (see [Selecting services from attributes](#selecting-services-from-attributes)).
+
+## Combining selectors
+
+Because every selector returns a `ServiceSelector`, selectors can be **chained**, and each one adds its service types to the running selection. The implementation is ultimately registered against the **distinct union** of every selected service type, in **first-occurrence order** — a service type contributed by more than one selector is registered only once, at the position of its first occurrence:
+
+```csharp
+Classes.From(typeof(SqlCustomerRepository))
+    .AsSelf()          // SqlCustomerRepository
+    .AsAllInterfaces() // ICustomerRepository, IRepository<Customer>, … (SqlCustomerRepository is not repeated)
+```
+
+This is the idiomatic way to include the implementation among its own service types so they resolve to a single [shared instance](shared-components.md): `AsSelf().AsAllInterfaces().AsSingleton()` registers `SqlCustomerRepository` once and forwards every interface to it. Selectors that map interfaces only (without `AsSelf()`) register each service type independently.
+
+The selectors below are therefore **not mutually exclusive** — the [Choosing the right selector](#choosing-the-right-selector) table lists the individual strategies, any number of which can be combined.
 
 ## `AsAllInterfaces()`
 
@@ -347,7 +361,7 @@ CustomerService → ICustomerService
 CustomerService → IAuditService
 ```
 
-When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. See [shared components](shared-components.md) for how to opt into a single shared instance.
+When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. Chain `AsSelf()` (or see [shared components](shared-components.md)) to opt into a single shared instance.
 
 `[Services]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
 
@@ -404,6 +418,8 @@ Classes.FromThisAssembly()
 This registers the same services as the generic overload above. An `inherited` overload — `AsServicesFromAttribute(Type, bool inherited, Func<Attribute, IEnumerable<Type>>)` — and an `AsServicesFromAttributeOrSelf(Type, …)` fallback are also available.
 
 ## Choosing the right selector
+
+Selectors are **not mutually exclusive** — [chain](#combining-selectors) any number of them and the implementation is registered against the distinct union of their service types.
 
 | Scenario                           | Selector                     | Example                                         |
 |------------------------------------|------------------------------|-------------------------------------------------|

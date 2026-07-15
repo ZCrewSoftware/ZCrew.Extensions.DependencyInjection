@@ -32,7 +32,7 @@ The API is a fluent chain with six stages:
 1. **Entry point** — Choose where types come from (`Classes` for non-abstract classes, `Types` for everything)
 2. **Type selection** — Optionally control assembly visibility (`IncludeInternalTypes`, `IncludeAllTypes`)
 3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`, `HasAttribute`)
-4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
+4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.); selectors can be chained (e.g. `AsSelf().AsAllInterfaces()`) to accumulate the distinct union of their service types
 5. **Keyed service selection** — Optionally assign service keys via `Keyed`
 6. **Lifetime selection** — Optionally choose a lifetime (`AsSingleton`, `AsScoped`, `AsTransient`, or per type via `AsLifetime` / `AsLifetimeByAttribute`); defaults to `Singleton`
 

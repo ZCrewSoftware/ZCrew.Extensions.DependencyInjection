@@ -37,6 +37,8 @@ Feature-by-feature mapping for users coming from [Castle Windsor's registration 
 | `.WithService.Base()`                        | `.AsBase()`                                                                        |
 | `.WithService.Select((t, baseTypes) => ...)` | `.As((t, baseTypes) => ...)`                                                       |
 
+Selectors chain the same way Windsor's `WithService` calls do — `.AsSelf().AsAllInterfaces()` registers the distinct union of every selected service type, preserving first-occurrence order.
+
 ### Lifetime
 
 | Windsor                 | ZCrew                                                            |

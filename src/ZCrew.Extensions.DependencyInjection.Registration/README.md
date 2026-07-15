@@ -10,7 +10,7 @@ Convention-based service registration for `Microsoft.Extensions.DependencyInject
 
 - **Assembly scanning** — scan entire assemblies or provide explicit type lists
 - **Type filtering** — filter by base type (`BasedOn`), namespace (`InNamespace`), or predicate (`Where`)
-- **Flexible service mapping** — register as interface (`AsInterface`), all interfaces (`AsAllInterfaces`), self (`AsSelf`), base type (`AsBase`), or custom mapping
+- **Flexible service mapping** — register as interface (`AsInterface`), all interfaces (`AsAllInterfaces`), self (`AsSelf`), base type (`AsBase`), or custom mapping; chain selectors to combine them (e.g. `AsSelf().AsAllInterfaces()`)
 - **Convention-based defaults** — `AsDefaultInterfaces` matches types to interfaces by naming convention (e.g., `OrderService` to `IOrderService`)
 - **Keyed services** — assign service keys statically, by convention, or with a custom selector
 - **Visibility control** — include or exclude internal types when scanning assemblies
@@ -72,6 +72,8 @@ services.AddSingleton(
 | `Types.FromThisAssembly()`       | All types (interfaces, structs, etc.) from the calling assembly |
 
 ### Service Mapping
+
+Selectors return `ServiceSelector` and can be chained — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types.
 
 | Method                  | Description                                           |
 |-------------------------|-------------------------------------------------------|

@@ -104,6 +104,19 @@ public class ChainEnumerationTests
         Assert.Equal(2, source.EnumerationCount);
     }
 
+    [Fact]
+    public void ChainedSelfAndAllInterfacesTerminal_ShouldEnumerateSourceExactlyOnce()
+    {
+        // Arrange
+        var source = new CountingTypeSource(SourceTypes);
+
+        // Act
+        _ = Classes.From(source).AsSelf().AsAllInterfaces().ToServiceCollection();
+
+        // Assert
+        Assert.Equal(1, source.EnumerationCount);
+    }
+
     /// <summary>
     ///     An <see cref="IEnumerable{T}"/> that records how many times enumeration is started, so tests can assert
     ///     how often the chain touches the underlying type sequence.

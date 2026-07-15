@@ -1,5 +1,8 @@
 using Fixtures.SmallProject.Application.Ports;
+using Fixtures.SmallProject.Domain.Entities;
+using Fixtures.SmallProject.Domain.Repositories;
 using Fixtures.SmallProject.Infrastructure.External;
+using Fixtures.SmallProject.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.SharingTests;
@@ -101,5 +104,28 @@ public class SharingBehaviorTests
 
         // Assert
         Assert.NotSame(first, second);
+    }
+
+    [Fact]
+    public void AsSelf_WhenChainedWithAsAllInterfacesAsSingleton_ShouldShareSingleInstance()
+    {
+        // Arrange — chaining AsSelf() before AsAllInterfaces() includes the implementation in the selection, so the
+        // interfaces forward to it and every service type resolves to one shared instance.
+        var services = Classes
+            .From(typeof(SqlCustomerRepository))
+            .AsSelf()
+            .AsAllInterfaces()
+            .AsSingleton()
+            .ToServiceCollection();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var impl = provider.GetRequiredService<SqlCustomerRepository>();
+        var repository = provider.GetRequiredService<ICustomerRepository>();
+        var baseRepository = provider.GetRequiredService<IRepository<Customer>>();
+
+        // Assert
+        Assert.Same(impl, repository);
+        Assert.Same(impl, baseRepository);
     }
 }

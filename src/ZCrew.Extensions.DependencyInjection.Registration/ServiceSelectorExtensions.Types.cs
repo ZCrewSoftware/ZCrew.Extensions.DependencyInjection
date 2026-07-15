@@ -17,7 +17,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllTypes()
+        public ServiceSelector AsAllTypes()
         {
             return selector.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
         }
@@ -35,7 +35,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllNonSystemTypes()
+        public ServiceSelector AsAllNonSystemTypes()
         {
             return selector.As(type =>
                 type.GetTypes()
@@ -58,7 +58,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultTypes()
+        public ServiceSelector AsDefaultTypes()
         {
             return selector.As(type =>
                 type.GetTypes()
@@ -83,7 +83,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultNonSystemTypes()
+        public ServiceSelector AsDefaultNonSystemTypes()
         {
             return selector.As(type =>
                 type.GetTypes()

@@ -27,14 +27,17 @@ In that case the implementation is registered once (as itself) and every other s
 
 ## How to select the implementation as a service
 
-The built-in interface selectors (`AsInterface`, `AsAllInterfaces`, `AsDefaultInterfaces`, …) map an implementation to its **interfaces only** — the concrete implementation type is not among them, so those registrations are independent. To share one instance you must include the implementation itself in the selected services, for example with a custom `As(...)` selection:
+The built-in interface selectors (`AsInterface`, `AsAllInterfaces`, `AsDefaultInterfaces`, …) map an implementation to its **interfaces only** — the concrete implementation type is not among them, so those registrations are independent. To share one instance, include the implementation itself in the selected services. The idiomatic way is to **chain `AsSelf()`** before an interface selector, so the implementation is selected alongside its interfaces (selectors [accumulate into a distinct union](service-selectors.md#combining-selectors)):
 
 ```csharp
 services.AddSingleton(
     Classes.From(typeof(PayPalPaymentGateway))
-        .As(type => type.GetInterfaces().Prepend(type)) // the implementation plus its interfaces
+        .AsSelf()          // the implementation itself
+        .AsAllInterfaces() // plus its interfaces
 );
 ```
+
+A single custom selector produces the same result if you prefer to select everything in one call — `.As(type => type.GetInterfaces().Prepend(type))`.
 
 Given:
 
@@ -53,7 +56,7 @@ IDisposable          → resolves to the PayPalPaymentGateway singleton
 
 Resolving `IPaymentGateway` and `IDisposable` from the same provider yields the **same `PayPalPaymentGateway` instance**. `AsServicesFromAttribute` shares in the same way when the attribute lists the implementation type among the provided services.
 
-By contrast, `AsAllInterfaces().AsSingleton()` maps the implementation to `IPaymentGateway` and `IDisposable` **without** the implementation itself, so each interface is registered independently and resolves to its own instance.
+By contrast, `AsAllInterfaces().AsSingleton()` maps the implementation to `IPaymentGateway` and `IDisposable` **without** the implementation itself, so each interface is registered independently and resolves to its own instance. Chaining `AsSelf()` — `AsSelf().AsAllInterfaces().AsSingleton()` — brings the implementation back into the selection and restores a single shared instance.
 
 ## Lifetime methods
 

@@ -19,7 +19,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute()
+        public ServiceSelector AsServicesFromAttribute()
         {
             return selector.AsServicesFromAttribute(true);
         }
@@ -36,7 +36,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute(bool inherited)
+        public ServiceSelector AsServicesFromAttribute(bool inherited)
         {
             return selector.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
         }
@@ -54,7 +54,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf()
+        public ServiceSelector AsServicesFromAttributeOrSelf()
         {
             return selector.AsServicesFromAttributeOrSelf(true);
         }
@@ -71,7 +71,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf(bool inherited)
+        public ServiceSelector AsServicesFromAttributeOrSelf(bool inherited)
         {
             return selector.As(type =>
             {
@@ -97,7 +97,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute<TAttribute>(
+        public ServiceSelector AsServicesFromAttribute<TAttribute>(
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
             where TAttribute : class
@@ -119,7 +119,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute<TAttribute>(
+        public ServiceSelector AsServicesFromAttribute<TAttribute>(
             bool inherited,
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
@@ -143,7 +143,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf<TAttribute>(
+        public ServiceSelector AsServicesFromAttributeOrSelf<TAttribute>(
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
             where TAttribute : class
@@ -165,7 +165,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf<TAttribute>(
+        public ServiceSelector AsServicesFromAttributeOrSelf<TAttribute>(
             bool inherited,
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
@@ -198,7 +198,7 @@ public static partial class ServiceSelectorExtensions
         ///     Thrown when an implementation type has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute(
+        public ServiceSelector AsServicesFromAttribute(
             Type attributeType,
             Func<Attribute, IEnumerable<Type>> serviceSelector
         )
@@ -222,7 +222,7 @@ public static partial class ServiceSelectorExtensions
         ///     Thrown when an implementation type has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttribute(
+        public ServiceSelector AsServicesFromAttribute(
             Type attributeType,
             bool inherited,
             Func<Attribute, IEnumerable<Type>> serviceSelector
@@ -248,7 +248,7 @@ public static partial class ServiceSelectorExtensions
         ///     Thrown when an implementation type has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf(
+        public ServiceSelector AsServicesFromAttributeOrSelf(
             Type attributeType,
             Func<Attribute, IEnumerable<Type>> serviceSelector
         )
@@ -271,7 +271,7 @@ public static partial class ServiceSelectorExtensions
         ///     Thrown when an implementation type has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceKeySelector AsServicesFromAttributeOrSelf(
+        public ServiceSelector AsServicesFromAttributeOrSelf(
             Type attributeType,
             bool inherited,
             Func<Attribute, IEnumerable<Type>> serviceSelector
