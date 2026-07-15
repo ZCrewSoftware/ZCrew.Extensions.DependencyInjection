@@ -196,6 +196,25 @@ public class ChainConversionTests
         Assert.All(services, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
     }
 
+    [Fact]
+    public void SelfThenAllInterfaces_WhenChained_ShouldEqualPrependedSelector()
+    {
+        // Arrange — chaining AsSelf().AsAllInterfaces() should produce the same registrations as the established
+        // single-selector idiom that prepends the implementation to its own interfaces.
+        var chained = Classes.From(typeof(SqlCustomerRepository)).AsSelf().AsAllInterfaces().ToServiceCollection();
+        var prepended = Classes
+            .From(typeof(SqlCustomerRepository))
+            .As(type => type.GetInterfaces().Prepend(type))
+            .ToServiceCollection();
+
+        // Act
+        var chainedSignature = Describe(chained);
+        var prependedSignature = Describe(prepended);
+
+        // Assert
+        Assert.Equal(prependedSignature, chainedSignature);
+    }
+
     private static List<string> Describe(IServiceCollection services)
     {
         return services

@@ -110,7 +110,7 @@ Classes.FromThisAssembly()
 
 ### Service selection
 
-Choose how implementation types map to service types:
+Choose how implementation types map to service types (selectors chain — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types):
 
 | Method                           | Registers as                                                                                        |
 |----------------------------------|-----------------------------------------------------------------------------------------------------|

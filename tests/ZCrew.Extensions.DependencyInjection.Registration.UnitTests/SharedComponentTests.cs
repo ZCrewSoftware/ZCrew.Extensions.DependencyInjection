@@ -122,4 +122,46 @@ public class SharedComponentTests
             d => d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(IRepository<>)
         );
     }
+
+    [Fact]
+    public void AsSingleton_WhenSelfChainedWithInterfaces_ShouldForwardInterfacesToSharedSelf()
+    {
+        // Arrange
+        var source = Classes.From(typeof(SqlCustomerRepository)).AsSelf().AsAllInterfaces();
+
+        // Act
+        var result = source.AsSingleton().ToServiceCollection();
+
+        // Assert
+        Assert.Equal(6, result.Count);
+        var impl = Assert.Single(result, d => d.ServiceType == typeof(SqlCustomerRepository));
+        Assert.Equal(typeof(SqlCustomerRepository), impl.ImplementationType);
+        Assert.Null(impl.ImplementationFactory);
+
+        var forwarded = result.Where(d => d.ServiceType != typeof(SqlCustomerRepository)).ToArray();
+        Assert.Equal(5, forwarded.Length);
+        Assert.All(forwarded, d => Assert.NotNull(d.ImplementationFactory));
+        Assert.All(forwarded, d => Assert.Null(d.ImplementationType));
+        Assert.All(result, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
+        Assert.Contains(forwarded, d => d.ServiceType == typeof(ICustomerRepository));
+        Assert.Contains(forwarded, d => d.ServiceType == typeof(IDisposable));
+    }
+
+    [Fact]
+    public void AsSingleton_WhenInterfaceSelectorsChained_ShouldRegisterDistinctIndependent()
+    {
+        // Arrange — chaining the same interface selector twice would double every service type; the distinct
+        // union collapses them back to the five interfaces, and the impl is not among them so each is independent.
+        var source = Classes.From(typeof(SqlCustomerRepository)).AsAllInterfaces().AsAllInterfaces();
+
+        // Act
+        var result = source.AsSingleton().ToServiceCollection();
+
+        // Assert
+        Assert.Equal(5, result.Count);
+        Assert.Equal(5, result.Select(d => d.ServiceType).Distinct().Count());
+        Assert.All(result, d => Assert.Equal(typeof(SqlCustomerRepository), d.ImplementationType));
+        Assert.All(result, d => Assert.Null(d.ImplementationFactory));
+        Assert.All(result, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
+    }
 }

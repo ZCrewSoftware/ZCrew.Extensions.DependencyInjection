@@ -218,6 +218,47 @@ public class MultiEnumerationTests
         Assert.Equal(1, source.EnumerationCount);
     }
 
+    [Fact]
+    public void ServiceSelector_WhenConstructedFromComponents_ShouldNotEnumerateComponents()
+    {
+        // Arrange
+        var source = new CountingSource<ServiceComponent>(Components());
+
+        // Act
+        _ = new ServiceSelector(source, [typeof(object)]);
+
+        // Assert
+        Assert.Equal(0, source.EnumerationCount);
+    }
+
+    [Fact]
+    public void ServiceSelector_WhenTerminatedFromComponents_ShouldEnumerateComponentsOnce()
+    {
+        // Arrange
+        var source = new CountingSource<ServiceComponent>(Components());
+        var selector = new ServiceSelector(source, [typeof(object)]);
+
+        // Act
+        _ = selector.ToServiceCollection();
+
+        // Assert
+        Assert.Equal(1, source.EnumerationCount);
+    }
+
+    [Fact]
+    public void ServiceSelector_WhenTerminatedAfterChainedAs_ShouldEnumerateTypesOnce()
+    {
+        // Arrange
+        var source = new CountingSource<Type>(SourceTypes);
+        var selector = new ServiceSelector(source, [typeof(object)]);
+
+        // Act
+        _ = selector.As(type => [type]).As(type => type.GetInterfaces()).ToServiceCollection();
+
+        // Assert
+        Assert.Equal(1, source.EnumerationCount);
+    }
+
     private static IEnumerable<ServiceComponent> Components()
     {
         return

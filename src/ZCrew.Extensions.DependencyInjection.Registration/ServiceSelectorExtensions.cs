@@ -11,13 +11,13 @@ public static partial class ServiceSelectorExtensions
         ///     Registers each type as itself (the implementation type is also the service type).
         /// </summary>
         /// <example>
-        ///     Given <c>CustomerRepository : ICustomerRepository</c>:
+        ///     Given <c>CustomerRepository : Repository, ICustomerRepository, IDisposable</c>:
         ///     <code>
         ///     Classes.From(types).AsSelf()
         ///     // Registers CustomerRepository as CustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsSelf()
+        public ServiceSelector AsSelf()
         {
             return selector.As(type => [type]);
         }
@@ -34,7 +34,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as IRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsBase()
+        public ServiceSelector AsBase()
         {
             return selector.As((_, baseTypes) => baseTypes);
         }

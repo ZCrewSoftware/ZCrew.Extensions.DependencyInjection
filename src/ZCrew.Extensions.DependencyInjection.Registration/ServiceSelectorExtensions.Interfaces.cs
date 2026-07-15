@@ -15,7 +15,7 @@ public static partial class ServiceSelectorExtensions
         ///     // ICustomerRepository and IDisposable
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllInterfaces()
+        public ServiceSelector AsAllInterfaces()
         {
             return selector.As(type => type.GetInterfaces());
         }
@@ -32,7 +32,7 @@ public static partial class ServiceSelectorExtensions
         ///     // ICustomerRepository and IDisposable
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllInterfacesOrSelf()
+        public ServiceSelector AsAllInterfacesOrSelf()
         {
             return selector.As(type =>
             {
@@ -53,7 +53,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (IDisposable is in System and is excluded)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllNonSystemInterfaces()
+        public ServiceSelector AsAllNonSystemInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
@@ -72,7 +72,7 @@ public static partial class ServiceSelectorExtensions
         ///     // (IDisposable is in System and is excluded)
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsAllNonSystemInterfacesOrSelf()
+        public ServiceSelector AsAllNonSystemInterfacesOrSelf()
         {
             return selector.As(type =>
             {
@@ -94,7 +94,7 @@ public static partial class ServiceSelectorExtensions
         ///     // "ICustomerRepository", but not "Disposable")
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultInterfaces()
+        public ServiceSelector AsDefaultInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
@@ -114,7 +114,7 @@ public static partial class ServiceSelectorExtensions
         ///     // "ICustomerRepository", but not "Disposable")
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultInterfacesOrSelf()
+        public ServiceSelector AsDefaultInterfacesOrSelf()
         {
             return selector.As(type =>
             {
@@ -132,7 +132,7 @@ public static partial class ServiceSelectorExtensions
         ///     Classes.From(types).AsDefaultNonSystemInterfaces()
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultNonSystemInterfaces()
+        public ServiceSelector AsDefaultNonSystemInterfaces()
         {
             return selector.As(type =>
                 type.GetInterfaces()
@@ -151,7 +151,7 @@ public static partial class ServiceSelectorExtensions
         ///     Classes.From(types).AsDefaultNonSystemInterfacesOrSelf()
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsDefaultNonSystemInterfacesOrSelf()
+        public ServiceSelector AsDefaultNonSystemInterfacesOrSelf()
         {
             return selector.As(type =>
             {
@@ -174,7 +174,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsFirstInterface()
+        public ServiceSelector AsFirstInterface()
         {
             return selector.As(type =>
             {
@@ -195,7 +195,7 @@ public static partial class ServiceSelectorExtensions
         ///     //           CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsFirstInterfaceOrSelf()
+        public ServiceSelector AsFirstInterfaceOrSelf()
         {
             return selector.As(type => [type.GetInterfaces().FirstOrDefault(type)]);
         }
@@ -213,7 +213,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsInterface()
+        public ServiceSelector AsInterface()
         {
             return selector.As((type, baseTypes) => type.GetTopLevelInterfacesMatchingBaseTypes(baseTypes));
         }
@@ -233,7 +233,7 @@ public static partial class ServiceSelectorExtensions
         ///     </code>
         ///     Types without an interface are registered as themselves.
         /// </example>
-        public ServiceKeySelector AsInterfaceOrSelf()
+        public ServiceSelector AsInterfaceOrSelf()
         {
             return selector.As((type, baseTypes) =>
             {
@@ -253,7 +253,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsInterface<T>()
+        public ServiceSelector AsInterface<T>()
         {
             return selector.As(type => type.GetTopLevelInterfacesMatchingBaseTypes([typeof(T)]));
         }
@@ -272,7 +272,7 @@ public static partial class ServiceSelectorExtensions
         ///     </code>
         ///     Types without an interface are registered as themselves.
         /// </example>
-        public ServiceKeySelector AsInterfaceOrSelf<T>()
+        public ServiceSelector AsInterfaceOrSelf<T>()
         {
             return selector.As(type =>
             {
@@ -292,7 +292,7 @@ public static partial class ServiceSelectorExtensions
         ///     // Registers CustomerRepository as ICustomerRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsInterface(Type interfaceType)
+        public ServiceSelector AsInterface(Type interfaceType)
         {
             ArgumentNullException.ThrowIfNull(interfaceType);
             return selector.As(type => type.GetTopLevelInterfacesMatchingBaseTypes([interfaceType]));
@@ -312,7 +312,7 @@ public static partial class ServiceSelectorExtensions
         ///     </code>
         ///     Types without an interface are registered as themselves.
         /// </example>
-        public ServiceKeySelector AsInterfaceOrSelf(Type interfaceType)
+        public ServiceSelector AsInterfaceOrSelf(Type interfaceType)
         {
             ArgumentNullException.ThrowIfNull(interfaceType);
             return selector.As(type =>
@@ -337,7 +337,7 @@ public static partial class ServiceSelectorExtensions
         ///     //           OrderRepository as IOrderRepository
         ///     </code>
         /// </example>
-        public ServiceKeySelector AsInterfaces(params Type[] interfaceTypes)
+        public ServiceSelector AsInterfaces(params Type[] interfaceTypes)
         {
             ArgumentNullException.ThrowIfNull(selector);
             ArgumentNullException.ThrowIfNull(interfaceTypes);
@@ -361,7 +361,7 @@ public static partial class ServiceSelectorExtensions
         ///     </code>
         ///     Types without an interface are registered as themselves.
         /// </example>
-        public ServiceKeySelector AsInterfacesOrSelf(params Type[] interfaceTypes)
+        public ServiceSelector AsInterfacesOrSelf(params Type[] interfaceTypes)
         {
             ArgumentNullException.ThrowIfNull(selector);
             ArgumentNullException.ThrowIfNull(interfaceTypes);

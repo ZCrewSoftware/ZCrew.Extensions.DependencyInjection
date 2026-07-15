@@ -656,7 +656,7 @@ public class ClassesServiceSelectionTests
     public void AsInterfaceOrSelf_WithExplicitType_WhenTypeIsNull_ShouldThrow()
     {
         // Act
-        var act = () => Classes.From(typeof(Customer)).AsInterfaceOrSelf((Type)null!);
+        var act = () => Classes.From(typeof(Customer)).AsInterfaceOrSelf(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -698,7 +698,7 @@ public class ClassesServiceSelectionTests
     public void AsInterfacesOrSelf_WhenInterfaceTypesIsNull_ShouldThrow()
     {
         // Act
-        var act = () => Classes.From(typeof(Customer)).AsInterfacesOrSelf((Type[])null!);
+        var act = () => Classes.From(typeof(Customer)).AsInterfacesOrSelf(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -791,9 +791,85 @@ public class ClassesServiceSelectionTests
     public void AsInterfaces_WhenInterfaceTypesIsNull_ShouldThrow()
     {
         // Act
-        var act = () => Classes.From(typeof(Customer)).AsInterfaces((Type[])null!);
+        var act = () => Classes.From(typeof(Customer)).AsInterfaces(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
+    }
+
+    [Fact]
+    public void AsSelf_WhenChainedWithAsAllInterfaces_ShouldRegisterSelfThenDistinctInterfaces()
+    {
+        // Act
+        var result = Classes.From(typeof(SqlCustomerRepository)).AsSelf().AsAllInterfaces().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Equal(typeof(SqlCustomerRepository), serviceTypes[0]);
+        Assert.Equal(6, serviceTypes.Length);
+        Assert.Equal(serviceTypes.Length, serviceTypes.Distinct().Count());
+        Assert.Contains(typeof(ICustomerRepository), serviceTypes);
+        Assert.Contains(typeof(IRepository<Customer>), serviceTypes);
+        Assert.Contains(typeof(IReadOnlyRepository<Customer>), serviceTypes);
+        Assert.Contains(typeof(IDisposable), serviceTypes);
+        Assert.Contains(typeof(IAsyncDisposable), serviceTypes);
+    }
+
+    [Fact]
+    public void AsInterface_WhenChainedWithAsAllInterfaces_ShouldDedupeTopLevelInterface()
+    {
+        // Act
+        var result = Classes.From(typeof(SqlCustomerRepository)).AsInterface().AsAllInterfaces().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Equal(typeof(ICustomerRepository), serviceTypes[0]);
+        Assert.Equal(5, serviceTypes.Length);
+        Assert.Equal(serviceTypes.Length, serviceTypes.Distinct().Count());
+        Assert.Contains(typeof(IRepository<Customer>), serviceTypes);
+        Assert.Contains(typeof(IReadOnlyRepository<Customer>), serviceTypes);
+        Assert.Contains(typeof(IDisposable), serviceTypes);
+        Assert.Contains(typeof(IAsyncDisposable), serviceTypes);
+    }
+
+    [Fact]
+    public void As_WhenChainedWithOverlappingServices_ShouldPreserveDistinctFirstOccurrenceOrder()
+    {
+        // Act
+        var result = Classes
+            .From(typeof(CustomerService))
+            .As(_ => [typeof(IOrderService), typeof(ICustomerService)])
+            .As(_ => [typeof(ICustomerService), typeof(IProductService)])
+            .ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Equal(
+            [typeof(IOrderService), typeof(ICustomerService), typeof(IProductService)],
+            serviceTypes
+        );
+    }
+
+    [Fact]
+    public void AsSelf_WhenChainedTwice_ShouldRegisterImplementationOnce()
+    {
+        // Act
+        var result = Classes.From(typeof(CustomerService)).AsSelf().AsSelf().ToServiceCollection();
+
+        // Assert
+        var descriptor = Assert.Single(result);
+        Assert.Equal(typeof(CustomerService), descriptor.ServiceType);
+        Assert.Equal(typeof(CustomerService), descriptor.ImplementationType);
+    }
+
+    [Fact]
+    public void AsInterface_WhenChainedWithAsSelf_ShouldRegisterInterfaceThenSelf()
+    {
+        // Act
+        var result = Classes.From(typeof(CustomerService)).AsInterface().AsSelf().ToServiceCollection();
+
+        // Assert
+        var serviceTypes = result.Select(d => d.ServiceType).ToArray();
+        Assert.Equal([typeof(ICustomerService), typeof(CustomerService)], serviceTypes);
     }
 }

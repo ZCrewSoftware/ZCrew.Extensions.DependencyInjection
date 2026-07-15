@@ -53,6 +53,23 @@ internal readonly record struct ServiceComponent
     }
 
     /// <summary>
+    ///     The implementation type.
+    /// </summary>
+    public Type ImplementationType => this.implementation;
+
+    public ServiceComponent WithServices(IEnumerable<Type> services)
+    {
+        return new ServiceComponent(
+            this.implementation,
+            this.services.Concat(services).ToArray(),
+            this.lifetime,
+            this.lifetimeProvider,
+            this.serviceKey,
+            this.serviceKeyProvider
+        );
+    }
+
+    /// <summary>
     ///     Set the <see cref="ServiceDescriptor.Lifetime"/> of the future <see cref="ServiceDescriptor"/> instances.
     /// </summary>
     /// <param name="lifetime">The lifetime.</param>
@@ -165,11 +182,29 @@ internal readonly record struct ServiceComponent
         var lifetime = this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime;
         Debug.Assert(lifetime != null, "Lifetime always should have been set");
 
-        // Shortcut for when there is only 1 - this also skips the open generic check
-        // This also doesn't register a shared component if the implementation isn't in the service list
-        if (lifetime == ServiceLifetime.Transient || this.services.Count == 1 || !this.services.Contains(this.implementation))
+        // Shortcut for when there is only 1 - this also skips the open generic check and distinct processing
+        if (this.services.Count == 1)
         {
-            AddIndependentServiceDescriptors(lifetime.Value, serviceCollection);
+            serviceCollection.Add(Registration(lifetime.Value, this.services[0]));
+            return;
+        }
+
+        // Preserve ordering in-case it matters but still expose the hashset instead of just using Distinct() which
+        // just returns the underlying sequential-iterator
+        var seenServices = new HashSet<Type>(this.services.Count);
+        var distinctServices = new List<Type>(this.services.Count);
+        foreach (var service in this.services)
+        {
+            if (seenServices.Add(service))
+            {
+                distinctServices.Add(service);
+            }
+        }
+
+        // This also doesn't register a shared component if the implementation isn't in the service list
+        if (lifetime == ServiceLifetime.Transient || !seenServices.Contains(this.implementation))
+        {
+            AddIndependentServiceDescriptors(distinctServices, lifetime.Value, serviceCollection);
             return;
         }
 
@@ -184,22 +219,22 @@ internal readonly record struct ServiceComponent
                 "For more information, see: https://github.com/dotnet/runtime/issues/41050");
         }
 
-        AddComponentServiceDescriptors(lifetime.Value, serviceCollection);
+        AddComponentServiceDescriptors(distinctServices, lifetime.Value, serviceCollection);
     }
 
-    private void AddIndependentServiceDescriptors(ServiceLifetime lifetime, IServiceCollection serviceCollection)
+    private void AddIndependentServiceDescriptors(IEnumerable<Type> services, ServiceLifetime lifetime, IServiceCollection serviceCollection)
     {
-        foreach (var service in this.services)
+        foreach (var service in services)
         {
             serviceCollection.Add(Registration(lifetime, service));
         }
     }
 
-    private void AddComponentServiceDescriptors(ServiceLifetime lifetime, IServiceCollection serviceCollection)
+    private void AddComponentServiceDescriptors(IEnumerable<Type> services, ServiceLifetime lifetime, IServiceCollection serviceCollection)
     {
         var impl = this.implementation;
         Func<IServiceProvider, object?, object> factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
-        foreach (var service in this.services)
+        foreach (var service in services)
         {
             // Skip forwarding the service to itself
             if (service == impl)

@@ -49,7 +49,7 @@ Only available after `FromAssembly*` (returns `AssemblyTypeSelector`). Default i
 
 ## Service selectors
 
-Map each impl type to one or more service types.
+Map each impl type to one or more service types. Selectors return `ServiceSelector`, so they can be **chained** — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types (see [combining selectors](service-selectors.md#combining-selectors)).
 
 | Method                                                                                      | Service types                                                                                             |
 |---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
