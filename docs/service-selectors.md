@@ -347,7 +347,7 @@ CustomerService → ICustomerService
 CustomerService → IAuditService
 ```
 
-When a single implementation is mapped to multiple service types, the default [shared-component](shared-components.md) sharing applies, so both service types resolve to the *same* instance.
+When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. See [shared components](shared-components.md) for how to opt into a single shared instance.
 
 `[Services]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
 

@@ -14,80 +14,43 @@ public static class ServiceLifetimeSelectorExtensions
         /// <summary>
         ///     Returns a new <see cref="IServiceCollection"/> with all descriptors set to the specified
         ///     <paramref name="lifetime"/>. Instance-based descriptors that cannot change lifetime are kept unchanged.
+        ///     For <see cref="ServiceLifetime.Singleton"/> and <see cref="ServiceLifetime.Scoped"/>: if the
+        ///     implementation has been selected as one of the services then one instance is shared across every
+        ///     selected service type.
         /// </summary>
         /// <param name="lifetime">The target service lifetime.</param>
         public ServiceSource AsLifetime(ServiceLifetime lifetime)
         {
-            return selector.AsLifetime(lifetime, lifetime.DefaultSharingMode());
+            return selector.AsLifetime(lifetime);
         }
 
         /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Singleton"/> using
-        ///     <see cref="SharingMode.SharedComponent"/>. One singleton instance is shared across every selected
-        ///     service type.
+        ///     Registers all descriptors as <see cref="ServiceLifetime.Singleton"/>. If the implementation has been
+        ///     selected as one of the services then one singleton instance is shared across every selected service
+        ///     type.
         /// </summary>
         public ServiceSource AsSingleton()
         {
-            return selector.AsLifetime(ServiceLifetime.Singleton, SharingMode.SharedComponent);
+            return selector.AsLifetime(ServiceLifetime.Singleton);
         }
 
         /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Singleton"/> using
-        ///     <see cref="SharingMode.Dependent"/>. Each service type is registered as a factory that resolves the
-        ///     implementation, which must be registered elsewhere — either as one of the selected service types
-        ///     (e.g. via a separate <c>AsSelf()</c> selection) or separately by the caller.
-        /// </summary>
-        public ServiceSource AsSingletonDependent()
-        {
-            return selector.AsLifetime(ServiceLifetime.Singleton, SharingMode.Dependent);
-        }
-
-        /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Singleton"/> using
-        ///     <see cref="SharingMode.Independent"/>. Each service type gets its own independent singleton instance.
-        /// </summary>
-        public ServiceSource AsSingletonIndependent()
-        {
-            return selector.AsLifetime(ServiceLifetime.Singleton, SharingMode.Independent);
-        }
-
-        /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Scoped"/> using
-        ///     <see cref="SharingMode.SharedComponent"/>. One per-scope instance is shared across every selected
+        ///     Registers all descriptors as <see cref="ServiceLifetime.Scoped"/>. If the implementation has been
+        ///     selected as one of the services then one scoped instance (per scope) is shared across every selected
         ///     service type.
         /// </summary>
         public ServiceSource AsScoped()
         {
-            return selector.AsLifetime(ServiceLifetime.Scoped, SharingMode.SharedComponent);
-        }
-
-        /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Scoped"/> using
-        ///     <see cref="SharingMode.Dependent"/>. Each service type is registered as a factory that resolves the
-        ///     implementation, which must be registered elsewhere — either as one of the selected service types
-        ///     (e.g. via a separate <c>AsSelf()</c> selection) or separately by the caller.
-        /// </summary>
-        public ServiceSource AsScopedDependent()
-        {
-            return selector.AsLifetime(ServiceLifetime.Scoped, SharingMode.Dependent);
-        }
-
-        /// <summary>
-        ///     Registers all descriptors as <see cref="ServiceLifetime.Scoped"/> using
-        ///     <see cref="SharingMode.Independent"/>. Each service type gets its own independent per-scope instance.
-        /// </summary>
-        public ServiceSource AsScopedIndependent()
-        {
-            return selector.AsLifetime(ServiceLifetime.Scoped, SharingMode.Independent);
+            return selector.AsLifetime(ServiceLifetime.Scoped);
         }
 
         /// <summary>
         ///     Registers all descriptors as <see cref="ServiceLifetime.Transient"/>. A new instance is constructed on
-        ///     every resolution, so sharing is not meaningful for transient services.
+        ///     every resolution.
         /// </summary>
         public ServiceSource AsTransient()
         {
-            return selector.AsLifetime(ServiceLifetime.Transient, SharingMode.Independent);
+            return selector.AsLifetime(ServiceLifetime.Transient);
         }
 
         /// <summary>

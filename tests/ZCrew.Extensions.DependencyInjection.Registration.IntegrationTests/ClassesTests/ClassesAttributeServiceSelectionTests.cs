@@ -6,9 +6,10 @@ namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.Cla
 public class ClassesAttributeServiceSelectionTests
 {
     [Fact]
-    public void AsServicesFromAttribute_WhenResolved_ShouldRegisterAndShareInstanceAcrossServiceTypes()
+    public void AsServicesFromAttribute_WhenResolved_ShouldRegisterEachServiceTypeIndependently()
     {
-        // Arrange
+        // Arrange — the implementation is not one of the attribute-provided services, so each service type is
+        // registered independently rather than sharing a single instance.
         var services = Classes.From(typeof(MultiServiceStore)).AsServicesFromAttribute().ToServiceCollection();
         var provider = services.BuildServiceProvider();
 
@@ -18,7 +19,7 @@ public class ClassesAttributeServiceSelectionTests
 
         // Assert
         Assert.IsType<MultiServiceStore>(a);
-        Assert.Same(a, b);
+        Assert.NotSame(a, b);
     }
 
     [Fact]

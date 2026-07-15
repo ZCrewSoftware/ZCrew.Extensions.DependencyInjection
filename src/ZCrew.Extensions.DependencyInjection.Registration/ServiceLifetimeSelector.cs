@@ -3,10 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Assigns the <see cref="ServiceLifetime"/> and <see cref="SharingMode"/> to registrations produced by the service
-///     key selection stage. This is an optional stage between <see cref="ServiceKeySelector"/> and
-///     <see cref="ServiceSource"/> in the registration fluent API. When the stage is skipped, the registrations use
-///     <see cref="ServiceLifetime.Singleton"/> and with the <see cref="SharingMode.SharedComponent"/>.
+///     Assigns the <see cref="ServiceLifetime"/> to registrations produced by the service key selection stage. This is
+///     an optional stage between <see cref="ServiceKeySelector"/> and <see cref="ServiceSource"/> in the registration
+///     fluent API. When the stage is skipped, the registrations use <see cref="ServiceLifetime.Singleton"/>.
 /// </summary>
 public class ServiceLifetimeSelector : ServiceSource
 {
@@ -15,7 +14,7 @@ public class ServiceLifetimeSelector : ServiceSource
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
     internal ServiceLifetimeSelector(IEnumerable<ServiceComponent> components)
-        : base(components, SharingMode.SharedComponent)
+        : base(components.Select(component => component.WithLifetime(ServiceLifetime.Singleton)))
     {
         this.components = components;
     }
@@ -23,38 +22,19 @@ public class ServiceLifetimeSelector : ServiceSource
 
     /// <summary>
     ///     Returns a new <see cref="ServiceSource"/> with all descriptors set to the specified
-    ///     <paramref name="lifetime"/>, using the supplied <paramref name="sharingMode"/> to control how a single
-    ///     implementation registered against multiple service types shares its instance.
+    ///     <paramref name="lifetime"/>. Each service registered for an implementation uses the same
+    ///     <see cref="ServiceLifetime"/>.
     /// </summary>
     /// <param name="lifetime">The target service lifetime.</param>
-    /// <param name="sharingMode">
-    ///     The sharing mode that determines whether an implementation registered against multiple service types
-    ///     resolves to a single shared instance or to independent instances.
-    /// </param>
-    /// <exception cref="ArgumentException">
-    ///     Thrown when <paramref name="lifetime"/> is <see cref="ServiceLifetime.Transient"/> and
-    ///     <paramref name="sharingMode"/> is not <see cref="SharingMode.Independent"/>. Transient services can never
-    ///     share an instance, so any other sharing mode would be silently ignored.
-    /// </exception>
-    public ServiceSource AsLifetime(ServiceLifetime lifetime, SharingMode sharingMode)
+    public ServiceSource AsLifetime(ServiceLifetime lifetime)
     {
-        if (lifetime == ServiceLifetime.Transient && sharingMode != SharingMode.Independent)
-        {
-            throw new ArgumentException(
-                "Transient services can only be registered with SharingMode.Independent. "
-                + "Sharing only adds value for Singleton or Scoped services. "
-                + "This exception was thrown to immediately surface this mismatch instead of silently ignoring it"
-            );
-        }
-
-        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetime)), sharingMode);
+        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetime)));
     }
 
     /// <summary>
     ///     Returns a new <see cref="ServiceSource"/> whose descriptors take the <see cref="ServiceLifetime"/> produced
-    ///     by <paramref name="lifetimeSelector"/> for each implementation type. The default sharing mode is used: for
-    ///     <see cref="ServiceLifetime.Transient"/> that is <see cref="SharingMode.Independent"/>; for others it is
-    ///     <see cref="SharingMode.SharedComponent"/>.
+    ///     by <paramref name="lifetimeSelector"/> for each implementation type. Each service registered for an
+    ///     implementation uses the same <see cref="ServiceLifetime"/>.
     /// </summary>
     /// <param name="lifetimeSelector">
     ///     A function that receives the implementation type and returns the service lifetime.
@@ -69,6 +49,6 @@ public class ServiceLifetimeSelector : ServiceSource
     public ServiceSource AsLifetime(Func<Type, ServiceLifetime> lifetimeSelector)
     {
         ArgumentNullException.ThrowIfNull(lifetimeSelector);
-        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetimeSelector)), null);
+        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetimeSelector)));
     }
 }

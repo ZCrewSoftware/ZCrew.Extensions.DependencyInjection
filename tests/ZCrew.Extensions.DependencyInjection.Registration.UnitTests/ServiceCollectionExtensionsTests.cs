@@ -46,7 +46,7 @@ public class ServiceCollectionExtensionsTests
         ServiceSource source = Classes
             .From(typeof(CustomerService))
             .AsInterface<ICustomerService>()
-            .AsSingletonDependent();
+            .AsSingleton();
         var services = new ServiceCollection();
 
         // Act

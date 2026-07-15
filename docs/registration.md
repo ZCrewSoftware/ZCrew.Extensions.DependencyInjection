@@ -34,7 +34,7 @@ The API is a fluent chain with six stages:
 3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`, `HasAttribute`)
 4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.)
 5. **Keyed service selection** — Optionally assign service keys via `Keyed`
-6. **Lifetime selection** — Optionally choose a lifetime and sharing mode (`AsSingleton`, `AsScoped`, `AsTransient`, `AsSingletonDependent`, …); defaults to `Singleton` + `SharedComponent`
+6. **Lifetime selection** — Optionally choose a lifetime (`AsSingleton`, `AsScoped`, `AsTransient`, or per type via `AsLifetime` / `AsLifetimeByAttribute`); defaults to `Singleton`
 
 Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient` — overloads exist for every stage of the chain — or call `.ToServiceCollection()` to produce an `IServiceCollection` directly.
 
