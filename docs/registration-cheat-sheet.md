@@ -41,7 +41,24 @@ services.Add(Component.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, ID
 // Both interfaces resolve to one shared PayPalPaymentGateway
 ```
 
-`As` throws `ArgumentException` if the implementation isn't based on a service. Open generic components can't have services added — they can't be forwarded. For more on components see [components.md](components.md).
+Services can also be picked by convention, using the same selectors as the chain — the implementation is kept and the component stays shared.
+
+| Method                                                              | Service types added                                             |
+|---------------------------------------------------------------------|------------------------------------------------------------------|
+| `AsAllInterfaces()` / `AsAllNonSystemInterfaces()`                  | Every interface, optionally excluding `System.*`                |
+| `AsDefaultInterfaces()` / `AsDefaultNonSystemInterfaces()`          | Interfaces whose name appears in the class name                 |
+| `AsFirstInterface()`                                                | The first interface in metadata order                           |
+| `AsAllTypes()` / `AsDefaultTypes()` / `…NonSystemTypes()`           | As above, plus non-abstract base classes                        |
+| `AsServicesFromAttribute(…)`                                        | Service types from a `[Services(...)]` or projected attribute    |
+
+```csharp
+services.Add(Component.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
+// PayPalPaymentGateway + IPaymentGateway, sharing one instance
+```
+
+There is no `AsSelf()`, `AsBase()`, or `*OrSelf` on a component — the implementation is always seeded, and there is no `BasedOn` stage to supply base types.
+
+`As` throws `ArgumentException` if the implementation isn't based on a service — including services named by an attribute. When a selector matches nothing, the implementation stays registered on its own rather than dropping out. Open generic components can't have services added — they can't be forwarded. For more on components see [components.md](components.md).
 
 ## Assembly visibility
 

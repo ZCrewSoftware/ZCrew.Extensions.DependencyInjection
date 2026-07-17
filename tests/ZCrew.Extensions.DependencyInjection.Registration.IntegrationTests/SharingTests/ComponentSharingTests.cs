@@ -124,6 +124,37 @@ public class ComponentSharingTests
     }
 
     [Fact]
+    public void From_WhenServicesSelectedByConvention_ShouldShareSingleInstance()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.Add(Component.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var impl = provider.GetRequiredService<PayPalPaymentGateway>();
+        var gateway = provider.GetRequiredService<IPaymentGateway>();
+
+        // Assert
+        Assert.Same(impl, gateway);
+    }
+
+    [Fact]
+    public void From_WhenOpenGenericSelectsServicesByConvention_ShouldThrowOnAdd()
+    {
+        // Arrange — selection itself is fine; forwarding an open generic is what the container cannot do.
+        var component = Component.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
+        var services = new ServiceCollection();
+
+        // Act
+        Action act = () => services.Add(component);
+
+        // Assert
+        var exception = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("Open generic services can not be forwarded", exception.Message);
+    }
+
+    [Fact]
     public void From_WhenKeyed_ShouldShareSingleInstanceAcrossKeyedServices()
     {
         // Arrange

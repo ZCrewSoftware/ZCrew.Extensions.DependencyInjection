@@ -113,6 +113,21 @@ public readonly record struct ServiceComponent
     /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
     public ServiceComponent As(IEnumerable<Type> services)
     {
+        return As(_ => services);
+    }
+
+    /// <summary>
+    ///     Adds the result of calling <paramref name="serviceSelector"/> to this component. This verifies that the
+    ///     <see cref="ImplementationType"/> is assignable to each service. Duplicate services can be added; but, they
+    ///     are excluded when registering the component.
+    /// </summary>
+    /// <param name="serviceSelector">The delegate that provides services.</param>
+    /// <returns>The modified component or the same component if no services were added.</returns>
+    /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
+    public ServiceComponent As(Func<Type, IEnumerable<Type>> serviceSelector)
+    {
+        ArgumentNullException.ThrowIfNull(serviceSelector);
+        var services =  serviceSelector(this.implementation);
         ArgumentNullException.ThrowIfNull(services);
         var serviceArray = services.ToArray();
         if (serviceArray.Length == 0)
