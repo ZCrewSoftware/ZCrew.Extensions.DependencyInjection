@@ -14,7 +14,7 @@ public class ServiceLifetimeSelector : ServiceSource
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
     internal ServiceLifetimeSelector(IEnumerable<ServiceComponent> components)
-        : base(components.Select(component => component.WithLifetime(ServiceLifetime.Singleton)))
+        : base(components.Select(component => component.AsLifetime(ServiceLifetime.Singleton)))
     {
         this.components = components;
     }
@@ -28,7 +28,7 @@ public class ServiceLifetimeSelector : ServiceSource
     /// <param name="lifetime">The target service lifetime.</param>
     public ServiceSource AsLifetime(ServiceLifetime lifetime)
     {
-        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetime)));
+        return new ServiceSource(this.components.Select(component => component.AsLifetime(lifetime)));
     }
 
     /// <summary>
@@ -49,6 +49,6 @@ public class ServiceLifetimeSelector : ServiceSource
     public ServiceSource AsLifetime(Func<Type, ServiceLifetime> lifetimeSelector)
     {
         ArgumentNullException.ThrowIfNull(lifetimeSelector);
-        return new ServiceSource(this.components.Select(component => component.WithLifetime(lifetimeSelector)));
+        return new ServiceSource(this.components.Select(component => component.AsLifetime(lifetimeSelector)));
     }
 }

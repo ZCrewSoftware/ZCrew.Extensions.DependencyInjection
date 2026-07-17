@@ -1,4 +1,6 @@
 using Fixtures.SmallProject.Application.Services;
+using Fixtures.SmallProject.Domain.Repositories;
+using Fixtures.SmallProject.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
@@ -71,6 +73,159 @@ public class ServiceCollectionExtensionsTests
         // Assert
         var single = Assert.Single(services);
         Assert.Equal(ServiceLifetime.Scoped, single.Lifetime);
+    }
+
+    [Fact]
+    public void Add_WhenCalledWithServiceComponent_ShouldAddDescriptors()
+    {
+        // Arrange
+        var component = Component.From<CustomerService>().As<ICustomerService>();
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert — the implementation is registered directly and the service forwards to it.
+        Assert.Equal(2, services.Count);
+        Assert.Contains(services, d => d.ServiceType == typeof(CustomerService));
+        Assert.Contains(services, d => d.ServiceType == typeof(ICustomerService));
+    }
+
+    [Fact]
+    public void Add_WhenCalledWithServiceComponent_ShouldReturnSameServiceCollection()
+    {
+        // Arrange
+        var component = Component.From<CustomerService>().As<ICustomerService>();
+        var services = new ServiceCollection();
+
+        // Act
+        var result = services.Add(component);
+
+        // Assert
+        Assert.Same(services, result);
+    }
+
+    [Fact]
+    public void Add_WhenCalledWithMultipleServiceComponents_ShouldAddAllDescriptors()
+    {
+        // Arrange
+        var customers = Component.From<CustomerService>().As<ICustomerService>();
+        var orders = Component.From<OrderService>().As<IOrderService>();
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(customers, orders);
+
+        // Assert
+        Assert.Equal(4, services.Count);
+        Assert.Contains(services, d => d.ServiceType == typeof(ICustomerService));
+        Assert.Contains(services, d => d.ServiceType == typeof(IOrderService));
+    }
+
+    [Fact]
+    public void Add_WhenComponentHasNoLifetime_ShouldAddDescriptorsWithSingletonLifetime()
+    {
+        // Arrange — Component.From does not pass through the lifetime stage, so nothing sets a lifetime.
+        var component = Component.From<CustomerService>().As<ICustomerService>();
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert
+        Assert.All(services, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
+    }
+
+    [Fact]
+    public void Add_WhenComponentHasLifetime_ShouldAddDescriptorsWithComponentLifetime()
+    {
+        // Arrange
+        var component = Component
+            .From<CustomerService>()
+            .As<ICustomerService>()
+            .AsLifetime(ServiceLifetime.Scoped);
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert
+        Assert.All(services, d => Assert.Equal(ServiceLifetime.Scoped, d.Lifetime));
+    }
+
+    [Fact]
+    public void Add_WhenComponentIsKeyed_ShouldAddKeyedDescriptors()
+    {
+        // Arrange
+        var component = Component.From<CustomerService>().As<ICustomerService>().Keyed("primary");
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert
+        Assert.All(services, d => Assert.Equal("primary", d.ServiceKey));
+    }
+
+    [Fact]
+    public void Add_WhenComponentHasNoServicesAdded_ShouldRegisterImplementationAsItself()
+    {
+        // Arrange
+        var component = Component.From<CustomerService>();
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert
+        var single = Assert.Single(services);
+        Assert.Equal(typeof(CustomerService), single.ServiceType);
+        Assert.Equal(typeof(CustomerService), single.ImplementationType);
+    }
+
+    [Fact]
+    public void Add_WhenComponentServiceIsDuplicated_ShouldRegisterServiceOnce()
+    {
+        // Arrange
+        var component = Component.From<CustomerService>().As<ICustomerService>().As<ICustomerService>();
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert
+        Assert.Single(services, d => d.ServiceType == typeof(ICustomerService));
+    }
+
+    [Fact]
+    public void Add_WhenComponentIsOpenGenericWithServices_ShouldThrow()
+    {
+        // Arrange — the implementation is always among a component's services, so an open generic component with any
+        // added service takes the forwarding path, which Microsoft's container cannot do for open generics.
+        var component = Component.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>));
+        var services = new ServiceCollection();
+
+        // Act
+        var act = () => services.Add(component);
+
+        // Assert
+        var exception = Assert.Throws<InvalidOperationException>(act);
+        Assert.Contains("Open generic services can not be forwarded", exception.Message);
+    }
+
+    [Fact]
+    public void Add_WhenComponentIsOpenGenericWithoutServices_ShouldRegisterImplementationAsItself()
+    {
+        // Arrange
+        var component = Component.From(typeof(InMemoryRepository<>));
+        var services = new ServiceCollection();
+
+        // Act
+        services.Add(component);
+
+        // Assert — nothing to forward, so the single registration is direct.
+        var single = Assert.Single(services);
+        Assert.Equal(typeof(InMemoryRepository<>), single.ServiceType);
     }
 
     [Fact]

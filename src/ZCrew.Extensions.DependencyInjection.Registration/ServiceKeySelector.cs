@@ -84,7 +84,7 @@ public class ServiceKeySelector : ServiceLifetimeSelector
             return Unkeyed();
         }
 
-        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKey)));
+        return new ServiceLifetimeSelector(this.components.Select(component => component.Keyed(serviceKey)));
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class ServiceKeySelector : ServiceLifetimeSelector
     public ServiceLifetimeSelector Keyed(Func<Type, Type, object?> serviceKeySelector)
     {
         ArgumentNullException.ThrowIfNull(serviceKeySelector);
-        return new ServiceLifetimeSelector(this.components.Select(component => component.WithServiceKey(serviceKeySelector)));
+        return new ServiceLifetimeSelector(this.components.Select(component => component.Keyed(serviceKeySelector)));
     }
 
     private static ReadOnlySpan<char> StripGenericArity(ReadOnlySpan<char> name)

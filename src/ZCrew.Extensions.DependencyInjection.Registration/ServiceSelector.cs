@@ -54,7 +54,7 @@ public class ServiceSelector : ServiceKeySelector
         {
             return new ServiceSelector(
                 this.components.Select(component =>
-                    component.WithServices(serviceSelector(component.ImplementationType).ToArray())
+                    component.AsUnchecked(serviceSelector(component.ImplementationType).ToArray())
                 ),
                 this.baseTypes
             );
@@ -94,7 +94,7 @@ public class ServiceSelector : ServiceKeySelector
                     var type = component.ImplementationType;
                     var assignableBaseTypes = type.GetMatchingBaseTypes(this.baseTypes).ToArray();
                     var services = serviceSelector(type, assignableBaseTypes).ToArray();
-                    return component.WithServices(services);
+                    return component.AsUnchecked(services);
                 }),
                 this.baseTypes
             );

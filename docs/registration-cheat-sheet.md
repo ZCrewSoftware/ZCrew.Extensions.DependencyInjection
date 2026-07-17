@@ -21,6 +21,28 @@ Each stage is optional after the entry point. Skip any stage and the next call a
 
 `Classes` is the typical choice. Use `Types` when you need to discover interface types or value types.
 
+## Single components
+
+`Component.From` skips the whole chain and registers **one known type** against services you name. The component starts registered as the type itself and every added service is forwarded to it, so a `Singleton` or `Scoped` component shares one instance.
+
+| Method                         | Effect                                                     |
+|--------------------------------|------------------------------------------------------------|
+| `Component.From(Type)`         | Start a component, registered against the type itself      |
+| `As<T1>()` … `As<T1, …, T8>()` | Add one to eight services, forwarded to the implementation |
+| `As(Type)`                     | Add one service, forwarded to the implementation           |
+| `As(IEnumerable<Type>)`        | Add several services, forwarded to the implementation      |
+| `AsLifetime(ServiceLifetime)`  | Set the lifetime — defaults to `Singleton`                 |
+| `AsLifetime(Func<Type, …>)`    | Set the lifetime from the implementation type              |
+| `Keyed(object?)` / `Unkeyed()` | Assign or remove a service key                             |
+| `services.Add(component, …)`   | Add one or more components (`params`)                      |
+
+```csharp
+services.Add(Component.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDisposable>());
+// Both interfaces resolve to one shared PayPalPaymentGateway
+```
+
+`As` throws `ArgumentException` if the implementation isn't based on a service. Open generic components can't have services added — they can't be forwarded. For more on components see [components.md](components.md).
+
 ## Assembly visibility
 
 Only available after `FromAssembly*` (returns `AssemblyTypeSelector`). Default is public types.

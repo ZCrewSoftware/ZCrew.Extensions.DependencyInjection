@@ -75,6 +75,36 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
+        ///     Adds the descriptors represented by the <paramref name="component"/> into this service collection.
+        /// </summary>
+        /// <param name="component">The component to add.</param>
+        /// <remarks>
+        ///     A component with no lifetime set is registered as <see cref="ServiceLifetime.Singleton"/>.
+        /// </remarks>
+        public IServiceCollection Add(ServiceComponent component)
+        {
+            component.AddServiceDescriptors(services);
+            return services;
+        }
+
+        /// <summary>
+        ///     Adds the descriptors represented by each of the <paramref name="components"/> into this service
+        ///     collection.
+        /// </summary>
+        /// <param name="components">The components to add.</param>
+        /// <remarks>
+        ///     A component with no lifetime set is registered as <see cref="ServiceLifetime.Singleton"/>.
+        /// </remarks>
+        public IServiceCollection Add(params ServiceComponent[] components)
+        {
+            foreach (var component in components)
+            {
+                component.AddServiceDescriptors(services);
+            }
+            return services;
+        }
+
+        /// <summary>
         ///     Adds the descriptors as <see cref="ServiceLifetime.Singleton"/> registrations.
         /// </summary>
         /// <param name="descriptors">The service descriptors to add.</param>
