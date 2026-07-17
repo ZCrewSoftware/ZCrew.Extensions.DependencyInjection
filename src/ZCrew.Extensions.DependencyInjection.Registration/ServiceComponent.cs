@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
@@ -6,21 +5,33 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Intermediate between the <see cref="ServiceSelector"/> and the raw <see cref="ServiceDescriptor"/>.
 /// </summary>
-internal readonly record struct ServiceComponent
+public readonly record struct ServiceComponent
 {
     private readonly Type implementation;
     private readonly IReadOnlyList<Type> services;
     private readonly ServiceLifetime? lifetime;
     private readonly Func<Type, ServiceLifetime>? lifetimeProvider;
     private readonly object? serviceKey;
+
     private readonly Func<Type, Type, object?>? serviceKeyProvider;
+
+    /// <summary>
+    ///     Create a new service component registered against the <paramref name="implementation"/> itself. Any further
+    ///     services are added on top of it, so they resolve to a single shared instance.
+    /// </summary>
+    /// <param name="implementation">The implementation type.</param>
+    internal ServiceComponent(Type implementation)
+    {
+        this.implementation = implementation;
+        this.services = [implementation];
+    }
 
     /// <summary>
     ///     Create a new service component.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
-    public ServiceComponent(Type implementation, IReadOnlyList<Type> services)
+    internal ServiceComponent(Type implementation, IReadOnlyList<Type> services)
     {
         this.implementation = implementation;
         this.services = services;
@@ -57,7 +68,77 @@ internal readonly record struct ServiceComponent
     /// </summary>
     public Type ImplementationType => this.implementation;
 
-    public ServiceComponent WithServices(IEnumerable<Type> services)
+    /// <summary>
+    ///     The non-distinct service types. Services will be registered once, in-order.
+    /// </summary>
+    public IReadOnlyList<Type> ServiceTypes => this.services;
+
+    /// <summary>
+    ///     Adds the <paramref name="service"/> to this component. This verifies that the
+    ///     <see cref="ImplementationType"/> is assignable to the <paramref name="service"/>. A duplicate service can be
+    ///     added; but, it is excluded when registering the component.
+    /// </summary>
+    /// <param name="service">The service to add.</param>
+    /// <returns>The modified component.</returns>
+    /// <exception cref="ArgumentException">
+    ///     If the <paramref name="service"/> isn't a base type of the implementation.
+    /// </exception>
+    public ServiceComponent As(Type service)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        if (!this.implementation.IsBasedOn(service))
+        {
+            throw new ArgumentException(
+                $"The implementation {this.implementation} is not based on the service type {service}"
+            );
+        }
+        return new ServiceComponent(
+            this.implementation,
+            this.services.Append(service).ToArray(),
+            this.lifetime,
+            this.lifetimeProvider,
+            this.serviceKey,
+            this.serviceKeyProvider
+        );
+    }
+
+    /// <summary>
+    ///     Adds the <paramref name="services"/> to this component. This verifies that the
+    ///     <see cref="ImplementationType"/> is assignable to each service. Duplicate services can be added; but, they
+    ///     are excluded when registering the component.
+    /// </summary>
+    /// <param name="services">The services to add.</param>
+    /// <returns>The modified component or the same component if no services were added.</returns>
+    /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
+    public ServiceComponent As(IEnumerable<Type> services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        var serviceArray = services.ToArray();
+        if (serviceArray.Length == 0)
+        {
+            return this;
+        }
+
+        foreach (var service in serviceArray)
+        {
+            if (!this.implementation.IsBasedOn(service))
+            {
+                throw new ArgumentException(
+                    $"The implementation {this.implementation} is not based on the service type {service}"
+                );
+            }
+        }
+        return AsUnchecked(serviceArray);
+    }
+
+    /// <summary>
+    ///     Like <see cref="As(IEnumerable{Type})"/> but unchecked, only for the registration fluent API where the
+    ///     services are base types.
+    /// </summary>
+    /// <param name="services">The services to add.</param>
+    /// <returns>The modified component or the same component if no services were added.</returns>
+    internal ServiceComponent AsUnchecked(IEnumerable<Type> services)
     {
         return new ServiceComponent(
             this.implementation,
@@ -73,7 +154,8 @@ internal readonly record struct ServiceComponent
     ///     Set the <see cref="ServiceDescriptor.Lifetime"/> of the future <see cref="ServiceDescriptor"/> instances.
     /// </summary>
     /// <param name="lifetime">The lifetime.</param>
-    public ServiceComponent WithLifetime(ServiceLifetime lifetime)
+    /// <returns>The modified component or the same component if the <see cref="lifetime"/> was the same.</returns>
+    public ServiceComponent AsLifetime(ServiceLifetime lifetime)
     {
         if (lifetime == this.lifetime && this.lifetimeProvider == null)
         {
@@ -95,7 +177,10 @@ internal readonly record struct ServiceComponent
     ///     instances by evaluating the lifetime against the implementation type when resolving the descriptors.
     /// </summary>
     /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
-    public ServiceComponent WithLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
+    /// <returns>
+    ///         The modified component or the same component if the <see cref="lifetimeProvider"/> was the same reference.
+    /// </returns>
+    public ServiceComponent AsLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
     {
         if (lifetimeProvider == this.lifetimeProvider)
         {
@@ -113,10 +198,32 @@ internal readonly record struct ServiceComponent
     }
 
     /// <summary>
-    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the future <see cref="ServiceDescriptor"/> instances.
+    ///     Remove any service keys from the component.
+    /// </summary>
+    /// <returns>The modified <see cref="ServiceComponent"/> or the same component if it was already unkeyed.</returns>
+    public ServiceComponent Unkeyed()
+    {
+        if (this.serviceKeyProvider == null && this.serviceKey == null)
+        {
+            return this;
+        }
+
+        return new ServiceComponent(
+            this.implementation,
+            this.services,
+            this.lifetime,
+            this.lifetimeProvider,
+            null,
+            null
+        );
+    }
+
+    /// <summary>
+    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the component.
     /// </summary>
     /// <param name="serviceKey">The shared service key.</param>
-    public ServiceComponent WithServiceKey(object? serviceKey)
+    /// <returns>The modified <see cref="ServiceComponent"/> or the same component if it was already keyed.</returns>
+    public ServiceComponent Keyed(object? serviceKey)
     {
         if (serviceKey == this.serviceKey)
         {
@@ -134,12 +241,14 @@ internal readonly record struct ServiceComponent
     }
 
     /// <summary>
-    ///     Indirectly set the <see cref="ServiceDescriptor.ServiceKey"/> of the future <see cref="ServiceDescriptor"/>
-    ///     instances by evaluating the key when resolving the descriptors.
+    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the component through the
+    /// <paramref name="serviceKeyProvider"/> delegate, evaluated when adding the component to a
+    /// <see cref="IServiceCollection"/>.
     /// </summary>
-    /// <param name="serviceKeyProvider">The dynamic service key.</param>
-    public ServiceComponent WithServiceKey(Func<Type, Type, object?> serviceKeyProvider)
+    /// <param name="serviceKeyProvider">The service key provider.</param>
+    public ServiceComponent Keyed(Func<Type, Type, object?> serviceKeyProvider)
     {
+        ArgumentNullException.ThrowIfNull(serviceKeyProvider);
         if (serviceKeyProvider == this.serviceKeyProvider)
         {
             return this;
@@ -171,7 +280,7 @@ internal readonly record struct ServiceComponent
     ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to forward multiple
     ///     service types to a single instance.
     /// </exception>
-    public void AddServiceDescriptors(IServiceCollection serviceCollection)
+    internal void AddServiceDescriptors(IServiceCollection serviceCollection)
     {
         // No services to register
         if (this.services.Count == 0)
@@ -179,13 +288,12 @@ internal readonly record struct ServiceComponent
             return;
         }
 
-        var lifetime = this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime;
-        Debug.Assert(lifetime != null, "Lifetime always should have been set");
+        var lifetime = this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime ?? ServiceLifetime.Singleton;
 
         // Shortcut for when there is only 1 - this also skips the open generic check and distinct processing
         if (this.services.Count == 1)
         {
-            serviceCollection.Add(Registration(lifetime.Value, this.services[0]));
+            serviceCollection.Add(Registration(lifetime, this.services[0]));
             return;
         }
 
@@ -204,7 +312,7 @@ internal readonly record struct ServiceComponent
         // This also doesn't register a shared component if the implementation isn't in the service list
         if (lifetime == ServiceLifetime.Transient || !seenServices.Contains(this.implementation))
         {
-            AddIndependentServiceDescriptors(distinctServices, lifetime.Value, serviceCollection);
+            AddIndependentServiceDescriptors(distinctServices, lifetime, serviceCollection);
             return;
         }
 
@@ -214,15 +322,20 @@ internal readonly record struct ServiceComponent
         if (this.implementation.IsGenericTypeDefinition)
         {
             throw new InvalidOperationException(
-                "Open generic services can not be forwarded. " +
-                "This is due to a limitation of the Microsoft Dependency Injection container. " +
-                "For more information, see: https://github.com/dotnet/runtime/issues/41050");
+                "Open generic services can not be forwarded. "
+                    + "This is due to a limitation of the Microsoft Dependency Injection container. "
+                    + "For more information, see: https://github.com/dotnet/runtime/issues/41050"
+            );
         }
 
-        AddComponentServiceDescriptors(distinctServices, lifetime.Value, serviceCollection);
+        AddComponentServiceDescriptors(distinctServices, lifetime, serviceCollection);
     }
 
-    private void AddIndependentServiceDescriptors(IEnumerable<Type> services, ServiceLifetime lifetime, IServiceCollection serviceCollection)
+    private void AddIndependentServiceDescriptors(
+        IEnumerable<Type> services,
+        ServiceLifetime lifetime,
+        IServiceCollection serviceCollection
+    )
     {
         foreach (var service in services)
         {
@@ -230,10 +343,18 @@ internal readonly record struct ServiceComponent
         }
     }
 
-    private void AddComponentServiceDescriptors(IEnumerable<Type> services, ServiceLifetime lifetime, IServiceCollection serviceCollection)
+    private void AddComponentServiceDescriptors(
+        IEnumerable<Type> services,
+        ServiceLifetime lifetime,
+        IServiceCollection serviceCollection
+    )
     {
         var impl = this.implementation;
-        Func<IServiceProvider, object?, object> factory = (serviceProvider, _) => serviceProvider.GetRequiredService(impl);
+        var implementationKey = this.serviceKeyProvider?.Invoke(impl, impl) ?? this.serviceKey;
+        Func<IServiceProvider, object?, object> factory =
+            implementationKey == null
+                ? (serviceProvider, _) => serviceProvider.GetRequiredService(impl)
+                : (serviceProvider, _) => serviceProvider.GetRequiredKeyedService(impl, implementationKey);
         foreach (var service in services)
         {
             // Skip forwarding the service to itself
@@ -256,7 +377,8 @@ internal readonly record struct ServiceComponent
     private ServiceDescriptor ForwardRegistration(
         ServiceLifetime lifetime,
         Type service,
-        Func<IServiceProvider, object?, object> factory)
+        Func<IServiceProvider, object?, object> factory
+    )
     {
         var specificServiceKey = this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey;
         return new ServiceDescriptor(service, specificServiceKey, factory, lifetime);

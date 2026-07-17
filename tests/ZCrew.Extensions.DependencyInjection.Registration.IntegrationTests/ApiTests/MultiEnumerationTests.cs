@@ -29,7 +29,7 @@ public class MultiEnumerationTests
         // Arrange — a ServiceSource holds finalized components, so give them a lifetime (the lifetime stage would
         // normally do this before a ServiceSource is produced).
         var source = new CountingSource<ServiceComponent>(
-            Components().Select(component => component.WithLifetime(ServiceLifetime.Singleton))
+            Components().Select(component => component.AsLifetime(ServiceLifetime.Singleton))
         );
         var serviceSource = new ServiceSource(source);
 

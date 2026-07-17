@@ -107,6 +107,50 @@ public class SharingBehaviorTests
     }
 
     [Fact]
+    public void Keyed_WhenImplIsSelectedAmongMultipleServices_ShouldShareSingleInstance()
+    {
+        // Arrange — the implementation is registered under the component's key, so the forwarded services have to
+        // resolve it back through that key rather than through the unkeyed lookup.
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .AsSelf()
+            .AsAllInterfaces()
+            .Keyed("PayPal")
+            .AsSingleton()
+            .ToServiceCollection();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var impl = provider.GetRequiredKeyedService<PayPalPaymentGateway>("PayPal");
+        var gateway = provider.GetRequiredKeyedService<IPaymentGateway>("PayPal");
+
+        // Assert
+        Assert.Same(impl, gateway);
+    }
+
+    [Fact]
+    public void Keyed_WhenKeySelectorVariesByServiceType_ShouldShareSingleInstance()
+    {
+        // Arrange — the key selector gives the implementation a different key than the services forwarding to it,
+        // so the forwarding factory has to use the implementation's own key.
+        var services = Classes
+            .From(typeof(PayPalPaymentGateway))
+            .AsSelf()
+            .AsAllInterfaces()
+            .Keyed((_, serviceType) => serviceType.Name)
+            .AsSingleton()
+            .ToServiceCollection();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var impl = provider.GetRequiredKeyedService<PayPalPaymentGateway>(nameof(PayPalPaymentGateway));
+        var gateway = provider.GetRequiredKeyedService<IPaymentGateway>(nameof(IPaymentGateway));
+
+        // Assert
+        Assert.Same(impl, gateway);
+    }
+
+    [Fact]
     public void AsSelf_WhenChainedWithAsAllInterfacesAsSingleton_ShouldShareSingleInstance()
     {
         // Arrange — chaining AsSelf() before AsAllInterfaces() includes the implementation in the selection, so the
