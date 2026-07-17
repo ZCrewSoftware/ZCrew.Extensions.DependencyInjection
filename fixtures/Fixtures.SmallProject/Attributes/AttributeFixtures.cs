@@ -193,6 +193,13 @@ public class ContractBase;
 
 public class ContractDerived : ContractBase;
 
+// Declares a contract it also implements. ContractBase deliberately does not, which makes it the case where a
+// component rejects an attribute-named service type it isn't based on.
+[Contract(typeof(IProvidedServiceA))]
+public class ContractStore : IProvidedServiceA;
+
+public class ContractStoreDerived : ContractStore;
+
 /// <summary>
 ///     Marker interface implemented by attributes that carry a <see cref="ServiceLifetime"/>. Exercises attribute
 ///     filtering by an interface the attribute implements (rather than by the concrete attribute type), including

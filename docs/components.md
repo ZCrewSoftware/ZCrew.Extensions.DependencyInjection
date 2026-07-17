@@ -76,6 +76,80 @@ Component.From<PayPalPaymentGateway>()
 
 Duplicate services are allowed and are collapsed when the component is registered, so `As<IPaymentGateway>().As<IPaymentGateway>()` produces one `IPaymentGateway` registration.
 
+## Selecting services by convention
+
+The `As*` selectors from the [registration chain](service-selectors.md) also work on a component, so services can be
+chosen by convention without giving up the shared instance:
+
+```csharp
+services.Add(Component.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
+```
+
+Given:
+
+```csharp
+public interface IPaymentGateway : IDisposable { }
+public class PayPalPaymentGateway : IPaymentGateway { }
+```
+
+Registers:
+
+```
+PayPalPaymentGateway → PayPalPaymentGateway (registered directly)
+IPaymentGateway      → resolves to the PayPalPaymentGateway instance
+                       (IDisposable is in System and is excluded)
+```
+
+Selection **accumulates onto the implementation** rather than replacing it, so the implementation stays first among the
+services and the component stays shared. The same selector on a chain drops it:
+`Classes.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces()` registers `IPaymentGateway` alone, with no
+`PayPalPaymentGateway` registration for it to share.
+
+| Method                                                                        | Service types added                                                                      |
+|-------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| `AsAllInterfaces()`                                                           | Every interface implemented                                                              |
+| `AsAllNonSystemInterfaces()`                                                  | Every interface except `System.*`                                                        |
+| `AsDefaultInterfaces()`                                                       | Interfaces whose name appears in the class name (`CustomerService` → `ICustomerService`) |
+| `AsDefaultNonSystemInterfaces()`                                              | Default interfaces, excluding `System.*`                                                 |
+| `AsFirstInterface()`                                                          | The first interface in metadata order                                                    |
+| `AsAllTypes()` / `AsAllNonSystemTypes()`                                      | Like the `Interfaces` variants, plus every non-abstract base class                       |
+| `AsDefaultTypes()` / `AsDefaultNonSystemTypes()`                              | Like the above, restricted to convention-matching names                                  |
+| `AsServicesFromAttribute([bool])`                                             | Service types from an `IServiceTypesProvider` attribute such as `[Services(...)]`        |
+| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttribute(Type, …)` | Service types projected from any attribute                                               |
+
+Per-method semantics are identical to the chain — see [service selectors](service-selectors.md). Selectors chain and
+accumulate here too, so `AsDefaultInterfaces().AsAllInterfaces()` registers the distinct union of both.
+
+### When nothing matches, the implementation is still registered
+
+A selector that finds no services leaves the component untouched rather than emptying it:
+
+```csharp
+services.Add(Component.From<Customer>().AsDefaultInterfaces());
+// Customer → Customer (Singleton) — Customer has no interfaces
+```
+
+The chain registers *nothing* in this situation. This is also why a component has no `AsSelf()` and no `*OrSelf`
+selectors: the implementation is seeded from the start, so "or self" is already the behavior — `AsAllInterfacesOrSelf()`
+would do exactly what `AsAllInterfaces()` does here. `AsBase()` and `AsInterface()` are absent for a different reason:
+they read the base types set by [`BasedOn`](type-filters.md), and a component has no filtering stage to set them.
+
+### Attribute selectors are validated too
+
+Attribute-selected services go through the same check as any other `As` call, so an attribute naming a service type the
+implementation isn't based on throws:
+
+```csharp
+[Contract(typeof(IProvidedServiceA))]
+public class ContractBase;  // ...but does not implement IProvidedServiceA
+
+Component.From<ContractBase>().AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts)
+// Throws ArgumentException:
+//   "The implementation ContractBase is not based on the service type IProvidedServiceA"
+```
+
+The chain accepts this — it registers whatever the attribute names without checking.
+
 ## Lifetime
 
 A component with no lifetime set registers as `Singleton` — the same default a [skipped lifetime stage](shared-components.md#lifetime-methods) uses. To choose another, call `AsLifetime`:
@@ -162,7 +236,7 @@ To map an open generic implementation to its interfaces, use the chain instead �
 | Scenario                                                        | Entry point                                            |
 |-----------------------------------------------------------------|--------------------------------------------------------|
 | One known type, services named explicitly                       | `Component.From(type).As<...>()`                       |
-| One known type, services chosen by convention                   | `Classes.From(type).AsInterface()`                     |
+| One known type, services chosen by convention                   | `Component.From(type).AsAllInterfaces()`               |
 | Many types matched by a convention                              | `Classes.FromThisAssembly()...`                        |
 | Several services must share one instance                        | `Component.From(type).As<...>()` — shared by default   |
 | Several services must each have their own instance              | `Classes.From(type).AsAllInterfaces()` — not shared    |

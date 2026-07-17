@@ -3,7 +3,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Extensions for the <see cref="ServiceComponent"/> type to extend existing functionality with convenient helpers.
 /// </summary>
-public static class ServiceComponentExtensions
+public static partial class ServiceComponentExtensions
 {
     extension(ServiceComponent component)
     {
