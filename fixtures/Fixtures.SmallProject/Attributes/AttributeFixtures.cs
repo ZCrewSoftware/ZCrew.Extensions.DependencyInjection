@@ -134,15 +134,15 @@ public class InheritableKeyedBase;
 public class InheritableKeyedDerived : InheritableKeyedBase;
 
 /// <summary>
-///     Empty service interfaces targeted by the <see cref="ServicesAttribute"/> fixtures below. Two are provided so a
-///     single implementation can be mapped to multiple service types (exercising the shared-component path).
+///     Empty service interfaces targeted by the <see cref="AsServicesAttribute"/> fixtures below. Two are provided so a
+///     single implementation can be mapped to multiple service types (exercising the shared-service path).
 /// </summary>
 public interface IProvidedServiceA;
 
 public interface IProvidedServiceB;
 
 /// <summary>
-///     A second <see cref="IServiceTypesProvider"/> attribute. The shipped <see cref="ServicesAttribute"/> is
+///     A second <see cref="IServiceTypesProvider"/> attribute. The shipped <see cref="AsServicesAttribute"/> is
 ///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-type
 ///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
 ///     <c>inherited</c> flag on the <see cref="IServiceTypesProvider"/> path.
@@ -153,14 +153,14 @@ public class AltServicesAttribute(params Type[] serviceTypes) : Attribute, IServ
     public IEnumerable<Type> ServiceTypes => serviceTypes;
 }
 
-[Services(typeof(IProvidedServiceA))]
+[AsServices(typeof(IProvidedServiceA))]
 public class SingleServiceStore : IProvidedServiceA;
 
-[Services(typeof(IProvidedServiceA), typeof(IProvidedServiceB))]
+[AsServices(typeof(IProvidedServiceA), typeof(IProvidedServiceB))]
 public class MultiServiceStore : IProvidedServiceA, IProvidedServiceB;
 
-// [Services] is declared Inherited = false, so its service types do not flow to ServicesDerived.
-[Services(typeof(IProvidedServiceA))]
+// [AsServices] is declared Inherited = false, so its service types do not flow to ServicesDerived.
+[AsServices(typeof(IProvidedServiceA))]
 public class ServicesBase : IProvidedServiceA;
 
 public class ServicesDerived : ServicesBase;
@@ -172,7 +172,7 @@ public class InheritableServicesBase : IProvidedServiceB;
 public class InheritableServicesDerived : InheritableServicesBase;
 
 // Two IServiceTypesProvider attributes on one type -> AmbiguousMatchException.
-[Services(typeof(IProvidedServiceA))]
+[AsServices(typeof(IProvidedServiceA))]
 [AltServices(typeof(IProvidedServiceB))]
 public class MultiServiceProvidedStore;
 
@@ -194,7 +194,7 @@ public class ContractBase;
 public class ContractDerived : ContractBase;
 
 // Declares a contract it also implements. ContractBase deliberately does not, which makes it the case where a
-// component rejects an attribute-named service type it isn't based on.
+// service rejects an attribute-named service type it isn't based on.
 [Contract(typeof(IProvidedServiceA))]
 public class ContractStore : IProvidedServiceA;
 
@@ -222,7 +222,7 @@ public class LifestyleAttribute(ServiceLifetime lifetime) : Attribute, ILifestyl
 }
 
 /// <summary>
-///     A second <see cref="IServiceLifetimeProvider"/> attribute. The shipped <see cref="LifetimeAttribute"/> is
+///     A second <see cref="IServiceLifetimeProvider"/> attribute. The shipped <see cref="AsLifetimeAttribute"/> is
 ///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two lifetime attributes
 ///     (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
 ///     <c>inherited</c> flag on the <see cref="IServiceLifetimeProvider"/> path.
@@ -237,21 +237,21 @@ public interface ILifetimeAlpha;
 
 public interface ILifetimeBeta;
 
-[Lifetime(ServiceLifetime.Scoped)]
+[AsLifetime(ServiceLifetime.Scoped)]
 public class ScopedLifetimeStore;
 
-[Lifetime(ServiceLifetime.Transient)]
+[AsLifetime(ServiceLifetime.Transient)]
 public class TransientLifetimeStore;
 
-[Lifetime(ServiceLifetime.Singleton)]
+[AsLifetime(ServiceLifetime.Singleton)]
 public class SingletonLifetimeStore;
 
-[Lifetime(ServiceLifetime.Scoped)]
+[AsLifetime(ServiceLifetime.Scoped)]
 [AltLifetime(ServiceLifetime.Transient)]
 public class MultiLifetimeStore;
 
-// [Lifetime] is declared Inherited = false, so its lifetime does not flow to LifetimeDerived.
-[Lifetime(ServiceLifetime.Scoped)]
+// [AsLifetime] is declared Inherited = false, so its lifetime does not flow to LifetimeDerived.
+[AsLifetime(ServiceLifetime.Scoped)]
 public class LifetimeBase;
 
 public class LifetimeDerived : LifetimeBase;
@@ -268,10 +268,10 @@ public class LifestyleBase;
 
 public class LifestyleDerived : LifestyleBase;
 
-// Multi-interface implementations that declare their own lifetime, for verifying that Singleton components still
-// share one instance while Transient components are registered independently.
-[Lifetime(ServiceLifetime.Singleton)]
+// Multi-interface implementations that declare their own lifetime, for verifying that Singleton services still
+// share one instance while Transient services are registered independently.
+[AsLifetime(ServiceLifetime.Singleton)]
 public class SingletonMultiStore : ILifetimeAlpha, ILifetimeBeta;
 
-[Lifetime(ServiceLifetime.Transient)]
+[AsLifetime(ServiceLifetime.Transient)]
 public class TransientMultiStore : ILifetimeAlpha, ILifetimeBeta;

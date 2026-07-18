@@ -137,7 +137,7 @@ public class InMemoryRepository<T> : IRepository<T> { }
 
 Selects `SqlCustomerRepository` and `SqlOrderRepository` (both closed). `InMemoryRepository<T>` is excluded because it is an open generic.
 
-> Open and closed generic registrations behave differently when an implementation is forwarded as a shared component. See [Open generic limitation](shared-components.md#open-generic-limitation).
+> Open and closed generic registrations behave differently when an implementation is forwarded as a shared service. See [Open generic limitation](shared-services.md#open-generic-limitation).
 
 ## `InNamespace(string)` / `InNamespace(string, bool)`
 

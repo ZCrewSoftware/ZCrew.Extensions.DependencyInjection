@@ -11,10 +11,10 @@ public class MultiEnumerationTests
     private static readonly Type[] SourceTypes = [typeof(CustomerService), typeof(SqlCustomerRepository)];
 
     [Fact]
-    public void ServiceSource_WhenConstructed_ShouldNotEnumerateComponents()
+    public void ServiceSource_WhenConstructed_ShouldNotEnumerateServices()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
 
         // Act
         _ = new ServiceSource(source);
@@ -24,12 +24,12 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceSource_WhenTerminated_ShouldEnumerateComponentsOnce()
+    public void ServiceSource_WhenTerminated_ShouldEnumerateServicesOnce()
     {
-        // Arrange — a ServiceSource holds finalized components, so give them a lifetime (the lifetime stage would
+        // Arrange — a ServiceSource holds finalized services, so give them a lifetime (the lifetime stage would
         // normally do this before a ServiceSource is produced).
-        var source = new CountingSource<ServiceComponent>(
-            Components().Select(component => component.AsLifetime(ServiceLifetime.Singleton))
+        var source = new CountingSource<Service>(
+            Services().Select(service => service.AsLifetime(ServiceLifetime.Singleton))
         );
         var serviceSource = new ServiceSource(source);
 
@@ -41,10 +41,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceLifetimeSelector_WhenConstructed_ShouldNotEnumerateComponents()
+    public void ServiceLifetimeSelector_WhenConstructed_ShouldNotEnumerateServices()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
 
         // Act
         _ = new ServiceLifetimeSelector(source);
@@ -54,10 +54,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceLifetimeSelector_WhenTerminatedWithDefaultLifetime_ShouldEnumerateComponentsOnce()
+    public void ServiceLifetimeSelector_WhenTerminatedWithDefaultLifetime_ShouldEnumerateServicesOnce()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
         var selector = new ServiceLifetimeSelector(source);
 
         // Act
@@ -68,10 +68,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceLifetimeSelector_WhenTerminatedAfterAsLifetime_ShouldEnumerateComponentsOnce()
+    public void ServiceLifetimeSelector_WhenTerminatedAfterAsLifetime_ShouldEnumerateServicesOnce()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
         var selector = new ServiceLifetimeSelector(source);
 
         // Act
@@ -82,10 +82,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceKeySelector_WhenConstructed_ShouldNotEnumerateComponents()
+    public void ServiceKeySelector_WhenConstructed_ShouldNotEnumerateServices()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
 
         // Act
         _ = new ServiceKeySelector(source);
@@ -95,10 +95,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceKeySelector_WhenTerminatedUnkeyed_ShouldEnumerateComponentsOnce()
+    public void ServiceKeySelector_WhenTerminatedUnkeyed_ShouldEnumerateServicesOnce()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
         var selector = new ServiceKeySelector(source);
 
         // Act
@@ -109,10 +109,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceKeySelector_WhenTerminatedAfterKeyed_ShouldEnumerateComponentsOnce()
+    public void ServiceKeySelector_WhenTerminatedAfterKeyed_ShouldEnumerateServicesOnce()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
         var selector = new ServiceKeySelector(source);
 
         // Act
@@ -219,10 +219,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceSelector_WhenConstructedFromComponents_ShouldNotEnumerateComponents()
+    public void ServiceSelector_WhenConstructedFromServices_ShouldNotEnumerateServices()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
 
         // Act
         _ = new ServiceSelector(source, [typeof(object)]);
@@ -232,10 +232,10 @@ public class MultiEnumerationTests
     }
 
     [Fact]
-    public void ServiceSelector_WhenTerminatedFromComponents_ShouldEnumerateComponentsOnce()
+    public void ServiceSelector_WhenTerminatedFromServices_ShouldEnumerateServicesOnce()
     {
         // Arrange
-        var source = new CountingSource<ServiceComponent>(Components());
+        var source = new CountingSource<Service>(Services());
         var selector = new ServiceSelector(source, [typeof(object)]);
 
         // Act
@@ -259,12 +259,12 @@ public class MultiEnumerationTests
         Assert.Equal(1, source.EnumerationCount);
     }
 
-    private static IEnumerable<ServiceComponent> Components()
+    private static IEnumerable<Service> Services()
     {
         return
         [
-            new ServiceComponent(typeof(CustomerService), [typeof(ICustomerService)]),
-            new ServiceComponent(typeof(OrderService), [typeof(IOrderService)]),
+            new Service(typeof(CustomerService), [typeof(ICustomerService)]),
+            new Service(typeof(OrderService), [typeof(IOrderService)]),
         ];
     }
 

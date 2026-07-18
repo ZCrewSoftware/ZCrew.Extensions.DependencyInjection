@@ -7,16 +7,16 @@ using Fixtures.SmallProject.Infrastructure.Persistence;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class ServiceComponentExtensionsTypeTests
+public class ServiceExtensionsTypeTests
 {
     [Fact]
     public void AsAllTypes_WhenCalled_ShouldAddNonAbstractBaseClassesAndInterfaces()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.AsAllTypes();
+        var result = service.AsAllTypes();
 
         // Assert
         Assert.Equal(typeof(SqlCustomerRepository), result.ServiceTypes[0]);
@@ -30,13 +30,13 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenCalled_ShouldRepeatTheSeededImplementation()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.AsAllTypes();
+        var result = service.AsAllTypes();
 
-        // Assert — GetTypes() yields the implementation first, which the component already carries. The duplicate is
-        // collapsed when the component is registered.
+        // Assert — GetTypes() yields the implementation first, which the service already carries. The duplicate is
+        // collapsed when the service is registered.
         Assert.Equal(2, result.ServiceTypes.Count(service => service == typeof(SqlCustomerRepository)));
     }
 
@@ -44,10 +44,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllNonSystemTypes_WhenCalled_ShouldExcludeSystemTypesAndAbstractBaseClasses()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.AsAllNonSystemTypes();
+        var result = service.AsAllNonSystemTypes();
 
         // Assert
         Assert.Contains(typeof(ICustomerRepository), result.ServiceTypes);
@@ -61,10 +61,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenTypeExtendsConcreteBase_ShouldAddBaseAndInheritedInterfaces()
     {
         // Arrange
-        var component = Component.From<CachingPayPalPaymentGateway>();
+        var service = Service.From<CachingPayPalPaymentGateway>();
 
         // Act
-        var result = component.AsAllTypes();
+        var result = service.AsAllTypes();
 
         // Assert
         Assert.Contains(typeof(PayPalPaymentGateway), result.ServiceTypes);
@@ -76,10 +76,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultTypes_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var service = Service.From<CustomerService>();
 
         // Act
-        var result = component.AsDefaultTypes();
+        var result = service.AsDefaultTypes();
 
         // Assert
         Assert.Contains(typeof(ICustomerService), result.ServiceTypes);
@@ -90,10 +90,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultTypes_WhenNoConventionMatch_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<Customer>();
+        var service = Service.From<Customer>();
 
         // Act
-        var result = component.AsDefaultTypes();
+        var result = service.AsDefaultTypes();
 
         // Assert — GetTypes() still yields Customer itself, which matches its own name by convention.
         Assert.Equal([typeof(Customer), typeof(Customer)], result.ServiceTypes);
@@ -103,10 +103,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultNonSystemTypes_WhenCalled_ShouldCombineBothFilters()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.AsDefaultNonSystemTypes();
+        var result = service.AsDefaultNonSystemTypes();
 
         // Assert
         Assert.Contains(typeof(ICustomerRepository), result.ServiceTypes);
@@ -119,10 +119,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultNonSystemTypes_WhenBaseClassNameMatchesConvention_ShouldAddBase()
     {
         // Arrange
-        var component = Component.From<CachingPayPalPaymentGateway>();
+        var service = Service.From<CachingPayPalPaymentGateway>();
 
         // Act
-        var result = component.AsDefaultNonSystemTypes();
+        var result = service.AsDefaultNonSystemTypes();
 
         // Assert
         Assert.Contains(typeof(PayPalPaymentGateway), result.ServiceTypes);
@@ -134,10 +134,10 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.AsAllTypes();
+        var result = service.AsAllTypes();
 
         // Assert
         Assert.Equal(typeof(SqlCustomerRepository), result.ImplementationType);

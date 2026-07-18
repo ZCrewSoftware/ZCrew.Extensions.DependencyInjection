@@ -21,27 +21,27 @@ Each stage is optional after the entry point. Skip any stage and the next call a
 
 `Classes` is the typical choice. Use `Types` when you need to discover interface types or value types.
 
-## Single components
+## Single services
 
-`Component.From` skips the whole chain and registers **one known type** against services you name. The component starts registered as the type itself and every added service is forwarded to it, so a `Singleton` or `Scoped` component shares one instance.
+`Service.From` skips the whole chain and registers **one known type** against services you name. The service starts registered as the type itself and every added service is forwarded to it, so a `Singleton` or `Scoped` service shares one instance.
 
 | Method                         | Effect                                                     |
 |--------------------------------|------------------------------------------------------------|
-| `Component.From(Type)`         | Start a component, registered against the type itself      |
+| `Service.From(Type)`         | Start a service, registered against the type itself      |
 | `As<T1>()` … `As<T1, …, T8>()` | Add one to eight services, forwarded to the implementation |
 | `As(Type)`                     | Add one service, forwarded to the implementation           |
 | `As(IEnumerable<Type>)`        | Add several services, forwarded to the implementation      |
 | `AsLifetime(ServiceLifetime)`  | Set the lifetime — defaults to `Singleton`                 |
 | `AsLifetime(Func<Type, …>)`    | Set the lifetime from the implementation type              |
 | `Keyed(object?)` / `Unkeyed()` | Assign or remove a service key                             |
-| `services.Add(component, …)`   | Add one or more components (`params`)                      |
+| `services.Add(service, …)`   | Add one or more services (`params`)                      |
 
 ```csharp
-services.Add(Component.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDisposable>());
+services.Add(Service.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDisposable>());
 // Both interfaces resolve to one shared PayPalPaymentGateway
 ```
 
-Services can also be picked by convention, using the same selectors as the chain — the implementation is kept and the component stays shared.
+Services can also be picked by convention, using the same selectors as the chain — the implementation is kept and the service stays shared.
 
 | Method                                                              | Service types added                                             |
 |---------------------------------------------------------------------|------------------------------------------------------------------|
@@ -49,16 +49,16 @@ Services can also be picked by convention, using the same selectors as the chain
 | `AsDefaultInterfaces()` / `AsDefaultNonSystemInterfaces()`          | Interfaces whose name appears in the class name                 |
 | `AsFirstInterface()`                                                | The first interface in metadata order                           |
 | `AsAllTypes()` / `AsDefaultTypes()` / `…NonSystemTypes()`           | As above, plus non-abstract base classes                        |
-| `AsServicesFromAttribute(…)`                                        | Service types from a `[Services(...)]` or projected attribute    |
+| `AsServicesFromAttribute(…)`                                        | Service types from a `[AsServices(...)]` or projected attribute    |
 
 ```csharp
-services.Add(Component.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
+services.Add(Service.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
 // PayPalPaymentGateway + IPaymentGateway, sharing one instance
 ```
 
-There is no `AsSelf()`, `AsBase()`, or `*OrSelf` on a component — the implementation is always seeded, and there is no `BasedOn` stage to supply base types.
+There is no `AsSelf()`, `AsBase()`, or `*OrSelf` on a service — the implementation is always seeded, and there is no `BasedOn` stage to supply base types.
 
-`As` throws `ArgumentException` if the implementation isn't based on a service — including services named by an attribute. When a selector matches nothing, the implementation stays registered on its own rather than dropping out. Open generic components can't have services added — they can't be forwarded. For more on components see [components.md](components.md).
+`As` throws `ArgumentException` if the implementation isn't based on a service — including services named by an attribute. When a selector matches nothing, the implementation stays registered on its own rather than dropping out. Open generic services can't have services added — they can't be forwarded. For more on services see [services.md](services.md).
 
 ## Assembly visibility
 
@@ -105,7 +105,7 @@ Map each impl type to one or more service types. Selectors return `ServiceSelect
 | `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                                         |
 | `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                            |
 | `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                                   |
-| `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[Services(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
+| `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[AsServices(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
 
 For more on selector behavior see [service-selectors.md](service-selectors.md).
 
@@ -134,11 +134,11 @@ The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a
 | `AsTransient()`                           | Transient | New instance per resolution                                                                   |
 | `AsLifetime(ServiceLifetime)`             | Custom    | Explicit lifetime for the whole chain                                                         |
 | `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | Lifetime computed from the implementation type                                                |
-| `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[Lifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
+| `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[AsLifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
 
 Skipping the stage defaults to `Singleton`.
 
-**Sharing is automatic.** When one implementation is mapped to multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it, so they resolve to a single shared instance. Otherwise — a single service type, a transient lifetime, or a selection that excludes the implementation — each service type is registered independently. See [shared-components.md](shared-components.md) for the full model.
+**Sharing is automatic.** When one implementation is mapped to multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it, so they resolve to a single shared instance. Otherwise — a single service type, a transient lifetime, or a selection that excludes the implementation — each service type is registered independently. See [shared-services.md](shared-services.md) for the full model.
 
 ## Adding to the container
 

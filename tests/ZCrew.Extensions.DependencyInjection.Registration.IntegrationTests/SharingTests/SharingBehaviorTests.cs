@@ -109,7 +109,7 @@ public class SharingBehaviorTests
     [Fact]
     public void Keyed_WhenImplIsSelectedAmongMultipleServices_ShouldShareSingleInstance()
     {
-        // Arrange — the implementation is registered under the component's key, so the forwarded services have to
+        // Arrange — the implementation is registered under the service's key, so the forwarded services have to
         // resolve it back through that key rather than through the unkeyed lookup.
         var services = Classes
             .From(typeof(PayPalPaymentGateway))

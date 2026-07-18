@@ -9,14 +9,14 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceLifetimeSelector : ServiceSource
 {
-    private readonly IEnumerable<ServiceComponent> components;
+    private readonly IEnumerable<Service> services;
 
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
-    internal ServiceLifetimeSelector(IEnumerable<ServiceComponent> components)
-        : base(components.Select(component => component.AsLifetime(ServiceLifetime.Singleton)))
+    internal ServiceLifetimeSelector(IEnumerable<Service> services)
+        : base(services.Select(service => service.AsLifetime(ServiceLifetime.Singleton)))
     {
-        this.components = components;
+        this.services = services;
     }
     // ReSharper restore PossibleMultipleEnumeration
 
@@ -28,7 +28,7 @@ public class ServiceLifetimeSelector : ServiceSource
     /// <param name="lifetime">The target service lifetime.</param>
     public ServiceSource AsLifetime(ServiceLifetime lifetime)
     {
-        return new ServiceSource(this.components.Select(component => component.AsLifetime(lifetime)));
+        return new ServiceSource(this.services.Select(service => service.AsLifetime(lifetime)));
     }
 
     /// <summary>
@@ -49,6 +49,6 @@ public class ServiceLifetimeSelector : ServiceSource
     public ServiceSource AsLifetime(Func<Type, ServiceLifetime> lifetimeSelector)
     {
         ArgumentNullException.ThrowIfNull(lifetimeSelector);
-        return new ServiceSource(this.components.Select(component => component.AsLifetime(lifetimeSelector)));
+        return new ServiceSource(this.services.Select(service => service.AsLifetime(lifetimeSelector)));
     }
 }

@@ -9,11 +9,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceSource
 {
-    private readonly IEnumerable<ServiceComponent> components;
+    private readonly IEnumerable<Service> services;
 
-    internal ServiceSource(IEnumerable<ServiceComponent> components)
+    internal ServiceSource(IEnumerable<Service> services)
     {
-        this.components = components;
+        this.services = services;
     }
 
     /// <summary>
@@ -23,9 +23,9 @@ public class ServiceSource
     /// <returns>The resulting service collection.</returns>
     public IServiceCollection ToServiceCollection(IServiceCollection serviceCollection)
     {
-        foreach (var component in this.components)
+        foreach (var service in this.services)
         {
-            component.AddServiceDescriptors(serviceCollection);
+            service.AddServiceDescriptors(serviceCollection);
         }
         return serviceCollection;
     }

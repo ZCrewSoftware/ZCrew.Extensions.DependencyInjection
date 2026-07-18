@@ -7,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.IntegrationTests.SharingTests;
 
-public class ComponentSharingTests
+public class ServiceSharingTests
 {
     [Fact]
     public void From_WhenServicesAddedWithDefaultLifetime_ShouldShareSingleInstance()
     {
-        // Arrange — a component seeds itself as a service, so its services forward to it with no AsSelf equivalent.
+        // Arrange — a service seeds itself as a service, so its services forward to it with no AsSelf equivalent.
         var services = new ServiceCollection();
-        services.Add(Component.From<PayPalPaymentGateway>().As<IPaymentGateway, IDisposable>());
+        services.Add(Service.From<PayPalPaymentGateway>().As<IPaymentGateway, IDisposable>());
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -33,7 +33,7 @@ public class ComponentSharingTests
         // Arrange
         var services = new ServiceCollection();
         services.Add(
-            Component
+            Service
                 .From<PayPalPaymentGateway>()
                 .As<IPaymentGateway, IDisposable>()
                 .AsLifetime(ServiceLifetime.Scoped)
@@ -55,7 +55,7 @@ public class ComponentSharingTests
         // Arrange
         var services = new ServiceCollection();
         services.Add(
-            Component
+            Service
                 .From<PayPalPaymentGateway>()
                 .As<IPaymentGateway>()
                 .AsLifetime(ServiceLifetime.Scoped)
@@ -84,7 +84,7 @@ public class ComponentSharingTests
         // Arrange — a transient can never share, so each service type registers independently.
         var services = new ServiceCollection();
         services.Add(
-            Component
+            Service
                 .From<PayPalPaymentGateway>()
                 .As<IPaymentGateway>()
                 .AsLifetime(ServiceLifetime.Transient)
@@ -105,7 +105,7 @@ public class ComponentSharingTests
         // Arrange
         var services = new ServiceCollection();
         services.Add(
-            Component
+            Service
                 .From<SqlCustomerRepository>()
                 .As<ICustomerRepository, IRepository<Customer>, IReadOnlyRepository<Customer>>()
         );
@@ -128,7 +128,7 @@ public class ComponentSharingTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.Add(Component.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
+        services.Add(Service.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
         var provider = services.BuildServiceProvider();
 
         // Act
@@ -143,11 +143,11 @@ public class ComponentSharingTests
     public void From_WhenOpenGenericSelectsServicesByConvention_ShouldThrowOnAdd()
     {
         // Arrange — selection itself is fine; forwarding an open generic is what the container cannot do.
-        var component = Component.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
+        var service = Service.From(typeof(InMemoryRepository<>)).AsAllInterfaces();
         var services = new ServiceCollection();
 
         // Act
-        Action act = () => services.Add(component);
+        Action act = () => services.Add(service);
 
         // Assert
         var exception = Assert.Throws<InvalidOperationException>(act);
@@ -159,7 +159,7 @@ public class ComponentSharingTests
     {
         // Arrange
         var services = new ServiceCollection();
-        services.Add(Component.From<PayPalPaymentGateway>().As<IPaymentGateway, IDisposable>().Keyed("PayPal"));
+        services.Add(Service.From<PayPalPaymentGateway>().As<IPaymentGateway, IDisposable>().Keyed("PayPal"));
         var provider = services.BuildServiceProvider();
 
         // Act

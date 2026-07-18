@@ -5,7 +5,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// <summary>
 ///     Represents a provider for a <see cref="ServiceDescriptor.Lifetime"/>.
 /// </summary>
-/// <seealso cref="LifetimeAttribute"/>
+/// <seealso cref="AsLifetimeAttribute"/>
 public interface IServiceLifetimeProvider
 {
     /// <summary>
