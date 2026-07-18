@@ -1,11 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
-///     Intermediate between the <see cref="ServiceSelector"/> and the raw <see cref="ServiceDescriptor"/>.
+///     A single implementation type registered against one or more service types. Intermediate between the
+///     <see cref="ServiceSelector"/> and the raw <see cref="ServiceDescriptor"/>. For
+///     <see cref="ServiceLifetime.Singleton"/> and <see cref="ServiceLifetime.Scoped"/> registrations that include
+///     the implementation among the services, all services resolve to a single shared instance. Begin a registration
+///     with <see cref="From(Type)"/> or <see cref="From{T}"/>.
 /// </summary>
-public readonly record struct ServiceComponent
+public readonly record struct Service
 {
     private readonly Type implementation;
     private readonly IReadOnlyList<Type> services;
@@ -20,7 +25,7 @@ public readonly record struct ServiceComponent
     ///     services are added on top of it, so they resolve to a single shared instance.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
-    internal ServiceComponent(Type implementation)
+    internal Service(Type implementation)
     {
         this.implementation = implementation;
         this.services = [implementation];
@@ -31,7 +36,7 @@ public readonly record struct ServiceComponent
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
-    internal ServiceComponent(Type implementation, IReadOnlyList<Type> services)
+    internal Service(Type implementation, IReadOnlyList<Type> services)
     {
         this.implementation = implementation;
         this.services = services;
@@ -46,7 +51,7 @@ public readonly record struct ServiceComponent
     /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
     /// <param name="serviceKey">The shared service key.</param>
     /// <param name="serviceKeyProvider">The dynamic service key provider.</param>
-    private ServiceComponent(
+    private Service(
         Type implementation,
         IReadOnlyList<Type> services,
         ServiceLifetime? lifetime,
@@ -61,6 +66,30 @@ public readonly record struct ServiceComponent
         this.lifetimeProvider = lifetimeProvider;
         this.serviceKey = serviceKey;
         this.serviceKeyProvider = serviceKeyProvider;
+    }
+
+    /// <summary>
+    ///     Begins registration from the specified <paramref name="type"/>. The service is registered against the
+    ///     <paramref name="type"/> itself; services added with <c>As</c> are forwarded to it.
+    /// </summary>
+    /// <param name="type">The implementation type to build a registration from.</param>
+    public static Service From(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
+    )
+    {
+        return new Service(type);
+    }
+
+    /// <summary>
+    ///     Begins registration from the specified type parameter <typeparamref name="T"/>. The service is registered
+    ///     against the type itself; services added with <c>As</c> are forwarded to it.
+    /// </summary>
+    /// <typeparam name="T">The implementation type to build a registration from.</typeparam>
+    public static Service From<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T
+    >()
+    {
+        return new Service(typeof(T));
     }
 
     /// <summary>
@@ -83,7 +112,7 @@ public readonly record struct ServiceComponent
     /// <exception cref="ArgumentException">
     ///     If the <paramref name="service"/> isn't a base type of the implementation.
     /// </exception>
-    public ServiceComponent As(Type service)
+    public Service As(Type service)
     {
         ArgumentNullException.ThrowIfNull(service);
 
@@ -93,7 +122,7 @@ public readonly record struct ServiceComponent
                 $"The implementation {this.implementation} is not based on the service type {service}"
             );
         }
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services.Append(service).ToArray(),
             this.lifetime,
@@ -111,7 +140,7 @@ public readonly record struct ServiceComponent
     /// <param name="services">The services to add.</param>
     /// <returns>The modified component or the same component if no services were added.</returns>
     /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
-    public ServiceComponent As(IEnumerable<Type> services)
+    public Service As(IEnumerable<Type> services)
     {
         return As(_ => services);
     }
@@ -124,7 +153,7 @@ public readonly record struct ServiceComponent
     /// <param name="serviceSelector">The delegate that provides services.</param>
     /// <returns>The modified component or the same component if no services were added.</returns>
     /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
-    public ServiceComponent As(Func<Type, IEnumerable<Type>> serviceSelector)
+    public Service As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
         var services =  serviceSelector(this.implementation);
@@ -153,9 +182,9 @@ public readonly record struct ServiceComponent
     /// </summary>
     /// <param name="services">The services to add.</param>
     /// <returns>The modified component or the same component if no services were added.</returns>
-    internal ServiceComponent AsUnchecked(IEnumerable<Type> services)
+    internal Service AsUnchecked(IEnumerable<Type> services)
     {
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services.Concat(services).ToArray(),
             this.lifetime,
@@ -170,14 +199,14 @@ public readonly record struct ServiceComponent
     /// </summary>
     /// <param name="lifetime">The lifetime.</param>
     /// <returns>The modified component or the same component if the <see cref="lifetime"/> was the same.</returns>
-    public ServiceComponent AsLifetime(ServiceLifetime lifetime)
+    public Service AsLifetime(ServiceLifetime lifetime)
     {
         if (lifetime == this.lifetime && this.lifetimeProvider == null)
         {
             return this;
         }
 
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services,
             lifetime,
@@ -195,14 +224,14 @@ public readonly record struct ServiceComponent
     /// <returns>
     ///         The modified component or the same component if the <see cref="lifetimeProvider"/> was the same reference.
     /// </returns>
-    public ServiceComponent AsLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
+    public Service AsLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
     {
         if (lifetimeProvider == this.lifetimeProvider)
         {
             return this;
         }
 
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services,
             this.lifetime,
@@ -215,15 +244,15 @@ public readonly record struct ServiceComponent
     /// <summary>
     ///     Remove any service keys from the component.
     /// </summary>
-    /// <returns>The modified <see cref="ServiceComponent"/> or the same component if it was already unkeyed.</returns>
-    public ServiceComponent Unkeyed()
+    /// <returns>The modified <see cref="Service"/> or the same component if it was already unkeyed.</returns>
+    public Service Unkeyed()
     {
         if (this.serviceKeyProvider == null && this.serviceKey == null)
         {
             return this;
         }
 
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services,
             this.lifetime,
@@ -237,15 +266,15 @@ public readonly record struct ServiceComponent
     ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the component.
     /// </summary>
     /// <param name="serviceKey">The shared service key.</param>
-    /// <returns>The modified <see cref="ServiceComponent"/> or the same component if it was already keyed.</returns>
-    public ServiceComponent Keyed(object? serviceKey)
+    /// <returns>The modified <see cref="Service"/> or the same component if it was already keyed.</returns>
+    public Service Keyed(object? serviceKey)
     {
         if (serviceKey == this.serviceKey)
         {
             return this;
         }
 
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services,
             this.lifetime,
@@ -261,7 +290,7 @@ public readonly record struct ServiceComponent
     /// <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="serviceKeyProvider">The service key provider.</param>
-    public ServiceComponent Keyed(Func<Type, Type, object?> serviceKeyProvider)
+    public Service Keyed(Func<Type, Type, object?> serviceKeyProvider)
     {
         ArgumentNullException.ThrowIfNull(serviceKeyProvider);
         if (serviceKeyProvider == this.serviceKeyProvider)
@@ -269,7 +298,7 @@ public readonly record struct ServiceComponent
             return this;
         }
 
-        return new ServiceComponent(
+        return new Service(
             this.implementation,
             this.services,
             this.lifetime,

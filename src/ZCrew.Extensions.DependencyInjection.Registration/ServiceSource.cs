@@ -9,9 +9,9 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceSource
 {
-    private readonly IEnumerable<ServiceComponent> components;
+    private readonly IEnumerable<Service> components;
 
-    internal ServiceSource(IEnumerable<ServiceComponent> components)
+    internal ServiceSource(IEnumerable<Service> components)
     {
         this.components = components;
     }

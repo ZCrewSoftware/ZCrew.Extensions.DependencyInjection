@@ -23,8 +23,8 @@
     <Compile Update="TypeFilterExtensions.*.cs">
       <DependentUpon>TypeFilterExtensions.cs</DependentUpon>
     </Compile>
-    <Compile Update="ServiceComponentExtensions.*.cs">
-      <DependentUpon>ServiceComponentExtensions.cs</DependentUpon>
+    <Compile Update="ServiceExtensions.*.cs">
+      <DependentUpon>ServiceExtensions.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

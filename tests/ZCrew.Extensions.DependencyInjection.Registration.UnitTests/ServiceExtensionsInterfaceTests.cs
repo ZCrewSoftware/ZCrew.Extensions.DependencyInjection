@@ -6,13 +6,13 @@ using Fixtures.SmallProject.Infrastructure.External;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class ServiceComponentExtensionsInterfaceTests
+public class ServiceExtensionsInterfaceTests
 {
     [Fact]
     public void AsAllInterfaces_WhenCalled_ShouldKeepImplementationFirstThenAddInterfaces()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.AsAllInterfaces();
@@ -28,7 +28,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsAllInterfaces_WhenNoInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<Customer>();
+        var component = Service.From<Customer>();
 
         // Act
         var result = component.AsAllInterfaces();
@@ -41,7 +41,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsAllNonSystemInterfaces_WhenCalled_ShouldExcludeSystemInterfaces()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.AsAllNonSystemInterfaces();
@@ -54,7 +54,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsAllNonSystemInterfaces_WhenOnlySystemInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<Address>();
+        var component = Service.From<Address>();
 
         // Act
         var result = component.AsAllNonSystemInterfaces();
@@ -67,7 +67,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsDefaultInterfaces_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
 
         // Act
         var result = component.AsDefaultInterfaces();
@@ -80,7 +80,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsDefaultInterfaces_WhenNoConventionMatch_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<LegacyOrderProcessor>();
+        var component = Service.From<LegacyOrderProcessor>();
 
         // Act
         var result = component.AsDefaultInterfaces();
@@ -93,7 +93,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsDefaultNonSystemInterfaces_WhenCalled_ShouldCombineBothFilters()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.AsDefaultNonSystemInterfaces();
@@ -106,7 +106,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsFirstInterface_WhenCalled_ShouldAddFirstInterface()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
 
         // Act
         var result = component.AsFirstInterface();
@@ -121,7 +121,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsFirstInterface_WhenNoInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<Customer>();
+        var component = Service.From<Customer>();
 
         // Act
         var result = component.AsFirstInterface();
@@ -134,7 +134,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsAllInterfaces_WhenChainedWithAsDefaultInterfaces_ShouldAccumulateInFirstOccurrenceOrder()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.AsDefaultInterfaces().AsAllInterfaces();
@@ -152,7 +152,7 @@ public class ServiceComponentExtensionsInterfaceTests
     public void AsAllInterfaces_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.AsAllInterfaces();

@@ -11,20 +11,20 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceSelector : ServiceKeySelector
 {
-    private readonly IEnumerable<ServiceComponent>? components;
+    private readonly IEnumerable<Service>? components;
     private readonly IEnumerable<Type>? types;
     private readonly IEnumerable<Type> baseTypes;
 
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
     internal ServiceSelector(IEnumerable<Type> types, IEnumerable<Type> baseTypes)
-        : base(types.Select(type => new ServiceComponent(type, [type])))
+        : base(types.Select(type => new Service(type, [type])))
     {
         this.types = types;
         this.baseTypes = baseTypes;
     }
 
-    internal ServiceSelector(IEnumerable<ServiceComponent> components, IEnumerable<Type> baseTypes)
+    internal ServiceSelector(IEnumerable<Service> components, IEnumerable<Type> baseTypes)
         : base(components)
     {
         this.components = components;
@@ -61,7 +61,7 @@ public class ServiceSelector : ServiceKeySelector
         }
         Debug.Assert(this.types != null);
         return new ServiceSelector(
-            this.types.Select(type => new ServiceComponent(type, serviceSelector(type).ToArray())),
+            this.types.Select(type => new Service(type, serviceSelector(type).ToArray())),
             this.baseTypes
         );
     }
@@ -105,7 +105,7 @@ public class ServiceSelector : ServiceKeySelector
             {
                 var assignableBaseTypes = type.GetMatchingBaseTypes(this.baseTypes).ToArray();
                 var services = serviceSelector(type, assignableBaseTypes).ToArray();
-                return new ServiceComponent(type, services);
+                return new Service(type, services);
             }),
             this.baseTypes
         );

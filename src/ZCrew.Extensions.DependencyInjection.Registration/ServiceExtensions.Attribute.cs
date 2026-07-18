@@ -2,9 +2,9 @@ using System.Reflection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-public static partial class ServiceComponentExtensions
+public static partial class ServiceExtensions
 {
-    extension(ServiceComponent component)
+    extension(Service component)
     {
         /// <summary>
         ///     Adds the service types returned by the <see cref="IServiceTypesProvider"/> attribute applied to the
@@ -13,7 +13,7 @@ public static partial class ServiceComponentExtensions
         /// </summary>
         /// <example>
         ///     <code>
-        ///     Component.From&lt;StripePaymentGateway&gt;().AsServicesFromAttribute()
+        ///     Service.From&lt;StripePaymentGateway&gt;().AsServicesFromAttribute()
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if no service types were found.</returns>
@@ -23,7 +23,7 @@ public static partial class ServiceComponentExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when the implementation has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute()
+        public Service AsServicesFromAttribute()
         {
             return component.AsServicesFromAttribute(true);
         }
@@ -44,7 +44,7 @@ public static partial class ServiceComponentExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when the implementation has more than one <see cref="IServiceTypesProvider"/> attribute.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute(bool inherited)
+        public Service AsServicesFromAttribute(bool inherited)
         {
             return component.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
         }
@@ -59,7 +59,7 @@ public static partial class ServiceComponentExtensions
         /// <typeparam name="TAttribute">The attribute type or marker interface to search for.</typeparam>
         /// <example>
         ///     <code>
-        ///     Component.From&lt;ContractStore&gt;()
+        ///     Service.From&lt;ContractStore&gt;()
         ///         .AsServicesFromAttribute&lt;ContractAttribute&gt;(attribute => attribute.Contracts)
         ///     </code>
         /// </example>
@@ -70,7 +70,7 @@ public static partial class ServiceComponentExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when the implementation has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute<TAttribute>(
+        public Service AsServicesFromAttribute<TAttribute>(
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
             where TAttribute : class
@@ -96,7 +96,7 @@ public static partial class ServiceComponentExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when the implementation has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute<TAttribute>(
+        public Service AsServicesFromAttribute<TAttribute>(
             bool inherited,
             Func<TAttribute, IEnumerable<Type>> serviceSelector
         )
@@ -120,7 +120,7 @@ public static partial class ServiceComponentExtensions
         /// <param name="serviceSelector">A function that maps the matching attribute to the service types.</param>
         /// <example>
         ///     <code>
-        ///     Component.From&lt;ContractStore&gt;()
+        ///     Service.From&lt;ContractStore&gt;()
         ///         .AsServicesFromAttribute(typeof(ContractAttribute), attribute => ((ContractAttribute)attribute).Contracts)
         ///     </code>
         /// </example>
@@ -132,7 +132,7 @@ public static partial class ServiceComponentExtensions
         ///     Thrown when the implementation has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute(
+        public Service AsServicesFromAttribute(
             Type attributeType,
             Func<Attribute, IEnumerable<Type>> serviceSelector
         )
@@ -160,7 +160,7 @@ public static partial class ServiceComponentExtensions
         ///     Thrown when the implementation has more than one attribute assignable to
         ///     <paramref name="attributeType"/>.
         /// </exception>
-        public ServiceComponent AsServicesFromAttribute(
+        public Service AsServicesFromAttribute(
             Type attributeType,
             bool inherited,
             Func<Attribute, IEnumerable<Type>> serviceSelector

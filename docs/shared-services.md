@@ -1,6 +1,6 @@
-# Shared Components
+# Shared Services
 
-When a single implementation is registered against multiple service types — for example, `PayPalPaymentGateway` registered as both `IPaymentGateway` and `IDisposable` — you sometimes want every service type to resolve to the **same instance** within a given scope or process. This mirrors Castle Windsor's [shared component](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md#components-with-multiple-services-forwarded-types) model.
+When a single implementation is registered against multiple service types — for example, `PayPalPaymentGateway` registered as both `IPaymentGateway` and `IDisposable` — you sometimes want every service type to resolve to the **same instance** within a given scope or process. This mirrors Castle Windsor's [shared service](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md#components-with-multiple-services-forwarded-types) model.
 
 Microsoft's container does not do this by default. Adding two `Singleton` registrations for the same implementation type produces **two separate instances**:
 
@@ -17,7 +17,7 @@ Sharing is **automatic** — there is no separate mode to configure. Whether an 
 1. The resolved **lifetime**. `Transient` registrations are never shared — a transient produces a new instance on every resolution by definition.
 2. Whether the **implementation type is itself one of the selected service types**.
 
-A shared component is produced only when **all** of the following hold:
+A shared service is produced only when **all** of the following hold:
 
 - the lifetime is `Singleton` or `Scoped`,
 - the implementation is mapped to **more than one** service type, and
@@ -68,7 +68,7 @@ By contrast, `AsAllInterfaces().AsSingleton()` maps the implementation to `IPaym
 | `AsScoped()`    | One instance per scope. Shared across the selected service types within a scope when the implementation is one of them. |
 | `AsTransient()` | A new instance on every resolution. Never shared.                                                                       |
 
-To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [Lifetime from attributes](#lifetime-from-attributes)). The same sharing rules are applied per component, based on the lifetime resolved for it.
+To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [AsLifetime from attributes](#lifetime-from-attributes)). The same sharing rules are applied per service, based on the lifetime resolved for it.
 
 ## Single-service short-circuit
 
@@ -90,11 +90,11 @@ Instead of applying one lifetime to the whole chain, `AsLifetimeByAttribute` rea
 - **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
 - **No match means Singleton.** Implementation types without a matching attribute fall back to `ServiceLifetime.Singleton` — the same lifetime a skipped lifetime stage would use.
 - **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
-- **Transient components are never shared.** A component whose resolved lifetime is `Transient` registers each service type independently, because a transient can never share an instance.
+- **Transient services are never shared.** A service whose resolved lifetime is `Transient` registers each service type independently, because a transient can never share an instance.
 
 ## `AsLifetimeByAttribute()`
 
-Reads the lifetime from any attribute that implements the library's `IServiceLifetimeProvider` interface. The library ships a ready-made one — `[Lifetime]` — so the common case needs no custom attribute:
+Reads the lifetime from any attribute that implements the library's `IServiceLifetimeProvider` interface. The library ships a ready-made one — `[AsLifetime]` — so the common case needs no custom attribute:
 
 ```csharp
 services.Add(
@@ -107,10 +107,10 @@ services.Add(
 Given:
 
 ```csharp
-[Lifetime(ServiceLifetime.Singleton)]
+[AsLifetime(ServiceLifetime.Singleton)]
 public class CustomerService : ICustomerService { }
 
-[Lifetime(ServiceLifetime.Scoped)]
+[AsLifetime(ServiceLifetime.Scoped)]
 public class OrderService : IOrderService { }
 ```
 
@@ -121,7 +121,7 @@ CustomerService → ICustomerService (Singleton)
 OrderService    → IOrderService    (Scoped)
 ```
 
-`[Lifetime]` is declared `Inherited = false` — matching `[Keyed]` — so a lifetime does not flow to subclasses by default (this also keeps runtime and source-generated registration in agreement, since a source generator only sees attributes declared directly on a type). Types with no `IServiceLifetimeProvider` attribute fall back to `ServiceLifetime.Singleton`.
+`[AsLifetime]` is declared `Inherited = false` — matching `[Keyed]` — so a lifetime does not flow to subclasses by default (this also keeps runtime and source-generated registration in agreement, since a source generator only sees attributes declared directly on a type). Types with no `IServiceLifetimeProvider` attribute fall back to `ServiceLifetime.Singleton`.
 
 To declare lifetimes with your own attribute instead, implement `IServiceLifetimeProvider`:
 
@@ -182,7 +182,7 @@ Microsoft's container does not support factory-based resolution of open generic 
 services.AddSingleton(typeof(IRepository<>), sp => sp.GetRequiredService(typeof(Repository<>)));
 ```
 
-Because a shared component forwards its other service types through a factory, it cannot be produced for an open generic implementation. This case is detected and fails fast at registration time — but only when the shared-component path is actually taken (the open generic implementation is one of multiple selected service types under a `Singleton` or `Scoped` lifetime):
+Because a shared service forwards its other service types through a factory, it cannot be produced for an open generic implementation. This case is detected and fails fast at registration time — but only when the shared-service path is actually taken (the open generic implementation is one of multiple selected service types under a `Singleton` or `Scoped` lifetime):
 
 ```csharp
 Classes.FromAssemblyContaining(typeof(Repository<>))

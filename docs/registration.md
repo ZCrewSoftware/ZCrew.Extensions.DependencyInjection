@@ -1,6 +1,6 @@
 # Convention-Based Registration
 
-`ZCrew.Extensions.DependencyInjection.Registration` adds convention-based service registration to Microsoft's dependency injection container, inspired by [Castle Windsor's registration API](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-by-conventions.md).
+`ZCrew.Extensions.DependencyInjection.Registration` adds convention-based service registration to Microsoft's dependency injection container, inspired by [Castle Windsor's registration API](https://github.com/castleproject/Windsor/blob/master/docs/registering-services-by-conventions.md).
 
 Instead of registering each service one-by-one:
 

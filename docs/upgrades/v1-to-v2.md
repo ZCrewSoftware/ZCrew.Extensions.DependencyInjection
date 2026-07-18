@@ -99,7 +99,7 @@ Two related v2 rules worth knowing:
 - **Open generics cannot be shared.** Microsoft DI does not support factory-based resolution of open generics ([dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)). `SharedComponent` and `Dependent` modes throw `InvalidOperationException` for open-generic implementations; use `Independent` for those.
 - **Transient + sharing is rejected.** `AsLifetime(ServiceLifetime.Transient, sharingMode)` throws `ArgumentException` when `sharingMode != Independent` (in v1 sharing on transients was silently ignored).
 
-See [Shared Components](../shared-components.md) for the full model.
+See [Shared Components](../shared-services.md) for the full model.
 
 ## Most fluent methods moved from interfaces to extension methods
 

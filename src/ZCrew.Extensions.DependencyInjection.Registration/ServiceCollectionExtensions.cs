@@ -16,7 +16,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </remarks>
 public static class ServiceCollectionExtensions
 {
-    extension(IServiceCollection services)
+    extension(IServiceCollection serviceCollection)
     {
         /// <summary>
         ///     Adds the descriptors, unchanged, into this service collection.
@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
         /// </remarks>
         public IServiceCollection Add(IServiceCollection descriptors)
         {
-            return services.Add((IEnumerable<ServiceDescriptor>)descriptors);
+            return serviceCollection.Add((IEnumerable<ServiceDescriptor>)descriptors);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ public static class ServiceCollectionExtensions
         /// </remarks>
         public IServiceCollection AddServices(IServiceCollection descriptors)
         {
-            return services.Add((IEnumerable<ServiceDescriptor>)descriptors);
+            return serviceCollection.Add((IEnumerable<ServiceDescriptor>)descriptors);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ public static class ServiceCollectionExtensions
         /// </remarks>
         public IServiceCollection Add(ServiceSource descriptors)
         {
-            return services.Add(descriptors.ToServiceCollection());
+            return serviceCollection.Add(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -71,37 +71,37 @@ public static class ServiceCollectionExtensions
         /// </remarks>
         public IServiceCollection AddServices(ServiceSource descriptors)
         {
-            return services.AddServices(descriptors.ToServiceCollection());
+            return serviceCollection.AddServices(descriptors.ToServiceCollection());
         }
 
         /// <summary>
-        ///     Adds the descriptors represented by the <paramref name="component"/> into this service collection.
+        ///     Adds the descriptors represented by the <paramref name="service"/> into this service collection.
         /// </summary>
-        /// <param name="component">The component to add.</param>
+        /// <param name="service">The component to add.</param>
         /// <remarks>
         ///     A component with no lifetime set is registered as <see cref="ServiceLifetime.Singleton"/>.
         /// </remarks>
-        public IServiceCollection Add(ServiceComponent component)
+        public IServiceCollection Add(Service service)
         {
-            component.AddServiceDescriptors(services);
-            return services;
+            service.AddServiceDescriptors(serviceCollection);
+            return serviceCollection;
         }
 
         /// <summary>
-        ///     Adds the descriptors represented by each of the <paramref name="components"/> into this service
+        ///     Adds the descriptors represented by each of the <paramref name="services"/> into this service
         ///     collection.
         /// </summary>
-        /// <param name="components">The components to add.</param>
+        /// <param name="services">The services to add.</param>
         /// <remarks>
         ///     A component with no lifetime set is registered as <see cref="ServiceLifetime.Singleton"/>.
         /// </remarks>
-        public IServiceCollection Add(params ServiceComponent[] components)
+        public IServiceCollection Add(params Service[] services)
         {
-            foreach (var component in components)
+            foreach (var component in services)
             {
-                component.AddServiceDescriptors(services);
+                component.AddServiceDescriptors(serviceCollection);
             }
-            return services;
+            return serviceCollection;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ServiceSource descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ServiceLifetimeSelector descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ServiceKeySelector descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(ServiceSelector descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(TypeFilter descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>
@@ -155,91 +155,91 @@ public static class ServiceCollectionExtensions
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddSingleton(AssemblyTypeSelector descriptors)
         {
-            return services.AddSingleton(descriptors.ToServiceCollection());
+            return serviceCollection.AddSingleton(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(ServiceSource descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(ServiceLifetimeSelector descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(ServiceKeySelector descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(ServiceSelector descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(TypeFilter descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Scoped"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddScoped(AssemblyTypeSelector descriptors)
         {
-            return services.AddScoped(descriptors.ToServiceCollection());
+            return serviceCollection.AddScoped(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(ServiceSource descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(ServiceLifetimeSelector descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(ServiceKeySelector descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(ServiceSelector descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(TypeFilter descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
 
         /// <summary>Adds the descriptors as <see cref="ServiceLifetime.Transient"/> registrations.</summary>
         /// <param name="descriptors">The service descriptors to add.</param>
         public IServiceCollection AddTransient(AssemblyTypeSelector descriptors)
         {
-            return services.AddTransient(descriptors.ToServiceCollection());
+            return serviceCollection.AddTransient(descriptors.ToServiceCollection());
         }
     }
 }

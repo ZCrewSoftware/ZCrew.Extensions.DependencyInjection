@@ -7,13 +7,13 @@ using Fixtures.SmallProject.Infrastructure.Persistence;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class ServiceComponentExtensionsTypeTests
+public class ServiceExtensionsTypeTests
 {
     [Fact]
     public void AsAllTypes_WhenCalled_ShouldAddNonAbstractBaseClassesAndInterfaces()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.AsAllTypes();
@@ -30,7 +30,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenCalled_ShouldRepeatTheSeededImplementation()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.AsAllTypes();
@@ -44,7 +44,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllNonSystemTypes_WhenCalled_ShouldExcludeSystemTypesAndAbstractBaseClasses()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.AsAllNonSystemTypes();
@@ -61,7 +61,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenTypeExtendsConcreteBase_ShouldAddBaseAndInheritedInterfaces()
     {
         // Arrange
-        var component = Component.From<CachingPayPalPaymentGateway>();
+        var component = Service.From<CachingPayPalPaymentGateway>();
 
         // Act
         var result = component.AsAllTypes();
@@ -76,7 +76,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultTypes_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
 
         // Act
         var result = component.AsDefaultTypes();
@@ -90,7 +90,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultTypes_WhenNoConventionMatch_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<Customer>();
+        var component = Service.From<Customer>();
 
         // Act
         var result = component.AsDefaultTypes();
@@ -103,7 +103,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultNonSystemTypes_WhenCalled_ShouldCombineBothFilters()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.AsDefaultNonSystemTypes();
@@ -119,7 +119,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsDefaultNonSystemTypes_WhenBaseClassNameMatchesConvention_ShouldAddBase()
     {
         // Arrange
-        var component = Component.From<CachingPayPalPaymentGateway>();
+        var component = Service.From<CachingPayPalPaymentGateway>();
 
         // Act
         var result = component.AsDefaultNonSystemTypes();
@@ -134,7 +134,7 @@ public class ServiceComponentExtensionsTypeTests
     public void AsAllTypes_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.AsAllTypes();

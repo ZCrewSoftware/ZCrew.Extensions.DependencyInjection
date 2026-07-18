@@ -76,10 +76,10 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenCalledWithServiceComponent_ShouldAddDescriptors()
+    public void Add_WhenCalledWithService_ShouldAddDescriptors()
     {
         // Arrange
-        var component = Component.From<CustomerService>().As<ICustomerService>();
+        var component = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
@@ -92,10 +92,10 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenCalledWithServiceComponent_ShouldReturnSameServiceCollection()
+    public void Add_WhenCalledWithService_ShouldReturnSameServiceCollection()
     {
         // Arrange
-        var component = Component.From<CustomerService>().As<ICustomerService>();
+        var component = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
@@ -106,11 +106,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenCalledWithMultipleServiceComponents_ShouldAddAllDescriptors()
+    public void Add_WhenCalledWithMultipleServices_ShouldAddAllDescriptors()
     {
         // Arrange
-        var customers = Component.From<CustomerService>().As<ICustomerService>();
-        var orders = Component.From<OrderService>().As<IOrderService>();
+        var customers = Service.From<CustomerService>().As<ICustomerService>();
+        var orders = Service.From<OrderService>().As<IOrderService>();
         var services = new ServiceCollection();
 
         // Act
@@ -125,8 +125,8 @@ public class ServiceCollectionExtensionsTests
     [Fact]
     public void Add_WhenComponentHasNoLifetime_ShouldAddDescriptorsWithSingletonLifetime()
     {
-        // Arrange — Component.From does not pass through the lifetime stage, so nothing sets a lifetime.
-        var component = Component.From<CustomerService>().As<ICustomerService>();
+        // Arrange — Service.From does not pass through the lifetime stage, so nothing sets a lifetime.
+        var component = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
@@ -140,7 +140,7 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenComponentHasLifetime_ShouldAddDescriptorsWithComponentLifetime()
     {
         // Arrange
-        var component = Component
+        var component = Service
             .From<CustomerService>()
             .As<ICustomerService>()
             .AsLifetime(ServiceLifetime.Scoped);
@@ -157,7 +157,7 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenComponentIsKeyed_ShouldAddKeyedDescriptors()
     {
         // Arrange
-        var component = Component.From<CustomerService>().As<ICustomerService>().Keyed("primary");
+        var component = Service.From<CustomerService>().As<ICustomerService>().Keyed("primary");
         var services = new ServiceCollection();
 
         // Act
@@ -171,7 +171,7 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenComponentHasNoServicesAdded_ShouldRegisterImplementationAsItself()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
         var services = new ServiceCollection();
 
         // Act
@@ -187,7 +187,7 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenComponentServiceIsDuplicated_ShouldRegisterServiceOnce()
     {
         // Arrange
-        var component = Component.From<CustomerService>().As<ICustomerService>().As<ICustomerService>();
+        var component = Service.From<CustomerService>().As<ICustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
@@ -202,7 +202,7 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange — the implementation is always among a component's services, so an open generic component with any
         // added service takes the forwarding path, which Microsoft's container cannot do for open generics.
-        var component = Component.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>));
+        var component = Service.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>));
         var services = new ServiceCollection();
 
         // Act
@@ -217,7 +217,7 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenComponentIsOpenGenericWithoutServices_ShouldRegisterImplementationAsItself()
     {
         // Arrange
-        var component = Component.From(typeof(InMemoryRepository<>));
+        var component = Service.From(typeof(InMemoryRepository<>));
         var services = new ServiceCollection();
 
         // Act

@@ -152,7 +152,7 @@ public class ServiceLifetimeSelectorExtensionsTests
     [Fact]
     public void AsLifetimeByAttribute_WhenAttributeIsNonInherited_ShouldApplyOnlyToDeclaringType()
     {
-        // Arrange — [Lifetime] is declared Inherited = false, so the lifetime does not flow to derived types
+        // Arrange — [AsLifetime] is declared Inherited = false, so the lifetime does not flow to derived types
         var source = Classes.From(typeof(LifetimeBase), typeof(LifetimeDerived)).AsSelf();
 
         // Act

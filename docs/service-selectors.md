@@ -1,6 +1,6 @@
 # Service Selectors
 
-Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceSelector`, so selectors can be **chained** (e.g. `AsSelf().AsAllInterfaces()`) — see [Combining selectors](#combining-selectors) — and the chain then flows into [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-components.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
+Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceSelector`, so selectors can be **chained** (e.g. `AsSelf().AsAllInterfaces()`) — see [Combining selectors](#combining-selectors) — and the chain then flows into [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-services.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
 
 Service types can also be declared with **attributes on the implementation type** via `AsServicesFromAttribute` (see [Selecting services from attributes](#selecting-services-from-attributes)).
 
@@ -14,7 +14,7 @@ Classes.From(typeof(SqlCustomerRepository))
     .AsAllInterfaces() // ICustomerRepository, IRepository<Customer>, … (SqlCustomerRepository is not repeated)
 ```
 
-This is the idiomatic way to include the implementation among its own service types so they resolve to a single [shared instance](shared-components.md): `AsSelf().AsAllInterfaces().AsSingleton()` registers `SqlCustomerRepository` once and forwards every interface to it. Selectors that map interfaces only (without `AsSelf()`) register each service type independently.
+This is the idiomatic way to include the implementation among its own service types so they resolve to a single [shared instance](shared-services.md): `AsSelf().AsAllInterfaces().AsSingleton()` registers `SqlCustomerRepository` once and forwards every interface to it. Selectors that map interfaces only (without `AsSelf()`) register each service type independently.
 
 The selectors below are therefore **not mutually exclusive** — the [Choosing the right selector](#choosing-the-right-selector) table lists the individual strategies, any number of which can be combined.
 
@@ -340,7 +340,7 @@ Instead of computing service types from interfaces or delegates, `AsServicesFrom
 
 ### `AsServicesFromAttribute()`
 
-Reads the service types from any attribute that implements the library's `IServiceTypesProvider` interface. The library ships a ready-made one — `[Services]` — so the common case needs no custom attribute:
+Reads the service types from any attribute that implements the library's `IServiceTypesProvider` interface. The library ships a ready-made one — `[AsServices]` — so the common case needs no custom attribute:
 
 ```csharp
 Classes.FromThisAssembly()
@@ -350,7 +350,7 @@ Classes.FromThisAssembly()
 Given:
 
 ```csharp
-[Services(typeof(ICustomerService), typeof(IAuditService))]
+[AsServices(typeof(ICustomerService), typeof(IAuditService))]
 public class CustomerService : ICustomerService, IAuditService { }
 ```
 
@@ -361,14 +361,14 @@ CustomerService → ICustomerService
 CustomerService → IAuditService
 ```
 
-When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. Chain `AsSelf()` (or see [shared components](shared-components.md)) to opt into a single shared instance.
+When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. Chain `AsSelf()` (or see [shared services](shared-services.md)) to opt into a single shared instance.
 
-`[Services]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
+`[AsServices]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
 
 ```csharp
 Classes.FromThisAssembly()
     .AsServicesFromAttributeOrSelf()
-// A type without [Services] is registered as itself instead of being skipped.
+// A type without [AsServices] is registered as itself instead of being skipped.
 ```
 
 To declare service types with your own attribute instead, implement `IServiceTypesProvider`:
@@ -430,7 +430,7 @@ Selectors are **not mutually exclusive** — [chain](#combining-selectors) any n
 | Register as the base type itself   | `AsBase()`                   | `OrderValidator` → `IValidator<Order>`          |
 | Register as the concrete type      | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
 | Custom logic                       | `As(delegate)`               | Full control via a function                     |
-| Service types from an attribute    | `AsServicesFromAttribute()`  | `[Services(typeof(ICustomerService))]`          |
+| Service types from an attribute    | `AsServicesFromAttribute()`  | `[AsServices(typeof(ICustomerService))]`          |
 
 ## Type-based variants
 

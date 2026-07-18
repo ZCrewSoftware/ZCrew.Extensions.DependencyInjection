@@ -3,13 +3,13 @@ using Fixtures.SmallProject.Attributes;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class ServiceComponentExtensionsAttributeTests
+public class ServiceExtensionsAttributeTests
 {
     [Fact]
     public void AsServicesFromAttribute_WhenAttributeProvidesOneService_ShouldAddItAfterImplementation()
     {
         // Arrange
-        var component = Component.From<SingleServiceStore>();
+        var component = Service.From<SingleServiceStore>();
 
         // Act
         var result = component.AsServicesFromAttribute();
@@ -22,7 +22,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeProvidesSeveralServices_ShouldAddAllInOrder()
     {
         // Arrange
-        var component = Component.From<MultiServiceStore>();
+        var component = Service.From<MultiServiceStore>();
 
         // Act
         var result = component.AsServicesFromAttribute();
@@ -38,7 +38,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenNoAttribute_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<UnmarkedStore>();
+        var component = Service.From<UnmarkedStore>();
 
         // Act
         var result = component.AsServicesFromAttribute();
@@ -51,7 +51,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeIsInheritedAndInheritedRequested_ShouldAddProvidedServices()
     {
         // Arrange
-        var component = Component.From<InheritableServicesDerived>();
+        var component = Service.From<InheritableServicesDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute();
@@ -64,7 +64,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Component.From<InheritableServicesDerived>();
+        var component = Service.From<InheritableServicesDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute(false);
@@ -76,8 +76,8 @@ public class ServiceComponentExtensionsAttributeTests
     [Fact]
     public void AsServicesFromAttribute_WhenAttributeIsNotInheritable_ShouldRegisterImplementationAlone()
     {
-        // Arrange — [Services] is declared Inherited = false, so it does not flow to the derived type.
-        var component = Component.From<ServicesDerived>();
+        // Arrange — [AsServices] is declared Inherited = false, so it does not flow to the derived type.
+        var component = Service.From<ServicesDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute();
@@ -90,7 +90,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenSeveralProviderAttributes_ShouldThrow()
     {
         // Act
-        Action act = () => Component.From<MultiServiceProvidedStore>().AsServicesFromAttribute();
+        Action act = () => Service.From<MultiServiceProvidedStore>().AsServicesFromAttribute();
 
         // Assert
         Assert.Throws<AmbiguousMatchException>(act);
@@ -102,7 +102,7 @@ public class ServiceComponentExtensionsAttributeTests
         // Act — ContractBase declares a contract it does not implement. The chain accepts this unchecked; a
         // component validates eagerly.
         Action act = () =>
-            Component.From<ContractBase>().AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
+            Service.From<ContractBase>().AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
 
         // Assert
         var exception = Assert.Throws<ArgumentException>(act);
@@ -113,7 +113,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenAttributeProjectsServices_ShouldAddThem()
     {
         // Arrange
-        var component = Component.From<ContractStore>();
+        var component = Service.From<ContractStore>();
 
         // Act
         var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
@@ -126,7 +126,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Component.From<ContractStoreDerived>();
+        var component = Service.From<ContractStoreDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute<ContractAttribute>(false, attribute => attribute.Contracts);
@@ -139,7 +139,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenInheritedRequested_ShouldProjectInheritedAttribute()
     {
         // Arrange
-        var component = Component.From<ContractStoreDerived>();
+        var component = Service.From<ContractStoreDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
@@ -152,7 +152,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenNoAttribute_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Component.From<UnmarkedStore>();
+        var component = Service.From<UnmarkedStore>();
 
         // Act
         var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
@@ -165,7 +165,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenServiceSelectorIsNull_ShouldThrow()
     {
         // Act
-        Action act = () => Component.From<ContractStore>().AsServicesFromAttribute<ContractAttribute>(null!);
+        Action act = () => Service.From<ContractStore>().AsServicesFromAttribute<ContractAttribute>(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -175,7 +175,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WithAttributeType_WhenAttributeProjectsServices_ShouldAddThem()
     {
         // Arrange
-        var component = Component.From<ContractStore>();
+        var component = Service.From<ContractStore>();
 
         // Act
         var result = component.AsServicesFromAttribute(
@@ -191,7 +191,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WithAttributeType_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Component.From<ContractStoreDerived>();
+        var component = Service.From<ContractStoreDerived>();
 
         // Act
         var result = component.AsServicesFromAttribute(
@@ -208,7 +208,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WithAttributeType_WhenServiceSelectorIsNull_ShouldThrow()
     {
         // Act
-        Action act = () => Component.From<ContractStore>().AsServicesFromAttribute(typeof(ContractAttribute), null!);
+        Action act = () => Service.From<ContractStore>().AsServicesFromAttribute(typeof(ContractAttribute), null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
@@ -218,7 +218,7 @@ public class ServiceComponentExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Component.From<SingleServiceStore>();
+        var component = Service.From<SingleServiceStore>();
 
         // Act
         var result = component.AsServicesFromAttribute();

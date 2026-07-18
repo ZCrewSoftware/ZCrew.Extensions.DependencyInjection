@@ -7,13 +7,13 @@ using Fixtures.SmallProject.Infrastructure.Persistence;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class ServiceComponentExtensionsTests
+public class ServiceExtensionsTests
 {
     [Fact]
     public void As_T_WhenCalled_ShouldAddServiceAfterImplementation()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
 
         // Act
         var result = component.As<ICustomerService>();
@@ -26,7 +26,7 @@ public class ServiceComponentExtensionsTests
     public void As_T2_WhenCalled_ShouldAddBothServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<ICustomerRepository, IRepository<Customer>>();
@@ -42,7 +42,7 @@ public class ServiceComponentExtensionsTests
     public void As_T3_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<ICustomerRepository, IRepository<Customer>, IReadOnlyRepository<Customer>>();
@@ -63,7 +63,7 @@ public class ServiceComponentExtensionsTests
     public void As_T4_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<
@@ -90,7 +90,7 @@ public class ServiceComponentExtensionsTests
     public void As_T5_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<
@@ -119,7 +119,7 @@ public class ServiceComponentExtensionsTests
     public void As_T6_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<
@@ -150,7 +150,7 @@ public class ServiceComponentExtensionsTests
     public void As_T7_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<
@@ -184,7 +184,7 @@ public class ServiceComponentExtensionsTests
     {
         // Arrange — SqlCustomerRepository has exactly eight base types counting itself, so the widest overload needs
         // the implementation as one of its type arguments. It is already seeded, hence the repeat.
-        var component = Component.From<SqlCustomerRepository>();
+        var component = Service.From<SqlCustomerRepository>();
 
         // Act
         var result = component.As<
@@ -219,7 +219,7 @@ public class ServiceComponentExtensionsTests
     public void As_T_WhenChained_ShouldAccumulateServices()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.As<IPaymentGateway>().As<IDisposable>();
@@ -235,7 +235,7 @@ public class ServiceComponentExtensionsTests
     public void As_T_WhenMixedWithNonGenericOverload_ShouldAccumulateServices()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.As<IPaymentGateway>().As(typeof(IDisposable));
@@ -251,7 +251,7 @@ public class ServiceComponentExtensionsTests
     public void As_T_WhenServiceIsAlreadySelected_ShouldKeepDuplicate()
     {
         // Arrange
-        var component = Component.From<PayPalPaymentGateway>();
+        var component = Service.From<PayPalPaymentGateway>();
 
         // Act
         var result = component.As<IPaymentGateway>().As<IPaymentGateway>();
@@ -267,7 +267,7 @@ public class ServiceComponentExtensionsTests
     public void As_T_WhenServiceIsNotBaseTypeOfImplementation_ShouldThrow()
     {
         // Act
-        Action act = () => Component.From<CustomerService>().As<IPaymentGateway>();
+        Action act = () => Service.From<CustomerService>().As<IPaymentGateway>();
 
         // Assert
         var exception = Assert.Throws<ArgumentException>(act);
@@ -278,7 +278,7 @@ public class ServiceComponentExtensionsTests
     public void As_T2_WhenAnyServiceIsNotBaseTypeOfImplementation_ShouldThrow()
     {
         // Act
-        Action act = () => Component.From<CustomerService>().As<ICustomerService, IPaymentGateway>();
+        Action act = () => Service.From<CustomerService>().As<ICustomerService, IPaymentGateway>();
 
         // Assert
         var exception = Assert.Throws<ArgumentException>(act);
@@ -289,7 +289,7 @@ public class ServiceComponentExtensionsTests
     public void As_T_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Component.From<CustomerService>();
+        var component = Service.From<CustomerService>();
 
         // Act
         var result = component.As<ICustomerService>();

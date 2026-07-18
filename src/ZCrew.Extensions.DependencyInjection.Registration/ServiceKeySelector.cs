@@ -7,11 +7,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceKeySelector : ServiceLifetimeSelector
 {
-    private readonly IEnumerable<ServiceComponent> components;
+    private readonly IEnumerable<Service> components;
 
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
-    internal ServiceKeySelector(IEnumerable<ServiceComponent> components)
+    internal ServiceKeySelector(IEnumerable<Service> components)
         : base(components)
     {
         this.components = components;

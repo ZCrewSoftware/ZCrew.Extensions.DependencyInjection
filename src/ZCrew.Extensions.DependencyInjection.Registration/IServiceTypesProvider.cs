@@ -6,7 +6,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Represents a provider for the <see cref="ServiceDescriptor.ServiceType"/>(s) an implementation is registered
 ///     against.
 /// </summary>
-/// <seealso cref="ServicesAttribute"/>
+/// <seealso cref="AsServicesAttribute"/>
 public interface IServiceTypesProvider
 {
     /// <summary>

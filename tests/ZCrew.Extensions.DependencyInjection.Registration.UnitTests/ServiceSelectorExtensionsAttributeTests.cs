@@ -82,7 +82,7 @@ public class ServiceSelectorExtensionsAttributeTests
     [Fact]
     public void AsServicesFromAttribute_WhenAttributeNonInherited_ShouldRegisterOnlyDeclaringType()
     {
-        // Arrange — [Services] is declared Inherited = false, so the service types do not flow to derived types
+        // Arrange — [AsServices] is declared Inherited = false, so the service types do not flow to derived types
         var source = Classes.From(typeof(ServicesBase), typeof(ServicesDerived));
 
         // Act

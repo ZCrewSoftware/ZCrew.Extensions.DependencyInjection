@@ -1,8 +1,8 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-public static partial class ServiceComponentExtensions
+public static partial class ServiceExtensions
 {
-    extension(ServiceComponent component)
+    extension(Service component)
     {
         /// <summary>
         ///     Adds every non-abstract class the implementation extends and every interface it implements to the
@@ -11,14 +11,14 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsAllTypes()
+        ///     Service.From&lt;CustomerRepository&gt;().AsAllTypes()
         ///     // Registers CustomerRepository as CustomerRepository, ICustomerRepository
         ///     // and IDisposable
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
         /// <returns>The modified component.</returns>
-        public ServiceComponent AsAllTypes()
+        public Service AsAllTypes()
         {
             return component.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
         }
@@ -30,14 +30,14 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsAllNonSystemTypes()
+        ///     Service.From&lt;CustomerRepository&gt;().AsAllNonSystemTypes()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     // (IDisposable is in System and is excluded)
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
         /// <returns>The modified component.</returns>
-        public ServiceComponent AsAllNonSystemTypes()
+        public Service AsAllNonSystemTypes()
         {
             return component.As(type =>
                 type.GetTypes()
@@ -53,7 +53,7 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsDefaultTypes()
+        ///     Service.From&lt;CustomerRepository&gt;().AsDefaultTypes()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     // ("CustomerRepository" contains "CustomerRepository" from
         ///     // "ICustomerRepository", but not "Disposable" nor "AbstractRepository")
@@ -61,7 +61,7 @@ public static partial class ServiceComponentExtensions
         ///     </code>
         /// </example>
         /// <returns>The modified component.</returns>
-        public ServiceComponent AsDefaultTypes()
+        public Service AsDefaultTypes()
         {
             return component.As(type =>
                 type.GetTypes()
@@ -78,7 +78,7 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsDefaultNonSystemTypes()
+        ///     Service.From&lt;CustomerRepository&gt;().AsDefaultNonSystemTypes()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     // ("CustomerRepository" contains "CustomerRepository" from
         ///     // "ICustomerRepository", but not "Disposable" nor "AbstractRepository")
@@ -87,7 +87,7 @@ public static partial class ServiceComponentExtensions
         ///     </code>
         /// </example>
         /// <returns>The modified component.</returns>
-        public ServiceComponent AsDefaultNonSystemTypes()
+        public Service AsDefaultNonSystemTypes()
         {
             return component.As(type =>
                 type.GetTypes()

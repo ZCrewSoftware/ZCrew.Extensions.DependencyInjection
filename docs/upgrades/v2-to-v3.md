@@ -87,13 +87,13 @@ Classes.From(typeof(SqlCustomerRepository))
     .AsAllInterfaces() // plus every interface — SqlCustomerRepository is not repeated
 ```
 
-Chained selectors accumulate: the implementation is registered against the **distinct union** of every selected service type, preserving first-occurrence order. This is the idiomatic way to include the implementation among its service types for a [shared instance](../shared-components.md) (see below).
+Chained selectors accumulate: the implementation is registered against the **distinct union** of every selected service type, preserving first-occurrence order. This is the idiomatic way to include the implementation among its service types for a [shared instance](../shared-services.md) (see below).
 
 ## `SharingMode` was removed
 
 v2 exposed a second axis alongside the lifetime — a `SharingMode` (`SharedComponent` / `Dependent` / `Independent`) — surfaced through the `AsSingletonDependent()`, `AsSingletonIndependent()`, `AsScopedDependent()`, and `AsScopedIndependent()` helpers and the `AsLifetime(ServiceLifetime, SharingMode)` overload. All of these are gone in v3, along with the `SharingMode` enum itself.
 
-Sharing is now **automatic**: when an implementation is registered against multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it (a single shared instance). In every other case each service type is registered independently. See [shared-components.md](../shared-components.md) for the full model.
+Sharing is now **automatic**: when an implementation is registered against multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it (a single shared instance). In every other case each service type is registered independently. See [shared-services.md](../shared-services.md) for the full model.
 
 Migrate each removed helper:
 

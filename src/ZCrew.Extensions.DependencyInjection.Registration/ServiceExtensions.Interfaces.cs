@@ -1,8 +1,8 @@
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
-public static partial class ServiceComponentExtensions
+public static partial class ServiceExtensions
 {
-    extension(ServiceComponent component)
+    extension(Service component)
     {
         /// <summary>
         ///     Adds every interface the implementation implements to the component.
@@ -10,13 +10,13 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsAllInterfaces()
+        ///     Service.From&lt;CustomerRepository&gt;().AsAllInterfaces()
         ///     // Registers CustomerRepository as CustomerRepository, ICustomerRepository
         ///     // and IDisposable, all resolving to one shared instance
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if the implementation has no interfaces.</returns>
-        public ServiceComponent AsAllInterfaces()
+        public Service AsAllInterfaces()
         {
             return component.As(type => type.GetInterfaces());
         }
@@ -28,13 +28,13 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsAllNonSystemInterfaces()
+        ///     Service.From&lt;CustomerRepository&gt;().AsAllNonSystemInterfaces()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     // (IDisposable is in System and is excluded)
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if no interfaces matched.</returns>
-        public ServiceComponent AsAllNonSystemInterfaces()
+        public Service AsAllNonSystemInterfaces()
         {
             return component.As(type =>
                 type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
@@ -47,14 +47,14 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : ICustomerRepository, IDisposable</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsDefaultInterfaces()
+        ///     Service.From&lt;CustomerRepository&gt;().AsDefaultInterfaces()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     // ("CustomerRepository" contains "CustomerRepository" from
         ///     // "ICustomerRepository", but not "Disposable")
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if no interfaces matched.</returns>
-        public ServiceComponent AsDefaultInterfaces()
+        public Service AsDefaultInterfaces()
         {
             return component.As(type =>
                 type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
@@ -67,11 +67,11 @@ public static partial class ServiceComponentExtensions
         /// </summary>
         /// <example>
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsDefaultNonSystemInterfaces()
+        ///     Service.From&lt;CustomerRepository&gt;().AsDefaultNonSystemInterfaces()
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if no interfaces matched.</returns>
-        public ServiceComponent AsDefaultNonSystemInterfaces()
+        public Service AsDefaultNonSystemInterfaces()
         {
             return component.As(type =>
                 type.GetInterfaces()
@@ -86,12 +86,12 @@ public static partial class ServiceComponentExtensions
         /// <example>
         ///     Given <c>CustomerRepository : ICustomerRepository, IRepository</c>:
         ///     <code>
-        ///     Component.From&lt;CustomerRepository&gt;().AsFirstInterface()
+        ///     Service.From&lt;CustomerRepository&gt;().AsFirstInterface()
         ///     // Registers CustomerRepository as CustomerRepository and ICustomerRepository
         ///     </code>
         /// </example>
         /// <returns>The modified component, or the same component if the implementation has no interfaces.</returns>
-        public ServiceComponent AsFirstInterface()
+        public Service AsFirstInterface()
         {
             return component.As(type =>
             {
