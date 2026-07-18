@@ -13,10 +13,10 @@ public class ServiceExtensionsTests
     public void As_T_WhenCalled_ShouldAddServiceAfterImplementation()
     {
         // Arrange
-        var component = Service.From<CustomerService>();
+        var service = Service.From<CustomerService>();
 
         // Act
-        var result = component.As<ICustomerService>();
+        var result = service.As<ICustomerService>();
 
         // Assert
         Assert.Equal([typeof(CustomerService), typeof(ICustomerService)], result.ServiceTypes);
@@ -26,10 +26,10 @@ public class ServiceExtensionsTests
     public void As_T2_WhenCalled_ShouldAddBothServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<ICustomerRepository, IRepository<Customer>>();
+        var result = service.As<ICustomerRepository, IRepository<Customer>>();
 
         // Assert
         Assert.Equal(
@@ -42,10 +42,10 @@ public class ServiceExtensionsTests
     public void As_T3_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<ICustomerRepository, IRepository<Customer>, IReadOnlyRepository<Customer>>();
+        var result = service.As<ICustomerRepository, IRepository<Customer>, IReadOnlyRepository<Customer>>();
 
         // Assert
         Assert.Equal(
@@ -63,10 +63,10 @@ public class ServiceExtensionsTests
     public void As_T4_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<
+        var result = service.As<
             ICustomerRepository,
             IRepository<Customer>,
             IReadOnlyRepository<Customer>,
@@ -90,10 +90,10 @@ public class ServiceExtensionsTests
     public void As_T5_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<
+        var result = service.As<
             ICustomerRepository,
             IRepository<Customer>,
             IReadOnlyRepository<Customer>,
@@ -119,10 +119,10 @@ public class ServiceExtensionsTests
     public void As_T6_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<
+        var result = service.As<
             ICustomerRepository,
             IRepository<Customer>,
             IReadOnlyRepository<Customer>,
@@ -150,10 +150,10 @@ public class ServiceExtensionsTests
     public void As_T7_WhenCalled_ShouldAddAllServicesInOrder()
     {
         // Arrange
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<
+        var result = service.As<
             ICustomerRepository,
             IRepository<Customer>,
             IReadOnlyRepository<Customer>,
@@ -184,10 +184,10 @@ public class ServiceExtensionsTests
     {
         // Arrange — SqlCustomerRepository has exactly eight base types counting itself, so the widest overload needs
         // the implementation as one of its type arguments. It is already seeded, hence the repeat.
-        var component = Service.From<SqlCustomerRepository>();
+        var service = Service.From<SqlCustomerRepository>();
 
         // Act
-        var result = component.As<
+        var result = service.As<
             SqlCustomerRepository,
             ICustomerRepository,
             IRepository<Customer>,
@@ -219,10 +219,10 @@ public class ServiceExtensionsTests
     public void As_T_WhenChained_ShouldAccumulateServices()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.As<IPaymentGateway>().As<IDisposable>();
+        var result = service.As<IPaymentGateway>().As<IDisposable>();
 
         // Assert
         Assert.Equal(
@@ -235,10 +235,10 @@ public class ServiceExtensionsTests
     public void As_T_WhenMixedWithNonGenericOverload_ShouldAccumulateServices()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.As<IPaymentGateway>().As(typeof(IDisposable));
+        var result = service.As<IPaymentGateway>().As(typeof(IDisposable));
 
         // Assert
         Assert.Equal(
@@ -251,12 +251,12 @@ public class ServiceExtensionsTests
     public void As_T_WhenServiceIsAlreadySelected_ShouldKeepDuplicate()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.As<IPaymentGateway>().As<IPaymentGateway>();
+        var result = service.As<IPaymentGateway>().As<IPaymentGateway>();
 
-        // Assert — duplicates are kept on the component and collapsed when it is registered.
+        // Assert — duplicates are kept on the service and collapsed when it is registered.
         Assert.Equal(
             [typeof(PayPalPaymentGateway), typeof(IPaymentGateway), typeof(IPaymentGateway)],
             result.ServiceTypes
@@ -289,10 +289,10 @@ public class ServiceExtensionsTests
     public void As_T_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Service.From<CustomerService>();
+        var service = Service.From<CustomerService>();
 
         // Act
-        var result = component.As<ICustomerService>();
+        var result = service.As<ICustomerService>();
 
         // Assert
         Assert.Equal(typeof(CustomerService), result.ImplementationType);

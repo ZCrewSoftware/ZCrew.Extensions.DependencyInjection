@@ -9,10 +9,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeProvidesOneService_ShouldAddItAfterImplementation()
     {
         // Arrange
-        var component = Service.From<SingleServiceStore>();
+        var service = Service.From<SingleServiceStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
         // Assert
         Assert.Equal([typeof(SingleServiceStore), typeof(IProvidedServiceA)], result.ServiceTypes);
@@ -22,10 +22,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeProvidesSeveralServices_ShouldAddAllInOrder()
     {
         // Arrange
-        var component = Service.From<MultiServiceStore>();
+        var service = Service.From<MultiServiceStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
         // Assert
         Assert.Equal(
@@ -38,12 +38,12 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenNoAttribute_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<UnmarkedStore>();
+        var service = Service.From<UnmarkedStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
-        // Assert — the chain registers nothing here; a component always keeps its implementation.
+        // Assert — the chain registers nothing here; a service always keeps its implementation.
         Assert.Equal([typeof(UnmarkedStore)], result.ServiceTypes);
     }
 
@@ -51,10 +51,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeIsInheritedAndInheritedRequested_ShouldAddProvidedServices()
     {
         // Arrange
-        var component = Service.From<InheritableServicesDerived>();
+        var service = Service.From<InheritableServicesDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
         // Assert
         Assert.Equal([typeof(InheritableServicesDerived), typeof(IProvidedServiceB)], result.ServiceTypes);
@@ -64,10 +64,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Service.From<InheritableServicesDerived>();
+        var service = Service.From<InheritableServicesDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute(false);
+        var result = service.AsServicesFromAttribute(false);
 
         // Assert
         Assert.Equal([typeof(InheritableServicesDerived)], result.ServiceTypes);
@@ -77,10 +77,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeIsNotInheritable_ShouldRegisterImplementationAlone()
     {
         // Arrange — [AsServices] is declared Inherited = false, so it does not flow to the derived type.
-        var component = Service.From<ServicesDerived>();
+        var service = Service.From<ServicesDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
         // Assert
         Assert.Equal([typeof(ServicesDerived)], result.ServiceTypes);
@@ -100,7 +100,7 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenAttributeNamesUnrelatedService_ShouldThrow()
     {
         // Act — ContractBase declares a contract it does not implement. The chain accepts this unchecked; a
-        // component validates eagerly.
+        // service validates eagerly.
         Action act = () =>
             Service.From<ContractBase>().AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
 
@@ -113,10 +113,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenAttributeProjectsServices_ShouldAddThem()
     {
         // Arrange
-        var component = Service.From<ContractStore>();
+        var service = Service.From<ContractStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
+        var result = service.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
 
         // Assert
         Assert.Equal([typeof(ContractStore), typeof(IProvidedServiceA)], result.ServiceTypes);
@@ -126,10 +126,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Service.From<ContractStoreDerived>();
+        var service = Service.From<ContractStoreDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute<ContractAttribute>(false, attribute => attribute.Contracts);
+        var result = service.AsServicesFromAttribute<ContractAttribute>(false, attribute => attribute.Contracts);
 
         // Assert
         Assert.Equal([typeof(ContractStoreDerived)], result.ServiceTypes);
@@ -139,10 +139,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenInheritedRequested_ShouldProjectInheritedAttribute()
     {
         // Arrange
-        var component = Service.From<ContractStoreDerived>();
+        var service = Service.From<ContractStoreDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
+        var result = service.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
 
         // Assert
         Assert.Equal([typeof(ContractStoreDerived), typeof(IProvidedServiceA)], result.ServiceTypes);
@@ -152,10 +152,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_T_WhenNoAttribute_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<UnmarkedStore>();
+        var service = Service.From<UnmarkedStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
+        var result = service.AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts);
 
         // Assert
         Assert.Equal([typeof(UnmarkedStore)], result.ServiceTypes);
@@ -175,10 +175,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WithAttributeType_WhenAttributeProjectsServices_ShouldAddThem()
     {
         // Arrange
-        var component = Service.From<ContractStore>();
+        var service = Service.From<ContractStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute(
+        var result = service.AsServicesFromAttribute(
             typeof(ContractAttribute),
             attribute => ((ContractAttribute)attribute).Contracts
         );
@@ -191,10 +191,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WithAttributeType_WhenInheritedIsFalse_ShouldIgnoreInheritedAttribute()
     {
         // Arrange
-        var component = Service.From<ContractStoreDerived>();
+        var service = Service.From<ContractStoreDerived>();
 
         // Act
-        var result = component.AsServicesFromAttribute(
+        var result = service.AsServicesFromAttribute(
             typeof(ContractAttribute),
             false,
             attribute => ((ContractAttribute)attribute).Contracts
@@ -218,10 +218,10 @@ public class ServiceExtensionsAttributeTests
     public void AsServicesFromAttribute_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Service.From<SingleServiceStore>();
+        var service = Service.From<SingleServiceStore>();
 
         // Act
-        var result = component.AsServicesFromAttribute();
+        var result = service.AsServicesFromAttribute();
 
         // Assert
         Assert.Equal(typeof(SingleServiceStore), result.ImplementationType);

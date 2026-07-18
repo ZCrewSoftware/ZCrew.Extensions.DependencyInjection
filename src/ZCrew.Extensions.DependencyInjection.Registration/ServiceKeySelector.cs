@@ -7,14 +7,14 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceKeySelector : ServiceLifetimeSelector
 {
-    private readonly IEnumerable<Service> components;
+    private readonly IEnumerable<Service> services;
 
     // Single walk per terminal is verified by MultiEnumerationTests.
     // ReSharper disable PossibleMultipleEnumeration
-    internal ServiceKeySelector(IEnumerable<Service> components)
-        : base(components)
+    internal ServiceKeySelector(IEnumerable<Service> services)
+        : base(services)
     {
-        this.components = components;
+        this.services = services;
     }
     // ReSharper restore PossibleMultipleEnumeration
 
@@ -23,7 +23,7 @@ public class ServiceKeySelector : ServiceLifetimeSelector
     /// </summary>
     public ServiceLifetimeSelector Unkeyed()
     {
-        return new ServiceLifetimeSelector(this.components);
+        return new ServiceLifetimeSelector(this.services);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class ServiceKeySelector : ServiceLifetimeSelector
             return Unkeyed();
         }
 
-        return new ServiceLifetimeSelector(this.components.Select(component => component.Keyed(serviceKey)));
+        return new ServiceLifetimeSelector(this.services.Select(service => service.Keyed(serviceKey)));
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class ServiceKeySelector : ServiceLifetimeSelector
     public ServiceLifetimeSelector Keyed(Func<Type, Type, object?> serviceKeySelector)
     {
         ArgumentNullException.ThrowIfNull(serviceKeySelector);
-        return new ServiceLifetimeSelector(this.components.Select(component => component.Keyed(serviceKeySelector)));
+        return new ServiceLifetimeSelector(this.services.Select(service => service.Keyed(serviceKeySelector)));
     }
 
     private static ReadOnlySpan<char> StripGenericArity(ReadOnlySpan<char> name)

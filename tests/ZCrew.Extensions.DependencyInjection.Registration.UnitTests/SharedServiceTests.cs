@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
-public class SharedComponentTests
+public class SharedServiceTests
 {
     [Fact]
     public void AsSingleton_WhenSingleService_ShouldRegisterDirectly()

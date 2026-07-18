@@ -79,11 +79,11 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenCalledWithService_ShouldAddDescriptors()
     {
         // Arrange
-        var component = Service.From<CustomerService>().As<ICustomerService>();
+        var service = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert — the implementation is registered directly and the service forwards to it.
         Assert.Equal(2, services.Count);
@@ -95,11 +95,11 @@ public class ServiceCollectionExtensionsTests
     public void Add_WhenCalledWithService_ShouldReturnSameServiceCollection()
     {
         // Arrange
-        var component = Service.From<CustomerService>().As<ICustomerService>();
+        var service = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
-        var result = services.Add(component);
+        var result = services.Add(service);
 
         // Assert
         Assert.Same(services, result);
@@ -123,59 +123,59 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenComponentHasNoLifetime_ShouldAddDescriptorsWithSingletonLifetime()
+    public void Add_WhenServiceHasNoLifetime_ShouldAddDescriptorsWithSingletonLifetime()
     {
         // Arrange — Service.From does not pass through the lifetime stage, so nothing sets a lifetime.
-        var component = Service.From<CustomerService>().As<ICustomerService>();
+        var service = Service.From<CustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert
         Assert.All(services, d => Assert.Equal(ServiceLifetime.Singleton, d.Lifetime));
     }
 
     [Fact]
-    public void Add_WhenComponentHasLifetime_ShouldAddDescriptorsWithComponentLifetime()
+    public void Add_WhenServiceHasLifetime_ShouldAddDescriptorsWithServiceLifetime()
     {
         // Arrange
-        var component = Service
+        var service = Service
             .From<CustomerService>()
             .As<ICustomerService>()
             .AsLifetime(ServiceLifetime.Scoped);
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert
         Assert.All(services, d => Assert.Equal(ServiceLifetime.Scoped, d.Lifetime));
     }
 
     [Fact]
-    public void Add_WhenComponentIsKeyed_ShouldAddKeyedDescriptors()
+    public void Add_WhenServiceIsKeyed_ShouldAddKeyedDescriptors()
     {
         // Arrange
-        var component = Service.From<CustomerService>().As<ICustomerService>().Keyed("primary");
+        var service = Service.From<CustomerService>().As<ICustomerService>().Keyed("primary");
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert
         Assert.All(services, d => Assert.Equal("primary", d.ServiceKey));
     }
 
     [Fact]
-    public void Add_WhenComponentHasNoServicesAdded_ShouldRegisterImplementationAsItself()
+    public void Add_WhenServiceHasNoServicesAdded_ShouldRegisterImplementationAsItself()
     {
         // Arrange
-        var component = Service.From<CustomerService>();
+        var service = Service.From<CustomerService>();
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert
         var single = Assert.Single(services);
@@ -184,29 +184,29 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenComponentServiceIsDuplicated_ShouldRegisterServiceOnce()
+    public void Add_WhenServiceServiceIsDuplicated_ShouldRegisterServiceOnce()
     {
         // Arrange
-        var component = Service.From<CustomerService>().As<ICustomerService>().As<ICustomerService>();
+        var service = Service.From<CustomerService>().As<ICustomerService>().As<ICustomerService>();
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert
         Assert.Single(services, d => d.ServiceType == typeof(ICustomerService));
     }
 
     [Fact]
-    public void Add_WhenComponentIsOpenGenericWithServices_ShouldThrow()
+    public void Add_WhenServiceIsOpenGenericWithServices_ShouldThrow()
     {
-        // Arrange — the implementation is always among a component's services, so an open generic component with any
+        // Arrange — the implementation is always among a service's services, so an open generic service with any
         // added service takes the forwarding path, which Microsoft's container cannot do for open generics.
-        var component = Service.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>));
+        var service = Service.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>));
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.Add(component);
+        var act = () => services.Add(service);
 
         // Assert
         var exception = Assert.Throws<InvalidOperationException>(act);
@@ -214,14 +214,14 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void Add_WhenComponentIsOpenGenericWithoutServices_ShouldRegisterImplementationAsItself()
+    public void Add_WhenServiceIsOpenGenericWithoutServices_ShouldRegisterImplementationAsItself()
     {
         // Arrange
-        var component = Service.From(typeof(InMemoryRepository<>));
+        var service = Service.From(typeof(InMemoryRepository<>));
         var services = new ServiceCollection();
 
         // Act
-        services.Add(component);
+        services.Add(service);
 
         // Assert — nothing to forward, so the single registration is direct.
         var single = Assert.Single(services);

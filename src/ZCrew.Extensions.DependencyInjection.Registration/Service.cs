@@ -21,7 +21,7 @@ public readonly record struct Service
     private readonly Func<Type, Type, object?>? serviceKeyProvider;
 
     /// <summary>
-    ///     Create a new service component registered against the <paramref name="implementation"/> itself. Any further
+    ///     Create a new service service registered against the <paramref name="implementation"/> itself. Any further
     ///     services are added on top of it, so they resolve to a single shared instance.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
@@ -32,7 +32,7 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Create a new service component.
+    ///     Create a new service service.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
@@ -43,7 +43,7 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Create a new service component with modifications. Not all properties may be set to meaningful values.
+    ///     Create a new service service with modifications. Not all properties may be set to meaningful values.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
@@ -103,12 +103,12 @@ public readonly record struct Service
     public IReadOnlyList<Type> ServiceTypes => this.services;
 
     /// <summary>
-    ///     Adds the <paramref name="service"/> to this component. This verifies that the
+    ///     Adds the <paramref name="service"/> to this service. This verifies that the
     ///     <see cref="ImplementationType"/> is assignable to the <paramref name="service"/>. A duplicate service can be
-    ///     added; but, it is excluded when registering the component.
+    ///     added; but, it is excluded when registering the service.
     /// </summary>
     /// <param name="service">The service to add.</param>
-    /// <returns>The modified component.</returns>
+    /// <returns>The modified service.</returns>
     /// <exception cref="ArgumentException">
     ///     If the <paramref name="service"/> isn't a base type of the implementation.
     /// </exception>
@@ -133,12 +133,12 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Adds the <paramref name="services"/> to this component. This verifies that the
+    ///     Adds the <paramref name="services"/> to this service. This verifies that the
     ///     <see cref="ImplementationType"/> is assignable to each service. Duplicate services can be added; but, they
-    ///     are excluded when registering the component.
+    ///     are excluded when registering the service.
     /// </summary>
     /// <param name="services">The services to add.</param>
-    /// <returns>The modified component or the same component if no services were added.</returns>
+    /// <returns>The modified service or the same service if no services were added.</returns>
     /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
     public Service As(IEnumerable<Type> services)
     {
@@ -146,12 +146,12 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Adds the result of calling <paramref name="serviceSelector"/> to this component. This verifies that the
+    ///     Adds the result of calling <paramref name="serviceSelector"/> to this service. This verifies that the
     ///     <see cref="ImplementationType"/> is assignable to each service. Duplicate services can be added; but, they
-    ///     are excluded when registering the component.
+    ///     are excluded when registering the service.
     /// </summary>
     /// <param name="serviceSelector">The delegate that provides services.</param>
-    /// <returns>The modified component or the same component if no services were added.</returns>
+    /// <returns>The modified service or the same service if no services were added.</returns>
     /// <exception cref="ArgumentException">If any service isn't a base type of the implementation.</exception>
     public Service As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
@@ -181,7 +181,7 @@ public readonly record struct Service
     ///     services are base types.
     /// </summary>
     /// <param name="services">The services to add.</param>
-    /// <returns>The modified component or the same component if no services were added.</returns>
+    /// <returns>The modified service or the same service if no services were added.</returns>
     internal Service AsUnchecked(IEnumerable<Type> services)
     {
         return new Service(
@@ -198,7 +198,7 @@ public readonly record struct Service
     ///     Set the <see cref="ServiceDescriptor.Lifetime"/> of the future <see cref="ServiceDescriptor"/> instances.
     /// </summary>
     /// <param name="lifetime">The lifetime.</param>
-    /// <returns>The modified component or the same component if the <see cref="lifetime"/> was the same.</returns>
+    /// <returns>The modified service or the same service if the <see cref="lifetime"/> was the same.</returns>
     public Service AsLifetime(ServiceLifetime lifetime)
     {
         if (lifetime == this.lifetime && this.lifetimeProvider == null)
@@ -222,7 +222,7 @@ public readonly record struct Service
     /// </summary>
     /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
     /// <returns>
-    ///         The modified component or the same component if the <see cref="lifetimeProvider"/> was the same reference.
+    ///         The modified service or the same service if the <see cref="lifetimeProvider"/> was the same reference.
     /// </returns>
     public Service AsLifetime(Func<Type, ServiceLifetime> lifetimeProvider)
     {
@@ -242,9 +242,9 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Remove any service keys from the component.
+    ///     Remove any service keys from the service.
     /// </summary>
-    /// <returns>The modified <see cref="Service"/> or the same component if it was already unkeyed.</returns>
+    /// <returns>The modified <see cref="Service"/> or the same service if it was already unkeyed.</returns>
     public Service Unkeyed()
     {
         if (this.serviceKeyProvider == null && this.serviceKey == null)
@@ -263,10 +263,10 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the component.
+    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the service.
     /// </summary>
     /// <param name="serviceKey">The shared service key.</param>
-    /// <returns>The modified <see cref="Service"/> or the same component if it was already keyed.</returns>
+    /// <returns>The modified <see cref="Service"/> or the same service if it was already keyed.</returns>
     public Service Keyed(object? serviceKey)
     {
         if (serviceKey == this.serviceKey)
@@ -285,8 +285,8 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the component through the
-    /// <paramref name="serviceKeyProvider"/> delegate, evaluated when adding the component to a
+    ///     Set the <see cref="ServiceDescriptor.ServiceKey"/> of the service through the
+    /// <paramref name="serviceKeyProvider"/> delegate, evaluated when adding the service to a
     /// <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="serviceKeyProvider">The service key provider.</param>
@@ -309,17 +309,17 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Register the <see cref="ServiceDescriptor"/> instances represented by this component. Each service type is
+    ///     Register the <see cref="ServiceDescriptor"/> instances represented by this service. Each service type is
     ///     registered directly against the implementation when the lifetime is
     ///     <see cref="ServiceLifetime.Transient"/>, when there is only a single service type, or when the
     ///     implementation is not itself one of the selected service types. Otherwise (a
-    ///     <see cref="ServiceLifetime.Scoped"/> or <see cref="ServiceLifetime.Singleton"/> component with multiple
+    ///     <see cref="ServiceLifetime.Scoped"/> or <see cref="ServiceLifetime.Singleton"/> service with multiple
     ///     service types that include the implementation) the implementation is registered once and the remaining
     ///     service types are forwarded to it so they resolve to a single shared instance.
     /// </summary>
     /// <param name="serviceCollection">The service collection to add the <see cref="ServiceDescriptor"/>(s) to.</param>
     /// <exception cref="InvalidOperationException">
-    ///     Thrown when the shared-component path is taken for an open generic implementation. Microsoft's container
+    ///     Thrown when the shared-service path is taken for an open generic implementation. Microsoft's container
     ///     does not support factory-based resolution of open generics
     ///     (<see href="https://github.com/dotnet/runtime/issues/41050"/>) which is required to forward multiple
     ///     service types to a single instance.
@@ -353,7 +353,7 @@ public readonly record struct Service
             }
         }
 
-        // This also doesn't register a shared component if the implementation isn't in the service list
+        // This also doesn't register a shared service if the implementation isn't in the service list
         if (lifetime == ServiceLifetime.Transient || !seenServices.Contains(this.implementation))
         {
             AddIndependentServiceDescriptors(distinctServices, lifetime, serviceCollection);
@@ -372,7 +372,7 @@ public readonly record struct Service
             );
         }
 
-        AddComponentServiceDescriptors(distinctServices, lifetime, serviceCollection);
+        AddServiceDescriptors(distinctServices, lifetime, serviceCollection);
     }
 
     private void AddIndependentServiceDescriptors(
@@ -387,7 +387,7 @@ public readonly record struct Service
         }
     }
 
-    private void AddComponentServiceDescriptors(
+    private void AddServiceDescriptors(
         IEnumerable<Type> services,
         ServiceLifetime lifetime,
         IServiceCollection serviceCollection

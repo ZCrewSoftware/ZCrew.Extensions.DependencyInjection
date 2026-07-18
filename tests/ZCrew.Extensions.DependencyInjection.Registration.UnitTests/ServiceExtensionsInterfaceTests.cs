@@ -12,12 +12,12 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllInterfaces_WhenCalled_ShouldKeepImplementationFirstThenAddInterfaces()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.AsAllInterfaces();
+        var result = service.AsAllInterfaces();
 
-        // Assert — a component is seeded with its implementation, so selection accumulates onto it rather than
+        // Assert — a service is seeded with its implementation, so selection accumulates onto it rather than
         // replacing it the way the Classes chain does.
         Assert.Equal(typeof(PayPalPaymentGateway), result.ServiceTypes[0]);
         Assert.Contains(typeof(IPaymentGateway), result.ServiceTypes);
@@ -28,12 +28,12 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllInterfaces_WhenNoInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<Customer>();
+        var service = Service.From<Customer>();
 
         // Act
-        var result = component.AsAllInterfaces();
+        var result = service.AsAllInterfaces();
 
-        // Assert — the chain registers nothing here; a component always keeps its implementation.
+        // Assert — the chain registers nothing here; a service always keeps its implementation.
         Assert.Equal([typeof(Customer)], result.ServiceTypes);
     }
 
@@ -41,10 +41,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllNonSystemInterfaces_WhenCalled_ShouldExcludeSystemInterfaces()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.AsAllNonSystemInterfaces();
+        var result = service.AsAllNonSystemInterfaces();
 
         // Assert
         Assert.Equal([typeof(PayPalPaymentGateway), typeof(IPaymentGateway)], result.ServiceTypes);
@@ -54,10 +54,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllNonSystemInterfaces_WhenOnlySystemInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<Address>();
+        var service = Service.From<Address>();
 
         // Act
-        var result = component.AsAllNonSystemInterfaces();
+        var result = service.AsAllNonSystemInterfaces();
 
         // Assert
         Assert.Equal([typeof(Address)], result.ServiceTypes);
@@ -67,10 +67,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsDefaultInterfaces_WhenCalled_ShouldMatchByNamingConvention()
     {
         // Arrange
-        var component = Service.From<CustomerService>();
+        var service = Service.From<CustomerService>();
 
         // Act
-        var result = component.AsDefaultInterfaces();
+        var result = service.AsDefaultInterfaces();
 
         // Assert
         Assert.Equal([typeof(CustomerService), typeof(ICustomerService)], result.ServiceTypes);
@@ -80,10 +80,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsDefaultInterfaces_WhenNoConventionMatch_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<LegacyOrderProcessor>();
+        var service = Service.From<LegacyOrderProcessor>();
 
         // Act
-        var result = component.AsDefaultInterfaces();
+        var result = service.AsDefaultInterfaces();
 
         // Assert
         Assert.Equal([typeof(LegacyOrderProcessor)], result.ServiceTypes);
@@ -93,10 +93,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsDefaultNonSystemInterfaces_WhenCalled_ShouldCombineBothFilters()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.AsDefaultNonSystemInterfaces();
+        var result = service.AsDefaultNonSystemInterfaces();
 
         // Assert
         Assert.Equal([typeof(PayPalPaymentGateway), typeof(IPaymentGateway)], result.ServiceTypes);
@@ -106,10 +106,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsFirstInterface_WhenCalled_ShouldAddFirstInterface()
     {
         // Arrange
-        var component = Service.From<CustomerService>();
+        var service = Service.From<CustomerService>();
 
         // Act
-        var result = component.AsFirstInterface();
+        var result = service.AsFirstInterface();
 
         // Assert
         Assert.Equal(2, result.ServiceTypes.Count);
@@ -121,10 +121,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsFirstInterface_WhenNoInterfaces_ShouldRegisterImplementationAlone()
     {
         // Arrange
-        var component = Service.From<Customer>();
+        var service = Service.From<Customer>();
 
         // Act
-        var result = component.AsFirstInterface();
+        var result = service.AsFirstInterface();
 
         // Assert
         Assert.Equal([typeof(Customer)], result.ServiceTypes);
@@ -134,13 +134,13 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllInterfaces_WhenChainedWithAsDefaultInterfaces_ShouldAccumulateInFirstOccurrenceOrder()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.AsDefaultInterfaces().AsAllInterfaces();
+        var result = service.AsDefaultInterfaces().AsAllInterfaces();
 
         // Assert — the implementation then the convention match lead; AsAllInterfaces appends the rest in
-        // reflection order. Duplicates are kept on the component and collapsed when it is registered.
+        // reflection order. Duplicates are kept on the service and collapsed when it is registered.
         Assert.Equal(typeof(PayPalPaymentGateway), result.ServiceTypes[0]);
         Assert.Equal(typeof(IPaymentGateway), result.ServiceTypes[1]);
         Assert.Equal(4, result.ServiceTypes.Count);
@@ -152,10 +152,10 @@ public class ServiceExtensionsInterfaceTests
     public void AsAllInterfaces_WhenCalled_ShouldNotChangeImplementationType()
     {
         // Arrange
-        var component = Service.From<PayPalPaymentGateway>();
+        var service = Service.From<PayPalPaymentGateway>();
 
         // Act
-        var result = component.AsAllInterfaces();
+        var result = service.AsAllInterfaces();
 
         // Assert
         Assert.Equal(typeof(PayPalPaymentGateway), result.ImplementationType);

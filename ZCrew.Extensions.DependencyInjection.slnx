@@ -10,7 +10,7 @@
     <File Path="docs/registration.md" />
     <File Path="docs/service-key-selectors.md" />
     <File Path="docs/service-selectors.md" />
-    <File Path="docs/shared-components.md" />
+    <File Path="docs/shared-services.md" />
     <File Path="docs/type-filters.md" />
     <File Path="docs/type-selectors.md" />
   </Folder>

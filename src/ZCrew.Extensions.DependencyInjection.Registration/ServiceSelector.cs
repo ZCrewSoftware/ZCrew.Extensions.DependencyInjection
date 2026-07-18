@@ -11,7 +11,7 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public class ServiceSelector : ServiceKeySelector
 {
-    private readonly IEnumerable<Service>? components;
+    private readonly IEnumerable<Service>? services;
     private readonly IEnumerable<Type>? types;
     private readonly IEnumerable<Type> baseTypes;
 
@@ -24,10 +24,10 @@ public class ServiceSelector : ServiceKeySelector
         this.baseTypes = baseTypes;
     }
 
-    internal ServiceSelector(IEnumerable<Service> components, IEnumerable<Type> baseTypes)
-        : base(components)
+    internal ServiceSelector(IEnumerable<Service> services, IEnumerable<Type> baseTypes)
+        : base(services)
     {
-        this.components = components;
+        this.services = services;
         this.baseTypes = baseTypes;
     }
     // ReSharper restore PossibleMultipleEnumeration
@@ -50,11 +50,11 @@ public class ServiceSelector : ServiceKeySelector
     public ServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
-        if (this.components != null)
+        if (this.services != null)
         {
             return new ServiceSelector(
-                this.components.Select(component =>
-                    component.AsUnchecked(serviceSelector(component.ImplementationType).ToArray())
+                this.services.Select(service =>
+                    service.AsUnchecked(serviceSelector(service.ImplementationType).ToArray())
                 ),
                 this.baseTypes
             );
@@ -86,15 +86,15 @@ public class ServiceSelector : ServiceKeySelector
     public ServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
-        if (this.components != null)
+        if (this.services != null)
         {
             return new ServiceSelector(
-                this.components.Select(component =>
+                this.services.Select(service =>
                 {
-                    var type = component.ImplementationType;
+                    var type = service.ImplementationType;
                     var assignableBaseTypes = type.GetMatchingBaseTypes(this.baseTypes).ToArray();
                     var services = serviceSelector(type, assignableBaseTypes).ToArray();
-                    return component.AsUnchecked(services);
+                    return service.AsUnchecked(services);
                 }),
                 this.baseTypes
             );

@@ -232,7 +232,7 @@ public class ChainConversionTests
     }
 
     // Normalizes a descriptor to its implementation identity, ignoring the specific (randomly generated) shared
-    // component key value so that two structurally identical batches compare equal.
+    // service key value so that two structurally identical batches compare equal.
     private static string ImplementationOf(ServiceDescriptor descriptor)
     {
         if (descriptor.IsKeyedService)

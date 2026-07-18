@@ -2,11 +2,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class ServiceExtensions
 {
-    extension(Service component)
+    extension(Service service)
     {
         /// <summary>
         ///     Adds every non-abstract class the implementation extends and every interface it implements to the
-        ///     component.
+        ///     service.
         /// </summary>
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
@@ -17,15 +17,15 @@ public static partial class ServiceExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        /// <returns>The modified component.</returns>
+        /// <returns>The modified service.</returns>
         public Service AsAllTypes()
         {
-            return component.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
+            return service.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
         }
 
         /// <summary>
         ///     Adds every non-abstract class the implementation extends and every interface it implements to the
-        ///     component, excluding types in the <c>System</c> namespace and its sub-namespaces.
+        ///     service, excluding types in the <c>System</c> namespace and its sub-namespaces.
         /// </summary>
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
@@ -36,10 +36,10 @@ public static partial class ServiceExtensions
         ///     // (AbstractRepository is abstract and is excluded)
         ///     </code>
         /// </example>
-        /// <returns>The modified component.</returns>
+        /// <returns>The modified service.</returns>
         public Service AsAllNonSystemTypes()
         {
-            return component.As(type =>
+            return service.As(type =>
                 type.GetTypes()
                     .Where(service => !service.IsAbstractClass)
                     .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
@@ -48,7 +48,7 @@ public static partial class ServiceExtensions
 
         /// <summary>
         ///     Adds the non-abstract classes the implementation extends and the interfaces it implements whose name
-        ///     matches the implementation name by convention to the component.
+        ///     matches the implementation name by convention to the service.
         /// </summary>
         /// <example>
         ///     Given <c>CustomerRepository : AbstractRepository, ICustomerRepository, IDisposable</c>:
@@ -60,10 +60,10 @@ public static partial class ServiceExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        /// <returns>The modified component.</returns>
+        /// <returns>The modified service.</returns>
         public Service AsDefaultTypes()
         {
-            return component.As(type =>
+            return service.As(type =>
                 type.GetTypes()
                     .Where(service => !service.IsAbstractClass)
                     .Where(service => type.Name.Contains(service.GetInterfaceName()))
@@ -72,7 +72,7 @@ public static partial class ServiceExtensions
 
         /// <summary>
         ///     Adds the non-abstract classes the implementation extends and the interfaces it implements whose name
-        ///     matches the implementation name by convention to the component, excluding types in the <c>System</c>
+        ///     matches the implementation name by convention to the service, excluding types in the <c>System</c>
         ///     namespace and its sub-namespaces.
         /// </summary>
         /// <example>
@@ -86,10 +86,10 @@ public static partial class ServiceExtensions
         ///     // (AbstractRepository is abstract and is excluded for a second reason)
         ///     </code>
         /// </example>
-        /// <returns>The modified component.</returns>
+        /// <returns>The modified service.</returns>
         public Service AsDefaultNonSystemTypes()
         {
-            return component.As(type =>
+            return service.As(type =>
                 type.GetTypes()
                     .Where(service => !service.IsAbstractClass)
                     .Where(service => type.Name.Contains(service.GetInterfaceName()))

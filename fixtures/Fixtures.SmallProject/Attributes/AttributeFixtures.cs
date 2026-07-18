@@ -135,7 +135,7 @@ public class InheritableKeyedDerived : InheritableKeyedBase;
 
 /// <summary>
 ///     Empty service interfaces targeted by the <see cref="AsServicesAttribute"/> fixtures below. Two are provided so a
-///     single implementation can be mapped to multiple service types (exercising the shared-component path).
+///     single implementation can be mapped to multiple service types (exercising the shared-service path).
 /// </summary>
 public interface IProvidedServiceA;
 
@@ -194,7 +194,7 @@ public class ContractBase;
 public class ContractDerived : ContractBase;
 
 // Declares a contract it also implements. ContractBase deliberately does not, which makes it the case where a
-// component rejects an attribute-named service type it isn't based on.
+// service rejects an attribute-named service type it isn't based on.
 [Contract(typeof(IProvidedServiceA))]
 public class ContractStore : IProvidedServiceA;
 
@@ -268,8 +268,8 @@ public class LifestyleBase;
 
 public class LifestyleDerived : LifestyleBase;
 
-// Multi-interface implementations that declare their own lifetime, for verifying that Singleton components still
-// share one instance while Transient components are registered independently.
+// Multi-interface implementations that declare their own lifetime, for verifying that Singleton services still
+// share one instance while Transient services are registered independently.
 [AsLifetime(ServiceLifetime.Singleton)]
 public class SingletonMultiStore : ILifetimeAlpha, ILifetimeBeta;
 

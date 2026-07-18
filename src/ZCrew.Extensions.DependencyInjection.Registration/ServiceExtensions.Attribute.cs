@@ -4,11 +4,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 public static partial class ServiceExtensions
 {
-    extension(Service component)
+    extension(Service service)
     {
         /// <summary>
         ///     Adds the service types returned by the <see cref="IServiceTypesProvider"/> attribute applied to the
-        ///     implementation to the component, inspecting inherited attributes. An implementation without such an
+        ///     implementation to the service, inspecting inherited attributes. An implementation without such an
         ///     attribute, or whose provider yields no service types, is left registered against itself alone.
         /// </summary>
         /// <example>
@@ -16,7 +16,7 @@ public static partial class ServiceExtensions
         ///     Service.From&lt;StripePaymentGateway&gt;().AsServicesFromAttribute()
         ///     </code>
         /// </example>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -25,19 +25,19 @@ public static partial class ServiceExtensions
         /// </exception>
         public Service AsServicesFromAttribute()
         {
-            return component.AsServicesFromAttribute(true);
+            return service.AsServicesFromAttribute(true);
         }
 
         /// <summary>
         ///     Adds the service types returned by the <see cref="IServiceTypesProvider"/> attribute applied to the
-        ///     implementation to the component. An implementation without such an attribute, or whose provider yields
+        ///     implementation to the service. An implementation without such an attribute, or whose provider yields
         ///     no service types, is left registered against itself alone.
         /// </summary>
         /// <param name="inherited">
         ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
         ///     <see langword="false"/>.
         /// </param>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -46,12 +46,12 @@ public static partial class ServiceExtensions
         /// </exception>
         public Service AsServicesFromAttribute(bool inherited)
         {
-            return component.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
+            return service.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
         }
 
         /// <summary>
         ///     Adds the service types projected from a <typeparamref name="TAttribute"/> applied to the implementation
-        ///     through <paramref name="serviceSelector"/> to the component, inspecting inherited attributes. An
+        ///     through <paramref name="serviceSelector"/> to the service, inspecting inherited attributes. An
         ///     implementation without the attribute, or for which the selector yields no service types, is left
         ///     registered against itself alone.
         /// </summary>
@@ -63,7 +63,7 @@ public static partial class ServiceExtensions
         ///         .AsServicesFromAttribute&lt;ContractAttribute&gt;(attribute => attribute.Contracts)
         ///     </code>
         /// </example>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -75,12 +75,12 @@ public static partial class ServiceExtensions
         )
             where TAttribute : class
         {
-            return component.AsServicesFromAttribute(true, serviceSelector);
+            return service.AsServicesFromAttribute(true, serviceSelector);
         }
 
         /// <summary>
         ///     Adds the service types projected from a <typeparamref name="TAttribute"/> applied to the implementation
-        ///     through <paramref name="serviceSelector"/> to the component. An implementation without the attribute, or
+        ///     through <paramref name="serviceSelector"/> to the service. An implementation without the attribute, or
         ///     for which the selector yields no service types, is left registered against itself alone.
         /// </summary>
         /// <param name="inherited">
@@ -89,7 +89,7 @@ public static partial class ServiceExtensions
         /// </param>
         /// <param name="serviceSelector">A function that maps the matching attribute to the service types.</param>
         /// <typeparam name="TAttribute">The attribute type or marker interface to search for.</typeparam>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -103,7 +103,7 @@ public static partial class ServiceExtensions
             where TAttribute : class
         {
             ArgumentNullException.ThrowIfNull(serviceSelector);
-            return component.As(type =>
+            return service.As(type =>
             {
                 var attribute = type.GetAttribute<TAttribute>(inherited);
                 return attribute != null ? serviceSelector(attribute) ?? [] : [];
@@ -112,7 +112,7 @@ public static partial class ServiceExtensions
 
         /// <summary>
         ///     Adds the service types projected from an attribute assignable to <paramref name="attributeType"/>
-        ///     applied to the implementation through <paramref name="serviceSelector"/> to the component, inspecting
+        ///     applied to the implementation through <paramref name="serviceSelector"/> to the service, inspecting
         ///     inherited attributes. An implementation without a matching attribute, or for which the selector yields
         ///     no service types, is left registered against itself alone.
         /// </summary>
@@ -124,7 +124,7 @@ public static partial class ServiceExtensions
         ///         .AsServicesFromAttribute(typeof(ContractAttribute), attribute => ((ContractAttribute)attribute).Contracts)
         ///     </code>
         /// </example>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -137,12 +137,12 @@ public static partial class ServiceExtensions
             Func<Attribute, IEnumerable<Type>> serviceSelector
         )
         {
-            return component.AsServicesFromAttribute(attributeType, true, serviceSelector);
+            return service.AsServicesFromAttribute(attributeType, true, serviceSelector);
         }
 
         /// <summary>
         ///     Adds the service types projected from an attribute assignable to <paramref name="attributeType"/>
-        ///     applied to the implementation through <paramref name="serviceSelector"/> to the component. An
+        ///     applied to the implementation through <paramref name="serviceSelector"/> to the service. An
         ///     implementation without a matching attribute, or for which the selector yields no service types, is left
         ///     registered against itself alone.
         /// </summary>
@@ -152,7 +152,7 @@ public static partial class ServiceExtensions
         ///     <see langword="false"/>.
         /// </param>
         /// <param name="serviceSelector">A function that maps the matching attribute to the service types.</param>
-        /// <returns>The modified component, or the same component if no service types were found.</returns>
+        /// <returns>The modified service, or the same service if no service types were found.</returns>
         /// <exception cref="ArgumentException">
         ///     If the attribute names a service type the implementation isn't based on.
         /// </exception>
@@ -167,7 +167,7 @@ public static partial class ServiceExtensions
         )
         {
             ArgumentNullException.ThrowIfNull(serviceSelector);
-            return component.As(type =>
+            return service.As(type =>
             {
                 var attribute = type.GetAttribute(attributeType, inherited);
                 return attribute != null ? serviceSelector(attribute) ?? [] : [];
