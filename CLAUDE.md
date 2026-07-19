@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A set of .NET libraries extending `Microsoft.Extensions.DependencyInjection`:
 
 - **ZCrew.Extensions.DependencyInjection** — Adds **decorator pattern** support. Provides `IServiceCollection` extension methods (`AddDecorator`, `AddScopedDecorator`, etc.) that wrap existing service registrations with decorator implementations, supporting type-based and factory-based registration, keyed services, and lifetime validation.
-- **ZCrew.Extensions.DependencyInjection.Registration** — Adds **Castle Windsor-style convention-based registration**. Provides a fluent API (`Classes`, `Types`) for scanning assemblies, filtering types, and bulk-registering services by convention (e.g., `Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface()`).
+- **ZCrew.Extensions.DependencyInjection.Registration** — Adds **Castle Windsor-style convention-based registration**. Provides a fluent API (`Classes`, `Types`) for scanning assemblies, filtering types, and bulk-registering services by convention (e.g., `Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface()`). Also ships a **compile-time `[Service]` source generator** (the `ZCrew.Extensions.DependencyInjection.Generator` project, packed as an analyzer inside this package) that replaces reflection-based scanning with a generated `Services.FromThisAssembly()` list. See [`docs/source-generator.md`](docs/source-generator.md).
 
 ## Build & Test Commands
 
@@ -70,6 +70,38 @@ Inheritance runs base-first: `AssemblyTypeSelector : TypeFilter : ServiceSelecto
 - The chain is immutable and fully lazy — each call returns a new instance, and no type source is enumerated (nor any assembly scanned) until the terminal `ToServiceCollection` call (or an equivalent bulk-add). Lifetime helpers (`AsLifetime` / `AsSingleton` / etc.) are also lazy: they return a `ServiceSource`, not an `IServiceCollection`. `TypeFilter` tracks `baseTypes` set via `BasedOn`, which default to `[typeof(object)]` (match everything) until explicitly overridden.
 - `ServiceCollectionExtensions` provides `AddSingleton`/`AddScoped`/`AddTransient` overloads — one per concrete stage class — so a chain stopped at any stage binds there instead of to MSDI's generic `AddSingleton<TService>(IServiceCollection, TService)` instance overload.
 - `TypeExtensions` (in the base DI project) provides helpers used by the registration API: `IsInNamespace`, `IsInSameNamespaceAs`, `GetInterfaceName` (strips leading `I`), and `GetTopLevelInterfaces` (most-derived interfaces only).
+
+### Registration Source Generator
+
+`ZCrew.Extensions.DependencyInjection.Generator` is a `netstandard2.0` Roslyn incremental generator that scans for the `[Service]` attribute and emits a compile-time registration list, replacing the reflection-based `Classes`/`Types` scan for the attribute-driven path. It ships **inside the Registration NuGet package** as an analyzer (`analyzers/dotnet/cs`), not as a separate package.
+
+**Layout** — the generator project sits flat under `src/` (no `roslyn/` subfolder); its `.csproj` layers the analyzer overrides (`TargetFramework=netstandard2.0`, `IncludeBuildOutput=false`, `CopyLocalLockFileAssemblies=true`, `IsPackable=false`, drops the inherited MEDI.Abstractions reference) on top of `src/Directory.Build.props`. It depends on the `ZCrew.Extensions.CodeAnalysis.CSharp` helper package (referenced, not vendored).
+
+| Piece | Type | Purpose |
+|-------|------|---------|
+| `ServiceAttribute` | Registration lib (runtime) | `[Service(params Type[] serviceTypes)]` + `Lifetime`/`Key` init props, `AllowMultiple`. One attribute instance = one registration; a type can carry several, disambiguated by key. |
+| `Service.From(Type, ServiceAttribute)` | Registration lib (runtime) | Public `[EditorBrowsable(Never)]` bridge the generated code calls; seeds `[impl, ..ServiceTypes]` and lifts lifetime/key (no assignability re-check). |
+| `ServiceFilter` | Registration lib (runtime) | The type `FromThisAssembly()` returns: an immutable/lazy filter over the generated `Service`s. Mirrors `TypeFilter`'s filters (`Where`, `InNamespace`, `NameEndsWith`, `BasedOn`, `HasAttribute`/`HasAttributes`, `GenericTypes`, …) over `ImplementationType` (minus base-type state), terminating in `ToServiceCollection(...)` or `services.Add(filter)`. Deliberately **not** `IEnumerable<Service>`, so raw LINQ (`Select`/`Append`/`Zip`) isn't exposed. |
+| `ServiceRegistrationSourceGenerator` | Generator | Concrete generator: scans metadata name `…Registration.ServiceAttribute`, emits `Services.FromThisAssembly()`. |
+| `RegistrationKeyAnalyzer` | Generator | Emits **ZCDI001** ("Registration key cannot be an array") when the `Key` named argument is an array (arrays compare by reference, so keyed resolution never matches). Detection targets the `Key` named arg only — the `params Type[]` ctor list is a legitimate positional array. |
+
+**Emitted shape** — `[Embedded] internal static class Services` with `FromThisAssembly()` returning a `ServiceFilter` wrapping a `Service[]`, one `Service.From(typeof(impl), new ServiceAttribute(...))` element per attribute usage, all `global::`-qualified, entries ordinally sorted for determinism. Nothing is emitted when no `[Service]` type exists. `[Embedded]` makes the entry point assembly-local, so the attributed types **and** the `Services.FromThisAssembly()` call site must live in the same assembly (it cannot be consumed from a fixture project).
+
+**Consumption chain:** `Services.FromThisAssembly().Where(...).ToServiceCollection(services)` (or `services.Add(Services.FromThisAssembly().Where(...))`) — `FromThisAssembly()` returns a `ServiceFilter` whose filters each return a `ServiceFilter` and match on `ImplementationType`; zero or more filter steps, then the terminal (`ToServiceCollection` or `Add`). There is deliberately no service/key/lifetime selection on this path — the attribute already decided those, and `ServiceFilter` intentionally exposes only filters + the terminal, not raw LINQ. Only `Add(ServiceFilter)` exists (no `AddSingleton/AddScoped/AddTransient`), so lifetimes are never overridden.
+
+**Usage:**
+
+```csharp
+[Service]                                                                 // self, singleton
+[Service(typeof(IFoo), typeof(IBar), Lifetime = ServiceLifetime.Scoped)]  // self + IFoo + IBar, shared instance
+[Service(typeof(IEmailSender), Key = "smtp")]                             // keyed…
+[Service(typeof(IEmailSender), Key = "ses")]                             // …twice: two registrations, one type
+public class MyService : IFoo, IBar, IEmailSender;
+
+// then, in the same assembly:
+services.Add(Services.FromThisAssembly());                                    // no-filter bulk add
+services.Add(Services.FromThisAssembly().BasedOn<IFoo>());                    // filtered (ServiceFilter) bulk add
+```
 
 ### Fixtures
 

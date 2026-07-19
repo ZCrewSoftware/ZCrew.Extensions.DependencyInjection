@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>RegistrationSample</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+  <!--
+    Local project references until the v3 NuGet package (which bundles the [Service] source generator as an
+    analyzer) is published. Once it is, both references below - and the _AddGeneratorAnalyzerDependencies target -
+    can be replaced with a single package reference:
+      <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="..." />
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\ZCrew.Extensions.DependencyInjection.Registration\ZCrew.Extensions.DependencyInjection.Registration.csproj" />
+    <ProjectReference Include="..\..\..\src\ZCrew.Extensions.DependencyInjection.Generator\ZCrew.Extensions.DependencyInjection.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!--
+    A ProjectReference analyzer contributes only the generator DLL, not its runtime dependency. The generator
+    depends on ZCrew.Extensions.CodeAnalysis.CSharp, which CopyLocalLockFileAssemblies copies beside it; add that
+    DLL as an analyzer too so the generator can load - mirroring what the packaged analyzers/dotnet/cs folder ships.
+  -->
+  <Target Name="_AddGeneratorAnalyzerDependencies"
+          BeforeTargets="CoreCompile"
+          DependsOnTargets="ResolveProjectReferences">
+    <MSBuild Projects="..\..\..\src\ZCrew.Extensions.DependencyInjection.Generator\ZCrew.Extensions.DependencyInjection.Generator.csproj"
+             Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_ServiceGeneratorAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <Analyzer Include="%(_ServiceGeneratorAssembly.RootDir)%(_ServiceGeneratorAssembly.Directory)ZCrew.Extensions.CodeAnalysis.CSharp.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

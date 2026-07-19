@@ -97,6 +97,27 @@ Selectors return `ServiceSelector` and can be chained — e.g. `AsSelf().AsAllIn
 .Keyed(implType => implType.Name)
 ```
 
+## Compile-Time `[Service]` Registration
+
+The package also bundles a source generator (as an analyzer — nothing extra to install). Annotate a type with
+`[Service]` and it is collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`),
+no reflection at startup:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using ZCrew.Extensions.DependencyInjection.Registration;
+
+[Service(typeof(IEmailSender), Lifetime = ServiceLifetime.Scoped)]
+public class Emailer : IEmailSender;
+
+// then, in the same assembly:
+services.Add(Services.FromThisAssembly());                          // add all [Service] registrations
+services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow with ServiceFilter filters
+```
+
+See **[Compile-Time Registration with `[Service]`](../../docs/source-generator.md)** for the full attribute model,
+semantics, and the `ZCDI001` diagnostic.
+
 ## Full API reference
 
 The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](../../docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](../../docs).

@@ -1,0 +1,13 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "$(TestName).Source.cs"
+        }
+    ],
+    "GeneratedFiles": [
+        {
+            "SourceFileName": "$(TestName).Generated.g.cs",
+            "GeneratedFileName": "ZCrew.Extensions.DependencyInjection.Registration.Services.g.cs"
+        }
+    ]
+}
