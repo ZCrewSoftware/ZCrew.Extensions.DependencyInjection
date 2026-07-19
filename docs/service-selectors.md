@@ -338,53 +338,9 @@ Instead of computing service types from interfaces or delegates, `AsServicesFrom
 - **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
 - **No assignability check.** The declared service types are used verbatim, exactly like the `As(delegate)` form. Declaring a service type the implementation does not satisfy fails at resolution time, not registration time.
 
-### `AsServicesFromAttribute()`
-
-Reads the service types from any attribute that implements the library's `IServiceTypesProvider` interface. The library ships a ready-made one — `[AsServices]` — so the common case needs no custom attribute:
-
-```csharp
-Classes.FromThisAssembly()
-    .AsServicesFromAttribute()
-```
-
-Given:
-
-```csharp
-[AsServices(typeof(ICustomerService), typeof(IAuditService))]
-public class CustomerService : ICustomerService, IAuditService { }
-```
-
-Registers:
-
-```
-CustomerService → ICustomerService
-CustomerService → IAuditService
-```
-
-When a single implementation is mapped to multiple service types this way, each is registered independently — a separate instance per service type — because the implementation is not itself one of the provided service types. Chain `AsSelf()` (or see [shared services](shared-services.md)) to opt into a single shared instance.
-
-`[AsServices]` is declared `Inherited = false`, so its service types are **not** inherited by subclasses. Types with no `IServiceTypesProvider` attribute are not registered — unless you use the fallback:
-
-```csharp
-Classes.FromThisAssembly()
-    .AsServicesFromAttributeOrSelf()
-// A type without [AsServices] is registered as itself instead of being skipped.
-```
-
-To declare service types with your own attribute instead, implement `IServiceTypesProvider`:
-
-```csharp
-public interface IServiceTypesProvider
-{
-    IEnumerable<Type> ServiceTypes { get; }
-}
-```
-
-Whether such a custom attribute is picked up on derived types follows *its* own `[AttributeUsage(Inherited = …)]`; pass `AsServicesFromAttribute(inherited: false)` to ignore inherited attributes.
-
 ### `AsServicesFromAttribute<TAttribute>(Func<TAttribute, IEnumerable<Type>>)`
 
-Projects a specific attribute — one that need not know anything about `IServiceTypesProvider` — through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+Projects a specific attribute through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
 
 ```csharp
 Classes.FromThisAssembly()
@@ -430,7 +386,7 @@ Selectors are **not mutually exclusive** — [chain](#combining-selectors) any n
 | Register as the base type itself   | `AsBase()`                   | `OrderValidator` → `IValidator<Order>`          |
 | Register as the concrete type      | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
 | Custom logic                       | `As(delegate)`               | Full control via a function                     |
-| Service types from an attribute    | `AsServicesFromAttribute()`  | `[AsServices(typeof(ICustomerService))]`          |
+| Service types from an attribute    | `AsServicesFromAttribute<TAttribute>(…)` | `[Contract(typeof(ICustomerService))]` → `a.Contracts` |
 
 ## Type-based variants
 

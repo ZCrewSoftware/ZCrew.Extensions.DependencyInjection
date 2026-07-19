@@ -7,80 +7,6 @@ public static partial class ServiceSelectorExtensions
     extension(ServiceSelector selector)
     {
         /// <summary>
-        ///     Registers each type against the service types returned by the <see cref="IServiceTypesProvider"/>
-        ///     attribute applied to the implementation type, inspecting inherited attributes. Implementation types
-        ///     without such an attribute, or whose provider yields no service types, are not registered.
-        /// </summary>
-        /// <example>
-        ///     <code>
-        ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsServicesFromAttribute()
-        ///     </code>
-        /// </example>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public ServiceSelector AsServicesFromAttribute()
-        {
-            return selector.AsServicesFromAttribute(true);
-        }
-
-        /// <summary>
-        ///     Registers each type against the service types returned by the <see cref="IServiceTypesProvider"/>
-        ///     attribute applied to the implementation type. Implementation types without such an attribute, or whose
-        ///     provider yields no service types, are not registered.
-        /// </summary>
-        /// <param name="inherited">
-        ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
-        ///     <see langword="false"/>.
-        /// </param>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public ServiceSelector AsServicesFromAttribute(bool inherited)
-        {
-            return selector.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
-        }
-
-        /// <summary>
-        ///     Registers each type against the service types returned by the <see cref="IServiceTypesProvider"/>
-        ///     attribute applied to the implementation type, inspecting inherited attributes; or
-        ///     <see cref="AsSelf"/> if there were no service types found.
-        /// </summary>
-        /// <example>
-        ///     <code>
-        ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsServicesFromAttributeOrSelf()
-        ///     </code>
-        /// </example>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public ServiceSelector AsServicesFromAttributeOrSelf()
-        {
-            return selector.AsServicesFromAttributeOrSelf(true);
-        }
-
-        /// <summary>
-        ///     Registers each type against the service types returned by the <see cref="IServiceTypesProvider"/>
-        ///     attribute applied to the implementation type; or <see cref="AsSelf"/> if there were no service types
-        ///     found.
-        /// </summary>
-        /// <param name="inherited">
-        ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
-        ///     <see langword="false"/>.
-        /// </param>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public ServiceSelector AsServicesFromAttributeOrSelf(bool inherited)
-        {
-            return selector.As(type =>
-            {
-                var services = (type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []).ToArray();
-                return services.Length == 0 ? [type] : services;
-            });
-        }
-
-        /// <summary>
         ///     Registers each type against the service types projected from a <typeparamref name="TAttribute"/>
         ///     applied to the implementation type through <paramref name="serviceSelector"/>, inspecting inherited
         ///     attributes. Implementation types without the attribute, or for which the selector yields no service
@@ -129,7 +55,7 @@ public static partial class ServiceSelectorExtensions
             return selector.As(type =>
             {
                 var attribute = type.GetAttribute<TAttribute>(inherited);
-                return attribute != null ? serviceSelector(attribute) ?? [] : [];
+                return attribute != null ? serviceSelector(attribute) : [];
             });
         }
 
@@ -175,7 +101,7 @@ public static partial class ServiceSelectorExtensions
             return selector.As(type =>
             {
                 var attribute = type.GetAttribute<TAttribute>(inherited);
-                var services = (attribute != null ? serviceSelector(attribute) ?? [] : []).ToArray();
+                var services = (attribute != null ? serviceSelector(attribute) : []).ToArray();
                 return services.Length == 0 ? [type] : services;
             });
         }
@@ -232,7 +158,7 @@ public static partial class ServiceSelectorExtensions
             return selector.As(type =>
             {
                 var attribute = type.GetAttribute(attributeType, inherited);
-                return attribute != null ? serviceSelector(attribute) ?? [] : [];
+                return attribute != null ? serviceSelector(attribute) : [];
             });
         }
 
@@ -281,7 +207,7 @@ public static partial class ServiceSelectorExtensions
             return selector.As(type =>
             {
                 var attribute = type.GetAttribute(attributeType, inherited);
-                var services = (attribute != null ? serviceSelector(attribute) ?? [] : []).ToArray();
+                var services = (attribute != null ? serviceSelector(attribute) : []).ToArray();
                 return services.Length == 0 ? [type] : services;
             });
         }

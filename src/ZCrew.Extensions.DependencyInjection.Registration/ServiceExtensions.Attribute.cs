@@ -7,49 +7,6 @@ public static partial class ServiceExtensions
     extension(Service service)
     {
         /// <summary>
-        ///     Adds the service types returned by the <see cref="IServiceTypesProvider"/> attribute applied to the
-        ///     implementation to the service, inspecting inherited attributes. An implementation without such an
-        ///     attribute, or whose provider yields no service types, is left registered against itself alone.
-        /// </summary>
-        /// <example>
-        ///     <code>
-        ///     Service.From&lt;StripePaymentGateway&gt;().AsServicesFromAttribute()
-        ///     </code>
-        /// </example>
-        /// <returns>The modified service, or the same service if no service types were found.</returns>
-        /// <exception cref="ArgumentException">
-        ///     If the attribute names a service type the implementation isn't based on.
-        /// </exception>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when the implementation has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public Service AsServicesFromAttribute()
-        {
-            return service.AsServicesFromAttribute(true);
-        }
-
-        /// <summary>
-        ///     Adds the service types returned by the <see cref="IServiceTypesProvider"/> attribute applied to the
-        ///     implementation to the service. An implementation without such an attribute, or whose provider yields
-        ///     no service types, is left registered against itself alone.
-        /// </summary>
-        /// <param name="inherited">
-        ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
-        ///     <see langword="false"/>.
-        /// </param>
-        /// <returns>The modified service, or the same service if no service types were found.</returns>
-        /// <exception cref="ArgumentException">
-        ///     If the attribute names a service type the implementation isn't based on.
-        /// </exception>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when the implementation has more than one <see cref="IServiceTypesProvider"/> attribute.
-        /// </exception>
-        public Service AsServicesFromAttribute(bool inherited)
-        {
-            return service.As(type => type.GetAttribute<IServiceTypesProvider>(inherited)?.ServiceTypes ?? []);
-        }
-
-        /// <summary>
         ///     Adds the service types projected from a <typeparamref name="TAttribute"/> applied to the implementation
         ///     through <paramref name="serviceSelector"/> to the service, inspecting inherited attributes. An
         ///     implementation without the attribute, or for which the selector yields no service types, is left
@@ -106,7 +63,7 @@ public static partial class ServiceExtensions
             return service.As(type =>
             {
                 var attribute = type.GetAttribute<TAttribute>(inherited);
-                return attribute != null ? serviceSelector(attribute) ?? [] : [];
+                return attribute != null ? serviceSelector(attribute) : [];
             });
         }
 
@@ -170,7 +127,7 @@ public static partial class ServiceExtensions
             return service.As(type =>
             {
                 var attribute = type.GetAttribute(attributeType, inherited);
-                return attribute != null ? serviceSelector(attribute) ?? [] : [];
+                return attribute != null ? serviceSelector(attribute) : [];
             });
         }
     }

@@ -54,44 +54,6 @@ public static class ServiceLifetimeSelectorExtensions
         }
 
         /// <summary>
-        ///     Assigns a service lifetime to each registration from the <see cref="IServiceLifetimeProvider.Lifetime"/>
-        ///     of an <see cref="IServiceLifetimeProvider"/> attribute applied to the implementation type, inspecting
-        ///     inherited attributes. Implementation types without such an attribute fall back to
-        ///     <see cref="ServiceLifetime.Singleton"/>.
-        /// </summary>
-        /// <example>
-        ///     <code>
-        ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsInterface().AsLifetimeByAttribute()
-        ///     </code>
-        /// </example>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceLifetimeProvider"/> attribute.
-        /// </exception>
-        public ServiceSource AsLifetimeByAttribute()
-        {
-            return selector.AsLifetimeByAttribute(true);
-        }
-
-        /// <summary>
-        ///     Assigns a service lifetime to each registration from the <see cref="IServiceLifetimeProvider.Lifetime"/>
-        ///     of an <see cref="IServiceLifetimeProvider"/> attribute applied to the implementation type.
-        ///     Implementation types without such an attribute fall back to <see cref="ServiceLifetime.Singleton"/>.
-        /// </summary>
-        /// <param name="inherited">
-        ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
-        ///     <see langword="false"/>.
-        /// </param>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceLifetimeProvider"/> attribute.
-        /// </exception>
-        public ServiceSource AsLifetimeByAttribute(bool inherited)
-        {
-            return selector.AsLifetime(type =>
-                type.GetAttribute<IServiceLifetimeProvider>(inherited)?.Lifetime ?? ServiceLifetime.Singleton
-            );
-        }
-
-        /// <summary>
         ///     Assigns a service lifetime to each registration by projecting a <typeparamref name="TAttribute"/>
         ///     applied to the implementation type through <paramref name="lifetimeSelector"/>, inspecting inherited
         ///     attributes. Implementation types without the attribute fall back to

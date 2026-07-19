@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
         ///     Provides a better overload match than
         ///     <see cref="ServiceCollectionServiceExtensions.AddSingleton{TService}(IServiceCollection,TService)"/>
         ///     for a <see cref="ServiceSource"/>, so a chain terminated with a lifetime helper
-        ///     (for example <c>chain.AsSingleton()</c> or <c>chain.AsLifetimeByAttribute()</c>) can be added directly.
+        ///     (for example <c>chain.AsSingleton()</c> or <c>chain.AsLifetime(...)</c>) can be added directly.
         /// </remarks>
         public IServiceCollection Add(ServiceSource descriptors)
         {
@@ -67,7 +67,7 @@ public static class ServiceCollectionExtensions
         ///     Provides a better overload match than
         ///     <see cref="ServiceCollectionServiceExtensions.AddSingleton{TService}(IServiceCollection,TService)"/>
         ///     for a <see cref="ServiceSource"/>, so a chain terminated with a lifetime helper
-        ///     (for example <c>chain.AsSingleton()</c> or <c>chain.AsLifetimeByAttribute()</c>) can be added directly.
+        ///     (for example <c>chain.AsSingleton()</c> or <c>chain.AsLifetime(...)</c>) can be added directly.
         /// </remarks>
         public IServiceCollection AddServices(ServiceSource descriptors)
         {

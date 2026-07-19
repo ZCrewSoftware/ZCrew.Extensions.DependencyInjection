@@ -163,7 +163,7 @@ services.AddScoped(
 );
 ```
 
-A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful for per-type lifetime helpers that have no bulk-add equivalent — e.g. `chain.AsLifetimeByAttribute()`.
+A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful for per-type lifetime helpers that have no bulk-add equivalent — e.g. `chain.AsLifetimeByAttribute<TAttribute>(...)`.
 
 ### Compile-Time `[Service]` Registration
 

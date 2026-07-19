@@ -49,7 +49,7 @@ Services can also be picked by convention, using the same selectors as the chain
 | `AsDefaultInterfaces()` / `AsDefaultNonSystemInterfaces()` | Interfaces whose name appears in the class name                 |
 | `AsFirstInterface()`                                       | The first interface in metadata order                           |
 | `AsAllTypes()` / `AsDefaultTypes()` / `…NonSystemTypes()`  | As above, plus non-abstract base classes                        |
-| `AsServicesFromAttribute(…)`                               | Service types from a `[AsServices(...)]` or projected attribute |
+| `AsServicesFromAttribute<TAttribute>(…)`                   | Service types projected from an attribute on the implementation |
 
 ```csharp
 services.Add(Service.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
@@ -105,7 +105,7 @@ Map each impl type to one or more service types. Selectors return `ServiceSelect
 | `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                                           |
 | `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                              |
 | `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                                     |
-| `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[AsServices(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
+| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttributeOrSelf<TAttribute>(…)`   | Service types projected from an attribute (`…OrSelf` falls back to self)                                    |
 
 For more on selector behavior see [service-selectors.md](service-selectors.md).
 
@@ -134,7 +134,7 @@ The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a
 | `AsTransient()`                           | Transient | New instance per resolution                                                                     |
 | `AsLifetime(ServiceLifetime)`             | Custom    | Explicit lifetime for the whole chain                                                           |
 | `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | Lifetime computed from the implementation type                                                  |
-| `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[AsLifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
+| `AsLifetimeByAttribute<TAttribute>(...)`  | Per type  | Lifetime projected from an attribute (falls back to Singleton)                                  |
 
 Skipping the stage defaults to `Singleton`.
 
