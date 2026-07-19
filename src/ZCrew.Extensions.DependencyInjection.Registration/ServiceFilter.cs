@@ -7,9 +7,8 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Filters the compile-time <see cref="Service"/> registrations emitted by the <c>[Service]</c> source generator
 ///     (<c>Services.FromThisAssembly()</c>) before adding them to an <see cref="IServiceCollection"/>. Analogous to
 ///     <see cref="TypeFilter"/>, but terminal: the attribute already fixed each service's types, lifetime, and key, so
-///     this stage only narrows the set — it never re-selects services or overrides lifetimes. Immutable and lazy: each
-///     filter returns a new <see cref="ServiceFilter"/> wrapping a deferred, chained sequence, and nothing is
-///     enumerated until a <c>ToServiceCollection</c> terminal runs.
+///     this stage only narrows the set. Immutable and lazy: each filter returns a new <see cref="ServiceFilter"/>
+///     wrapping a deferred, chained sequence, and nothing is enumerated until adding the services to a collection.
 /// </summary>
 public sealed class ServiceFilter
 {
