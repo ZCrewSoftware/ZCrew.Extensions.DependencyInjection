@@ -11,42 +11,6 @@ public static class ServiceKeySelectorExtensions
     extension(ServiceKeySelector selector)
     {
         /// <summary>
-        ///     Assigns a service key to each registration from the <see cref="IServiceKeyProvider.ServiceKey"/> of
-        ///     an <see cref="IServiceKeyProvider"/> attribute applied to the implementation type, inspecting
-        ///     inherited attributes. Implementation types without such an attribute, or whose provider yields
-        ///     <see langword="null"/>, are left unkeyed.
-        /// </summary>
-        /// <example>
-        ///     <code>
-        ///     Classes.FromThisAssembly().BasedOn&lt;IPaymentGateway&gt;().AsInterface().KeyedByAttribute()
-        ///     </code>
-        /// </example>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceKeyProvider"/> attribute.
-        /// </exception>
-        public ServiceLifetimeSelector KeyedByAttribute()
-        {
-            return selector.KeyedByAttribute(true);
-        }
-
-        /// <summary>
-        ///     Assigns a service key to each registration from the <see cref="IServiceKeyProvider.ServiceKey"/> of
-        ///     an <see cref="IServiceKeyProvider"/> attribute applied to the implementation type. Implementation
-        ///     types without such an attribute, or whose provider yields <see langword="null"/>, are left unkeyed.
-        /// </summary>
-        /// <param name="inherited">
-        ///     <see langword="true"/> to inspect the ancestors of the implementation type; otherwise,
-        ///     <see langword="false"/>.
-        /// </param>
-        /// <exception cref="AmbiguousMatchException">
-        ///     Thrown when an implementation type has more than one <see cref="IServiceKeyProvider"/> attribute.
-        /// </exception>
-        public ServiceLifetimeSelector KeyedByAttribute(bool inherited)
-        {
-            return selector.Keyed(type => type.GetAttribute<IServiceKeyProvider>(inherited)?.ServiceKey);
-        }
-
-        /// <summary>
         ///     Assigns a service key to each registration by projecting a <typeparamref name="TAttribute"/> applied
         ///     to the implementation type through <paramref name="serviceKeySelector"/>, inspecting inherited
         ///     attributes. Implementation types without the attribute, or for which the selector returns

@@ -122,49 +122,9 @@ Instead of computing keys from type names or delegates, `KeyedByAttribute` reads
 - **No match means no key.** Implementation types without a matching attribute — or for which the resolved key is `null` — are left unkeyed, exactly like a `Func` overload returning `null`.
 - **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
 
-## `KeyedByAttribute()`
-
-Reads the key from any attribute that implements the library's `IServiceKeyProvider` interface. The library ships a ready-made one — `[Keyed]` — so the common case needs no custom attribute:
-
-```csharp
-Classes.From(typeof(StripePaymentGateway), typeof(PayPalPaymentGateway))
-    .AsInterface<IPaymentGateway>()
-    .KeyedByAttribute()
-```
-
-Given:
-
-```csharp
-[Keyed("Stripe")]
-public class StripePaymentGateway : IPaymentGateway { }
-
-[Keyed("PayPal")]
-public class PayPalPaymentGateway : IPaymentGateway { }
-```
-
-Registers:
-
-```
-StripePaymentGateway  → IPaymentGateway (key: "Stripe")
-PayPalPaymentGateway  → IPaymentGateway (key: "PayPal")
-```
-
-`[Keyed]` is declared `Inherited = false`: a service key identifies a *specific* registration, so it is deliberately **not** inherited by subclasses. (This also keeps runtime and source-generated registration in agreement — a source generator only sees attributes declared directly on a type.) Types with no `IServiceKeyProvider` attribute — or whose `ServiceKey` is `null` — are left unkeyed.
-
-To key by your own attribute instead, implement `IServiceKeyProvider`:
-
-```csharp
-public interface IServiceKeyProvider
-{
-    object? ServiceKey { get; }
-}
-```
-
-Whether such a custom attribute is picked up on derived types follows *its* own `[AttributeUsage(Inherited = …)]`; pass `KeyedByAttribute(inherited: false)` to ignore inherited attributes.
-
 ## `KeyedByAttribute<TAttribute>(Func<TAttribute, object?>)`
 
-Projects a specific attribute — one that need not know anything about `IServiceKeyProvider` — through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+Projects a specific attribute through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
 
 ```csharp
 Classes.From(typeof(RegionalCustomerStore), typeof(RegionalOrderStore))
@@ -232,7 +192,6 @@ var gateway = provider.GetKeyedService<IPaymentGateway>("Stripe");
 | Same key for all registrations                  | `Keyed(object?)`                                                       | All keyed as `"payments"`                   |
 | Key based on implementation type                | `Keyed(Func<Type, object?>)`                                           | Key is `type.Name`                          |
 | Key based on both types                         | `Keyed(Func<Type, Type, object?>)`                                     | Key is `$"{impl}:{svc}"`                    |
-| Key from an `IServiceKeyProvider` attribute     | `KeyedByAttribute()`                                                   | `[Keyed("Stripe")]` → key `"Stripe"`        |
 | Key by projecting a typed attribute             | `KeyedByAttribute<TAttribute>(Func<TAttribute, object?>)`              | `[Region("customers")]` → key `"customers"` |
 | Key by projecting an attribute known at runtime | `KeyedByAttribute(Type, Func<Attribute, object?>)`                     | As above, `Type` resolved at runtime        |
 | Conditionally skip keying                       | Any `Func` overload returning `null`, or an unmatched/`null` attribute | `null` → left unkeyed                       |

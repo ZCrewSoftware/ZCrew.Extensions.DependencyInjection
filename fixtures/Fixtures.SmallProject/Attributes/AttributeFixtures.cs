@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
 namespace Fixtures.SmallProject.Attributes;
 
@@ -100,87 +99,15 @@ public enum MarkedEnum
 public class MarkedClass;
 
 /// <summary>
-///     A second <see cref="IServiceKeyProvider"/> attribute. The shipped <see cref="KeyedAttribute"/> is
-///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-key
-///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also
-///     exercises the <c>inherited</c> flag on the <see cref="IServiceKeyProvider"/> path.
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class AltKeyedAttribute(object? key) : Attribute, IServiceKeyProvider
-{
-    public object? ServiceKey => key;
-}
-
-[Keyed("customers")]
-public class KeyProvidedStore;
-
-[Keyed(null)]
-public class NullKeyProvidedStore;
-
-[Keyed("first")]
-[AltKeyed("second")]
-public class MultiKeyProvidedStore;
-
-// [Keyed] is declared Inherited = false, so its key does not flow to KeyedDerived.
-[Keyed("base-key")]
-public class KeyedBase;
-
-public class KeyedDerived : KeyedBase;
-
-// AltKeyed is inheritable, so it exercises the inherited flag on the IServiceKeyProvider path.
-[AltKeyed("alt-base")]
-public class InheritableKeyedBase;
-
-public class InheritableKeyedDerived : InheritableKeyedBase;
-
-/// <summary>
-///     Empty service interfaces targeted by the <see cref="AsServicesAttribute"/> fixtures below. Two are provided so a
-///     single implementation can be mapped to multiple service types (exercising the shared-service path).
+///     Empty service interface named by the <see cref="ContractAttribute"/> fixtures below, so a projector overload
+///     can map an implementation onto it.
 /// </summary>
 public interface IProvidedServiceA;
 
-public interface IProvidedServiceB;
-
 /// <summary>
-///     A second <see cref="IServiceTypesProvider"/> attribute. The shipped <see cref="AsServicesAttribute"/> is
-///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two service-type
-///     attributes (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
-///     <c>inherited</c> flag on the <see cref="IServiceTypesProvider"/> path.
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class AltServicesAttribute(params Type[] serviceTypes) : Attribute, IServiceTypesProvider
-{
-    public IEnumerable<Type> ServiceTypes => serviceTypes;
-}
-
-[AsServices(typeof(IProvidedServiceA))]
-public class SingleServiceStore : IProvidedServiceA;
-
-[AsServices(typeof(IProvidedServiceA), typeof(IProvidedServiceB))]
-public class MultiServiceStore : IProvidedServiceA, IProvidedServiceB;
-
-// [AsServices] is declared Inherited = false, so its service types do not flow to ServicesDerived.
-[AsServices(typeof(IProvidedServiceA))]
-public class ServicesBase : IProvidedServiceA;
-
-public class ServicesDerived : ServicesBase;
-
-// AltServices is inheritable, so it exercises the inherited flag on the IServiceTypesProvider path.
-[AltServices(typeof(IProvidedServiceB))]
-public class InheritableServicesBase : IProvidedServiceB;
-
-public class InheritableServicesDerived : InheritableServicesBase;
-
-// Two IServiceTypesProvider attributes on one type -> AmbiguousMatchException.
-[AsServices(typeof(IProvidedServiceA))]
-[AltServices(typeof(IProvidedServiceB))]
-public class MultiServiceProvidedStore;
-
-/// <summary>
-///     Default <see cref="AttributeUsageAttribute"/> — <c>Inherited = true</c> — carrying a <see cref="Type"/> array
-///     but deliberately not implementing <see cref="IServiceTypesProvider"/>, so it exercises the projector overloads
-///     (<c>AsServicesFromAttribute&lt;TAttribute&gt;</c> / <c>AsServicesFromAttribute(Type, ...)</c>) and the
-///     inherited condition.
+///     Default <see cref="AttributeUsageAttribute"/> — <c>Inherited = true</c> — carrying a <see cref="Type"/> array,
+///     so it exercises the projector overloads (<c>AsServicesFromAttribute&lt;TAttribute&gt;</c> /
+///     <c>AsServicesFromAttribute(Type, ...)</c>) and the inherited condition.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public class ContractAttribute(params Type[] contracts) : Attribute
@@ -211,9 +138,8 @@ public interface ILifestyleAware
 }
 
 /// <summary>
-///     A projection attribute exposing a <see cref="ServiceLifetime"/>, unrelated to
-///     <see cref="IServiceLifetimeProvider"/>. Declared <c>Inherited = true</c> (the default) so it also exercises
-///     the <c>inherited</c> flag on the projection overloads.
+///     A projection attribute exposing a <see cref="ServiceLifetime"/>. Declared <c>Inherited = true</c> (the default)
+///     so it also exercises the <c>inherited</c> flag on the projection overloads.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public class LifestyleAttribute(ServiceLifetime lifetime) : Attribute, ILifestyleAware
@@ -221,57 +147,14 @@ public class LifestyleAttribute(ServiceLifetime lifetime) : Attribute, ILifestyl
     public ServiceLifetime Lifetime => lifetime;
 }
 
-/// <summary>
-///     A second <see cref="IServiceLifetimeProvider"/> attribute. The shipped <see cref="AsLifetimeAttribute"/> is
-///     <c>AllowMultiple = false</c>, so a distinct provider is needed to give a single type two lifetime attributes
-///     (the ambiguous-match path). Declared <c>Inherited = true</c> (the default) so it also exercises the
-///     <c>inherited</c> flag on the <see cref="IServiceLifetimeProvider"/> path.
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class AltLifetimeAttribute(ServiceLifetime lifetime) : Attribute, IServiceLifetimeProvider
-{
-    public ServiceLifetime Lifetime => lifetime;
-}
-
-public interface ILifetimeAlpha;
-
-public interface ILifetimeBeta;
-
-[AsLifetime(ServiceLifetime.Scoped)]
+// Plain, undecorated stores used by the per-type AsLifetime(Func) selector tests, which choose the lifetime from
+// the type itself rather than from any attribute.
 public class ScopedLifetimeStore;
 
-[AsLifetime(ServiceLifetime.Transient)]
 public class TransientLifetimeStore;
-
-[AsLifetime(ServiceLifetime.Singleton)]
-public class SingletonLifetimeStore;
-
-[AsLifetime(ServiceLifetime.Scoped)]
-[AltLifetime(ServiceLifetime.Transient)]
-public class MultiLifetimeStore;
-
-// [AsLifetime] is declared Inherited = false, so its lifetime does not flow to LifetimeDerived.
-[AsLifetime(ServiceLifetime.Scoped)]
-public class LifetimeBase;
-
-public class LifetimeDerived : LifetimeBase;
-
-// AltLifetime is inheritable, so it exercises the inherited flag on the IServiceLifetimeProvider path.
-[AltLifetime(ServiceLifetime.Scoped)]
-public class InheritableLifetimeBase;
-
-public class InheritableLifetimeDerived : InheritableLifetimeBase;
 
 // Lifestyle is inheritable, so it exercises the inherited flag on the projection overloads.
 [Lifestyle(ServiceLifetime.Scoped)]
 public class LifestyleBase;
 
 public class LifestyleDerived : LifestyleBase;
-
-// Multi-interface implementations that declare their own lifetime, for verifying that Singleton services still
-// share one instance while Transient services are registered independently.
-[AsLifetime(ServiceLifetime.Singleton)]
-public class SingletonMultiStore : ILifetimeAlpha, ILifetimeBeta;
-
-[AsLifetime(ServiceLifetime.Transient)]
-public class TransientMultiStore : ILifetimeAlpha, ILifetimeBeta;

@@ -114,8 +114,7 @@ services and the service stays shared. The same selector on a chain drops it:
 | `AsFirstInterface()`                                                          | The first interface in metadata order                                                    |
 | `AsAllTypes()` / `AsAllNonSystemTypes()`                                      | Like the `Interfaces` variants, plus every non-abstract base class                       |
 | `AsDefaultTypes()` / `AsDefaultNonSystemTypes()`                              | Like the above, restricted to convention-matching names                                  |
-| `AsServicesFromAttribute([bool])`                                             | Service types from an `IServiceTypesProvider` attribute such as `[AsServices(...)]`        |
-| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttribute(Type, …)` | Service types projected from any attribute                                               |
+| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttribute(Type, …)` | Service types projected from an attribute on the implementation                          |
 
 Per-method semantics are identical to the chain — see [service selectors](service-selectors.md). Selectors chain and
 accumulate here too, so `AsDefaultInterfaces().AsAllInterfaces()` registers the distinct union of both.

@@ -68,7 +68,7 @@ By contrast, `AsAllInterfaces().AsSingleton()` maps the implementation to `IPaym
 | `AsScoped()`    | One instance per scope. Shared across the selected service types within a scope when the implementation is one of them. |
 | `AsTransient()` | A new instance on every resolution. Never shared.                                                                       |
 
-To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute` (see [AsLifetime from attributes](#lifetime-from-attributes)). The same sharing rules are applied per service, based on the lifetime resolved for it.
+To choose a lifetime **per implementation type**, use `AsLifetime(Func<Type, ServiceLifetime>)` or read it from an attribute with `AsLifetimeByAttribute<TAttribute>` (see [lifetime from attributes](#lifetime-from-attributes)). The same sharing rules are applied per service, based on the lifetime resolved for it.
 
 ## Single-service short-circuit
 
@@ -92,51 +92,9 @@ Instead of applying one lifetime to the whole chain, `AsLifetimeByAttribute` rea
 - **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
 - **Transient services are never shared.** A service whose resolved lifetime is `Transient` registers each service type independently, because a transient can never share an instance.
 
-## `AsLifetimeByAttribute()`
-
-Reads the lifetime from any attribute that implements the library's `IServiceLifetimeProvider` interface. The library ships a ready-made one — `[AsLifetime]` — so the common case needs no custom attribute:
-
-```csharp
-services.Add(
-    Classes.From(typeof(CustomerService), typeof(OrderService))
-        .AsInterface()
-        .AsLifetimeByAttribute()
-);
-```
-
-Given:
-
-```csharp
-[AsLifetime(ServiceLifetime.Singleton)]
-public class CustomerService : ICustomerService { }
-
-[AsLifetime(ServiceLifetime.Scoped)]
-public class OrderService : IOrderService { }
-```
-
-Registers:
-
-```
-CustomerService → ICustomerService (Singleton)
-OrderService    → IOrderService    (Scoped)
-```
-
-`[AsLifetime]` is declared `Inherited = false` — matching `[Keyed]` — so a lifetime does not flow to subclasses by default (this also keeps runtime and source-generated registration in agreement, since a source generator only sees attributes declared directly on a type). Types with no `IServiceLifetimeProvider` attribute fall back to `ServiceLifetime.Singleton`.
-
-To declare lifetimes with your own attribute instead, implement `IServiceLifetimeProvider`:
-
-```csharp
-public interface IServiceLifetimeProvider
-{
-    ServiceLifetime Lifetime { get; }
-}
-```
-
-Whether such a custom attribute is picked up on derived types follows *its* own `[AttributeUsage(Inherited = …)]`; pass `AsLifetimeByAttribute(inherited: false)` to ignore inherited attributes.
-
 ## `AsLifetimeByAttribute<TAttribute>(Func<TAttribute, ServiceLifetime>)`
 
-Projects a specific attribute — one that need not know anything about `IServiceLifetimeProvider` — through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+Projects a specific attribute through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
 
 ```csharp
 Classes.FromThisAssembly()
@@ -204,5 +162,5 @@ If a shared single instance is required for an open generic, there may need to b
 | Multiple service types (including the implementation) share one instance | `AsSingleton()` / `AsScoped()` with a selection that includes the implementation   |
 | Each service type should have its own instance                           | Map interfaces only (e.g. `AsAllInterfaces()`) with `AsSingleton()` / `AsScoped()` |
 | New instance on every resolution                                         | `AsTransient()`                                                                    |
-| Lifetime declared per type by an attribute                               | `AsLifetimeByAttribute(...)`                                                       |
+| Lifetime declared per type by an attribute                               | `AsLifetimeByAttribute<TAttribute>(...)`                                           |
 | Lifetime computed per type by a delegate                                 | `AsLifetime(Func<Type, ServiceLifetime>)`                                          |

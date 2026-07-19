@@ -1,142 +1,9 @@
-using System.Reflection;
 using Fixtures.SmallProject.Attributes;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration.UnitTests;
 
 public class ServiceSelectorExtensionsAttributeTests
 {
-    [Fact]
-    public void AsServicesFromAttribute_WhenProviderYieldsServiceType_ShouldRegisterAgainstIt()
-    {
-        // Arrange
-        var source = Classes.From(typeof(SingleServiceStore));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert
-        var descriptor = Assert.Single(result);
-        Assert.Equal(typeof(IProvidedServiceA), descriptor.ServiceType);
-        Assert.Equal(typeof(SingleServiceStore), descriptor.ImplementationType);
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenProviderYieldsMultipleServiceTypes_ShouldRegisterAgainstEach()
-    {
-        // Arrange
-        var source = Classes.From(typeof(MultiServiceStore));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert — each attribute-provided service type is registered against the implementation.
-        Assert.Contains(result, d => d.ServiceType == typeof(IProvidedServiceA));
-        Assert.Contains(result, d => d.ServiceType == typeof(IProvidedServiceB));
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenNoAttribute_ShouldSkipType()
-    {
-        // Arrange
-        var source = Classes.From(typeof(UnmarkedStore));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void AsServicesFromAttributeOrSelf_WhenNoAttribute_ShouldRegisterAsSelf()
-    {
-        // Arrange
-        var source = Classes.From(typeof(UnmarkedStore));
-
-        // Act
-        var result = source.AsServicesFromAttributeOrSelf().ToServiceCollection();
-
-        // Assert
-        var descriptor = Assert.Single(result);
-        Assert.Equal(typeof(UnmarkedStore), descriptor.ServiceType);
-        Assert.Equal(typeof(UnmarkedStore), descriptor.ImplementationType);
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenMixedTypes_ShouldRegisterOnlyProvided()
-    {
-        // Arrange
-        var source = Classes.From(typeof(SingleServiceStore), typeof(UnmarkedStore));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert
-        Assert.Contains(
-            result,
-            d => d.ServiceType == typeof(IProvidedServiceA) && d.ImplementationType == typeof(SingleServiceStore)
-        );
-        Assert.DoesNotContain(result, d => d.ServiceType == typeof(UnmarkedStore));
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenAttributeNonInherited_ShouldRegisterOnlyDeclaringType()
-    {
-        // Arrange — [AsServices] is declared Inherited = false, so the service types do not flow to derived types
-        var source = Classes.From(typeof(ServicesBase), typeof(ServicesDerived));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert
-        Assert.Contains(
-            result,
-            d => d.ServiceType == typeof(IProvidedServiceA) && d.ImplementationType == typeof(ServicesBase)
-        );
-        Assert.DoesNotContain(result, d => d.ImplementationType == typeof(ServicesDerived));
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenInheritedDefaultAndAttributeInheritable_ShouldRegisterDerivedFromBase()
-    {
-        // Arrange
-        var source = Classes.From(typeof(InheritableServicesDerived));
-
-        // Act
-        var result = source.AsServicesFromAttribute().ToServiceCollection();
-
-        // Assert
-        var descriptor = Assert.Single(result);
-        Assert.Equal(typeof(IProvidedServiceB), descriptor.ServiceType);
-        Assert.Equal(typeof(InheritableServicesDerived), descriptor.ImplementationType);
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenInheritedFalse_ShouldSkipDerived()
-    {
-        // Arrange
-        var source = Classes.From(typeof(InheritableServicesDerived));
-
-        // Act
-        var result = source.AsServicesFromAttribute(inherited: false).ToServiceCollection();
-
-        // Assert
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_WhenMultipleProviderAttributes_ShouldThrowAmbiguousMatch()
-    {
-        // Arrange
-        var source = Classes.From(typeof(MultiServiceProvidedStore)).AsServicesFromAttribute();
-
-        // Act
-        var act = () => source.ToServiceCollection();
-
-        // Assert
-        Assert.Throws<AmbiguousMatchException>(act);
-    }
-
     [Fact]
     public void AsServicesFromAttribute_T_WhenAttributeProjected_ShouldRegisterServices()
     {
@@ -150,23 +17,6 @@ public class ServiceSelectorExtensionsAttributeTests
         var descriptor = Assert.Single(result);
         Assert.Equal(typeof(IProvidedServiceA), descriptor.ServiceType);
         Assert.Equal(typeof(ContractBase), descriptor.ImplementationType);
-    }
-
-    [Fact]
-    public void AsServicesFromAttribute_T_WhenMarkerInterface_ShouldRegisterByProjection()
-    {
-        // Arrange
-        var source = Classes.From(typeof(SingleServiceStore));
-
-        // Act
-        var result = source
-            .AsServicesFromAttribute<IServiceTypesProvider>(a => a.ServiceTypes)
-            .ToServiceCollection();
-
-        // Assert
-        var descriptor = Assert.Single(result);
-        Assert.Equal(typeof(IProvidedServiceA), descriptor.ServiceType);
-        Assert.Equal(typeof(SingleServiceStore), descriptor.ImplementationType);
     }
 
     [Fact]
