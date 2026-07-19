@@ -1,0 +1,8 @@
+{
+    "SourceFiles": [
+        {
+            "SourceFileName": "$(TestName).Source.cs"
+        }
+    ],
+    "GeneratedFiles": []
+}

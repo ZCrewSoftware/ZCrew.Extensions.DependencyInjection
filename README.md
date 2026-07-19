@@ -165,6 +165,20 @@ services.AddScoped(
 
 A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's most useful for per-type lifetime helpers that have no bulk-add equivalent — e.g. `chain.AsLifetimeByAttribute()`.
 
+### Compile-Time `[Service]` Registration
+
+Prefer declaring registrations on the type itself? The package bundles a source generator (as an analyzer — nothing extra to install). Annotate a type with `[Service]` and it's collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`) — no startup reflection:
+
+```csharp
+[Service(typeof(IEmailSender), Lifetime = ServiceLifetime.Scoped)]
+public class Emailer : IEmailSender;
+
+// then, in the same assembly (optionally narrowed via ServiceFilter filters like .Where(...) / .BasedOn<T>()):
+services.Add(Services.FromThisAssembly());
+```
+
+See [Compile-Time Registration with `[Service]`](docs/source-generator.md) for the full model.
+
 ## Documentation
 
 See the [docs](docs) folder for detailed guides:
@@ -172,6 +186,7 @@ See the [docs](docs) folder for detailed guides:
 - [Introduction](docs/introduction.md)
 - [Decorators](docs/decorators.md)
 - [Convention-Based Registration](docs/registration.md)
+- [Compile-Time Registration with `[Service]`](docs/source-generator.md)
 - [Services](docs/services.md)
 - **[Registration Cheat Sheet](docs/registration-cheat-sheet.md)** — one-page API reference (start here when you need to look something up)
 - [Type Selectors](docs/type-selectors.md)

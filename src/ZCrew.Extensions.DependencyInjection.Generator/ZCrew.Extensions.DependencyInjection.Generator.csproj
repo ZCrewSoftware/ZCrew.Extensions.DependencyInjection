@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Source generator: a single-target netstandard2.0 analyzer, not a multi-TFM runtime library.
+    Overrides the multi-TFM/library defaults inherited from src\Directory.Build.props.
+  -->
+  <PropertyGroup>
+    <!--suppress CheckTagEmptyBody, MsbuildTargetFrameworkTagInspection -->
+    <TargetFrameworks></TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- Don't include in build output as the source generator only needs to be present at compile-time -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Copy package dependencies beside the generator so analyzer-mode consumers can load them -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- https://github.com/dotnet/roslyn/issues/63290 -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <!-- Ships as an analyzer inside the Registration package, never as a standalone package -->
+    <IsPackable>false</IsPackable>
+    <Description>Source generator that emits compile-time [Service] registrations for ZCrew.Extensions.DependencyInjection.Registration</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Runtime DI dependency inherited from src\Directory.Build.props; the netstandard2.0 analyzer must not carry it -->
+    <PackageReference Remove="Microsoft.Extensions.DependencyInjection.Abstractions" />
+
+    <PackageReference Include="IsExternalInit">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
+      <PrivateAssets>analyzers</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ZCrew.Extensions.DependencyInjection.Generator.Tests" />
+  </ItemGroup>
+</Project>

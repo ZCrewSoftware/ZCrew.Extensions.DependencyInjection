@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +41,22 @@ public readonly record struct Service
     {
         this.implementation = implementation;
         this.services = services;
+    }
+
+    /// <summary>
+    ///     Create a service directly from a <see cref="ServiceAttribute"/> declaration, for the source generator. The
+    ///     implementation is seeded among the services (so the shared-instance path applies exactly as
+    ///     with the fluent API) and the attribute's lifetime and key are lifted directly. The service types are
+    ///     trusted as-declared and are not re-validated for assignability; the compiler already saw them.
+    /// </summary>
+    /// <param name="implementation">The implementation type.</param>
+    /// <param name="attribute">The declared attribute to map.</param>
+    private Service(Type implementation, ServiceAttribute attribute)
+    {
+        this.implementation = implementation;
+        this.services = [implementation, .. attribute.ServiceTypes];
+        this.lifetime = attribute.Lifetime;
+        this.serviceKey = attribute.Key;
     }
 
     /// <summary>
@@ -90,6 +107,29 @@ public readonly record struct Service
     >()
     {
         return new Service(typeof(T));
+    }
+
+    /// <summary>
+    ///     Maps a <see cref="ServiceAttribute"/> declaration to a <see cref="Service"/>. The
+    ///     <paramref name="implementation"/> is registered against itself plus the attribute's
+    ///     <see cref="ServiceAttribute.ServiceTypes"/> (resolving to a single shared instance for
+    ///     <see cref="ServiceLifetime.Singleton"/> and <see cref="ServiceLifetime.Scoped"/> lifetimes), with the
+    ///     attribute's <see cref="ServiceAttribute.Lifetime"/> and <see cref="ServiceAttribute.Key"/> applied.
+    /// </summary>
+    /// <remarks>
+    ///     This overload exists for the code the source generator emits for <c>Services.FromThisAssembly()</c>; it is
+    ///     not intended to be called directly. It is public only because that generated code compiles into the
+    ///     consuming assembly, where an internal member would be unreachable.
+    /// </remarks>
+    /// <param name="implementation">The implementation type carrying the <paramref name="attribute"/>.</param>
+    /// <param name="attribute">The declared <see cref="ServiceAttribute"/> to map.</param>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static Service From(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementation,
+        ServiceAttribute attribute
+    )
+    {
+        return new Service(implementation, attribute);
     }
 
     /// <summary>

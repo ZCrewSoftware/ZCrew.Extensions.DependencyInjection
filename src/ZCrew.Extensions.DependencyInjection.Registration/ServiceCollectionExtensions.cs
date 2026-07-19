@@ -105,6 +105,23 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
+        ///     Adds the descriptors represented by each <see cref="Service"/> retained by <paramref name="filter"/>
+        ///     into this service collection. Covers the source-generator path, for example
+        ///     <c>services.Add(Services.FromThisAssembly())</c> and
+        ///     <c>services.Add(Services.FromThisAssembly().Where(...))</c>.
+        /// </summary>
+        /// <param name="filter">The generated (optionally filtered) services to add.</param>
+        /// <remarks>
+        ///     Each service keeps its attribute-decided lifetime and key; a service with no lifetime set is registered
+        ///     as <see cref="ServiceLifetime.Singleton"/>.
+        /// </remarks>
+        public IServiceCollection Add(ServiceFilter filter)
+        {
+            ArgumentNullException.ThrowIfNull(filter);
+            return filter.ToServiceCollection(serviceCollection);
+        }
+
+        /// <summary>
         ///     Adds the descriptors as <see cref="ServiceLifetime.Singleton"/> registrations.
         /// </summary>
         /// <param name="descriptors">The service descriptors to add.</param>

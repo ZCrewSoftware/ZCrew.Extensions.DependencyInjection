@@ -27,14 +27,14 @@ Each stage is optional after the entry point. Skip any stage and the next call a
 
 | Method                         | Effect                                                     |
 |--------------------------------|------------------------------------------------------------|
-| `Service.From(Type)`         | Start a service, registered against the type itself      |
+| `Service.From(Type)`           | Start a service, registered against the type itself        |
 | `As<T1>()` … `As<T1, …, T8>()` | Add one to eight services, forwarded to the implementation |
 | `As(Type)`                     | Add one service, forwarded to the implementation           |
 | `As(IEnumerable<Type>)`        | Add several services, forwarded to the implementation      |
 | `AsLifetime(ServiceLifetime)`  | Set the lifetime — defaults to `Singleton`                 |
 | `AsLifetime(Func<Type, …>)`    | Set the lifetime from the implementation type              |
 | `Keyed(object?)` / `Unkeyed()` | Assign or remove a service key                             |
-| `services.Add(service, …)`   | Add one or more services (`params`)                      |
+| `services.Add(service, …)`     | Add one or more services (`params`)                        |
 
 ```csharp
 services.Add(Service.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDisposable>());
@@ -43,13 +43,13 @@ services.Add(Service.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDis
 
 Services can also be picked by convention, using the same selectors as the chain — the implementation is kept and the service stays shared.
 
-| Method                                                              | Service types added                                             |
-|---------------------------------------------------------------------|------------------------------------------------------------------|
-| `AsAllInterfaces()` / `AsAllNonSystemInterfaces()`                  | Every interface, optionally excluding `System.*`                |
-| `AsDefaultInterfaces()` / `AsDefaultNonSystemInterfaces()`          | Interfaces whose name appears in the class name                 |
-| `AsFirstInterface()`                                                | The first interface in metadata order                           |
-| `AsAllTypes()` / `AsDefaultTypes()` / `…NonSystemTypes()`           | As above, plus non-abstract base classes                        |
-| `AsServicesFromAttribute(…)`                                        | Service types from a `[AsServices(...)]` or projected attribute    |
+| Method                                                     | Service types added                                             |
+|------------------------------------------------------------|-----------------------------------------------------------------|
+| `AsAllInterfaces()` / `AsAllNonSystemInterfaces()`         | Every interface, optionally excluding `System.*`                |
+| `AsDefaultInterfaces()` / `AsDefaultNonSystemInterfaces()` | Interfaces whose name appears in the class name                 |
+| `AsFirstInterface()`                                       | The first interface in metadata order                           |
+| `AsAllTypes()` / `AsDefaultTypes()` / `…NonSystemTypes()`  | As above, plus non-abstract base classes                        |
+| `AsServicesFromAttribute(…)`                               | Service types from a `[AsServices(...)]` or projected attribute |
 
 ```csharp
 services.Add(Service.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
@@ -90,21 +90,21 @@ Only available after `FromAssembly*` (returns `AssemblyTypeSelector`). Default i
 
 Map each impl type to one or more service types. Selectors return `ServiceSelector`, so they can be **chained** — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types (see [combining selectors](service-selectors.md#combining-selectors)).
 
-| Method                                                                                      | Service types                                                                                             |
-|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `AsSelf()`                                                                                  | The implementation type                                                                                   |
-| `AsBase()`                                                                                  | The base types set via `BasedOn` (use with open generics: `BasedOn(typeof(IFoo<>)).AsBase()`)             |
-| `AsAllInterfaces()`                                                                         | Every interface implemented                                                                               |
-| `AsAllNonSystemInterfaces()`                                                                | Every interface except `System.*`                                                                         |
-| `AsDefaultInterfaces()`                                                                     | Interfaces whose name appears in the class name (e.g. `CustomerService` → `ICustomerService`)             |
-| `AsDefaultNonSystemInterfaces()`                                                            | Default interfaces, excluding `System.*`                                                                  |
-| `AsFirstInterface()`                                                                        | The first interface in metadata order                                                                     |
-| `AsInterface()`                                                                             | Top-level interfaces derived from `BasedOn` types                                                         |
-| `AsInterface<T>()` / `AsInterface(Type)`                                                    | Top-level interfaces derived from `T`                                                                     |
-| `AsInterfaces(params Type[])`                                                               | Top-level interfaces derived from the given types                                                         |
-| `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                                         |
-| `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                            |
-| `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                                   |
+| Method                                                                                      | Service types                                                                                               |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `AsSelf()`                                                                                  | The implementation type                                                                                     |
+| `AsBase()`                                                                                  | The base types set via `BasedOn` (use with open generics: `BasedOn(typeof(IFoo<>)).AsBase()`)               |
+| `AsAllInterfaces()`                                                                         | Every interface implemented                                                                                 |
+| `AsAllNonSystemInterfaces()`                                                                | Every interface except `System.*`                                                                           |
+| `AsDefaultInterfaces()`                                                                     | Interfaces whose name appears in the class name (e.g. `CustomerService` → `ICustomerService`)               |
+| `AsDefaultNonSystemInterfaces()`                                                            | Default interfaces, excluding `System.*`                                                                    |
+| `AsFirstInterface()`                                                                        | The first interface in metadata order                                                                       |
+| `AsInterface()`                                                                             | Top-level interfaces derived from `BasedOn` types                                                           |
+| `AsInterface<T>()` / `AsInterface(Type)`                                                    | Top-level interfaces derived from `T`                                                                       |
+| `AsInterfaces(params Type[])`                                                               | Top-level interfaces derived from the given types                                                           |
+| `AsAllTypes()` / `AsDefaultTypes()` / `AsAllNonSystemTypes()` / `AsDefaultNonSystemTypes()` | Like the `Interfaces` variants but for base types                                                           |
+| `As(Func<Type, IEnumerable<Type>>)`                                                         | Custom mapping                                                                                              |
+| `As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>>)`                                    | Custom mapping with access to base types from `BasedOn`                                                     |
 | `AsServicesFromAttribute()` / `AsServicesFromAttributeOrSelf()`                             | Service types from a `[AsServices(...)]` / `IServiceTypesProvider` attribute (`…OrSelf` falls back to self) |
 
 For more on selector behavior see [service-selectors.md](service-selectors.md).
@@ -127,13 +127,13 @@ See [service-key-selectors.md](service-key-selectors.md) for examples.
 
 The lifetime-selection stage (on `ServiceLifetimeSelector`). Each call returns a `ServiceSource` — finish it with `.ToServiceCollection()` or a bulk-add (`services.AddSingleton(...)`, `services.Add(...)`).
 
-| Method                                    | Lifetime  | Notes                                                                                         |
-|-------------------------------------------|-----------|-----------------------------------------------------------------------------------------------|
-| `AsSingleton()`                           | Singleton | One instance per container                                                                    |
-| `AsScoped()`                              | Scoped    | One instance per scope                                                                        |
-| `AsTransient()`                           | Transient | New instance per resolution                                                                   |
-| `AsLifetime(ServiceLifetime)`             | Custom    | Explicit lifetime for the whole chain                                                         |
-| `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | Lifetime computed from the implementation type                                                |
+| Method                                    | Lifetime  | Notes                                                                                           |
+|-------------------------------------------|-----------|-------------------------------------------------------------------------------------------------|
+| `AsSingleton()`                           | Singleton | One instance per container                                                                      |
+| `AsScoped()`                              | Scoped    | One instance per scope                                                                          |
+| `AsTransient()`                           | Transient | New instance per resolution                                                                     |
+| `AsLifetime(ServiceLifetime)`             | Custom    | Explicit lifetime for the whole chain                                                           |
+| `AsLifetime(Func<Type, ServiceLifetime>)` | Per type  | Lifetime computed from the implementation type                                                  |
 | `AsLifetimeByAttribute(...)`              | Per type  | Lifetime from a `[AsLifetime]` / `IServiceLifetimeProvider` attribute (falls back to Singleton) |
 
 Skipping the stage defaults to `Singleton`.
@@ -159,6 +159,45 @@ services.Add(
     Classes.FromThisAssembly().BasedOn<IRepository>().AsInterface().AsScoped()
 );
 ```
+
+## Compile-time registration: `[Service]` source generator
+
+The attribute-driven alternative to scanning. Annotate types with `[Service]`; a Roslyn generator — shipped **inside** the Registration package as an analyzer — collects them into a compile-time `Services.FromThisAssembly()` list, so there is no startup reflection. Full guide: [source-generator.md](source-generator.md).
+
+```csharp
+[Service]                                                                 // self, singleton
+public class Clock;
+
+[Service(typeof(IFoo), typeof(IBar), Lifetime = ServiceLifetime.Scoped)]  // self + IFoo + IBar, one shared instance
+public class FooBar : IFoo, IBar;
+
+[Service(typeof(IEmailSender), Key = "smtp")]                             // keyed…
+[Service(typeof(IEmailSender), Key = "ses")]                             // …twice: two registrations, one type
+public class Emailer : IEmailSender;
+```
+
+| `[Service]` member                             | Meaning                                                                    |
+|------------------------------------------------|----------------------------------------------------------------------------|
+| `ServiceAttribute(params Type[] serviceTypes)` | Service types to register against, **beyond the implementation itself**    |
+| `Lifetime` (init)                              | Registration lifetime; defaults to `Singleton`                             |
+| `Key` (init)                                   | Optional service key; applies to the impl and every forwarded service type |
+
+`[Service]` allows multiples — several attributes on one type each produce an independent registration. Semantics match `Service.From(...).As(...)`: self-backing, one shared instance for `Singleton`/`Scoped` with 2+ types, `Transient` independent.
+
+**Consume** the generated `ServiceFilter`. Its filters mirror the [type filters](#type-filters) but match on the **implementation type**; there is no service/key/lifetime stage (the attribute already decided those):
+
+```csharp
+services.Add(Services.FromThisAssembly());                                 // add every [Service]
+services.Add(Services.FromThisAssembly().BasedOn<IRepository>());          // filtered
+Services.FromThisAssembly().InNamespace("MyApp.Infrastructure").ToServiceCollection(services);
+```
+
+Filters: `Where`, `InNamespace`, `InSameNamespaceAs`, `NameEndsWith`, `BasedOn`, `HasAttribute`/`HasAttributes`, `GenericTypes`, `GenericTypeDefinitions`, `ConstructedGenericTypes`. Terminal: `services.Add(...)` or `.ToServiceCollection(services)` — no `AddSingleton/AddScoped/AddTransient`, so attribute-chosen lifetimes are never overridden.
+
+- **Same assembly.** The generated `Services` class is `[Embedded]` + `internal`: the `[Service]` types and the `Services.FromThisAssembly()` call site must live in the **same** assembly.
+- **`ZCDI001`** — a `Key` that is an array is flagged (arrays compare by reference, so keyed lookups never match). The `params Type[]` constructor list is not a key and is never flagged.
+
+See the [Registration Sample](../samples/RegistrationSample/README.md) for a runnable comparison of this path and the reflection scan.
 
 ## Recipes
 

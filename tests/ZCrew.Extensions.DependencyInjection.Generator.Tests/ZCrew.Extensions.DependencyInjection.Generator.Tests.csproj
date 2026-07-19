@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The runtime types the generated code and the test sources reference (Service, ServiceAttribute). -->
+    <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
+    <!-- The generator + analyzer under test, referenced for their types (not applied as a live analyzer here). -->
+    <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Although these end with ".cs" these shouldn't be compiled. The file extension helps provide editor hints. -->
+    <Compile Remove="**/TestCases/**/*.cs" />
+    <!-- Fixtures resolve from the source tree via TestPath.ForCaller(); included for editor visibility only. -->
+    <None Include="**/TestCases/**/*.json" Exclude="bin/**/*.json" />
+    <None Include="**/TestCases/**/*.cs" Exclude="bin/**/*.cs">
+      <!-- Using String.Copy until this is fixed: https://github.com/dotnet/msbuild/issues/1155 -->
+      <DependentUpon>$([System.String]::Concat($([System.String]::Copy(%(Filename)).Substring(0, $([System.String]::Copy(%(Filename)).IndexOf('.')))), '.json'))</DependentUpon>
+    </None>
+  </ItemGroup>
+</Project>

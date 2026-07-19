@@ -2,5 +2,13 @@
   <ItemGroup>
     <ProjectReference Include="../../fixtures/Fixtures.SmallProject/Fixtures.SmallProject.csproj" />
     <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
+    <!--
+      The [Service] source generator, applied as an analyzer so its Services.FromThisAssembly() entry point is emitted
+      into THIS assembly. The generated entry point is [Embedded]/internal, so the attributed types and the call site
+      must share this assembly; it cannot be consumed from a fixture project.
+    -->
+    <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>
