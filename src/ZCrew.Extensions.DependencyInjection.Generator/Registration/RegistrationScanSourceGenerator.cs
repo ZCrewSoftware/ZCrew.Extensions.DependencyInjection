@@ -3,8 +3,6 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using ZCrew.Extensions.CodeAnalysis.CSharp;
-using ZCrew.Extensions.CodeAnalysis.CSharp.Collections;
 using ZCrew.Extensions.DependencyInjection.Generator.Emitters;
 using ZCrew.Extensions.DependencyInjection.Generator.Models;
 
@@ -32,18 +30,34 @@ internal abstract class RegistrationScanSourceGenerator : IIncrementalGenerator
     /// <summary>The emission settings: namespace, entry-point name, and the runtime type each entry is built through.</summary>
     protected abstract RegistrationEmitConfig EmitConfig { get; }
 
+    /// <summary>
+    ///     Emits the embedded attribute definitions this scanner recognizes into the consuming compilation via
+    ///     post-initialization: <c>AddEmbeddedAttributeDefinition()</c> (the <c>[Embedded]</c> marker) plus each
+    ///     attribute's generated <c>Add{Name}Definition()</c> helper. The scanner reads them back by metadata name, so
+    ///     they exist only where the generator runs. Registered directly as the post-initialization callback, so this
+    ///     is the single place attribute sources are emitted.
+    /// </summary>
+    /// <param name="context">The post-initialization context.</param>
+    protected abstract void RegisterAttributeDefinitions(IncrementalGeneratorPostInitializationContext context);
+
+    /// <summary>
+    ///     Renders the arguments a scanned <paramref name="type"/> contributes to its
+    ///     <c>Service.From(typeof(impl), ...)</c> call.
+    /// </summary>
+    /// <param name="type">The scanned type carrying the registration attributes.</param>
+    /// <returns>The rendered argument list, excluding the leading <c>typeof(impl)</c>.</returns>
+    protected abstract string RenderConstruction(INamedTypeSymbol type);
+
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(static postInitialization =>
-            postInitialization.AddEmbeddedAttributeDefinition()
-        );
+        context.RegisterPostInitializationOutput(RegisterAttributeDefinitions);
 
         var registrations = context
             .SyntaxProvider.ForAttributeWithMetadataName(
                 MetadataName,
                 static (node, _) => node is TypeDeclarationSyntax,
-                static (syntaxContext, _) => Transform(syntaxContext)
+                (syntaxContext, _) => Transform(syntaxContext)
             )
             .Where(static info => info is not null)
             .Select(static (info, _) => info!)
@@ -57,7 +71,7 @@ internal abstract class RegistrationScanSourceGenerator : IIncrementalGenerator
         );
     }
 
-    private static RegistrationScanInfo? Transform(GeneratorAttributeSyntaxContext context)
+    private RegistrationScanInfo? Transform(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol type)
         {
@@ -70,11 +84,12 @@ internal abstract class RegistrationScanSourceGenerator : IIncrementalGenerator
             return null;
         }
 
-        var constructions = context.Attributes.Select(AttributeArgumentRenderer.RenderConstruction).ToImmutableArray();
+        // Generic definitions register as open generics, so emit Foo<> rather than Foo<T>.
+        var implementationType = type.IsGenericType ? type.ConstructUnboundGenericType() : type;
 
         return new RegistrationScanInfo(
-            type.ToOpenGenericTypeName(globalUsings: true),
-            new EquatableArray<string>(constructions)
+            implementationType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            RenderConstruction(type)
         );
     }
 

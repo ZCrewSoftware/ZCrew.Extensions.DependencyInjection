@@ -7,7 +7,7 @@
     "GeneratedFiles": [
         {
             "SourceFileName": "$(TestName).Generated.g.cs",
-            "GeneratedFileName": "ZCrew.Extensions.DependencyInjection.Registration.Services.g.cs"
+            "GeneratedFileName": "$(ServiceRegistrationSourceGenerator)/ZCrew.Extensions.DependencyInjection.Registration.Services.g.cs"
         }
     ]
 }

@@ -1,48 +1,17 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using ZCrew.Extensions.CodeAnalysis.CSharp.Text;
 
 namespace ZCrew.Extensions.DependencyInjection.Generator.Registration;
 
 /// <summary>
-///     Re-emits an <see cref="AttributeData"/> as the C# construction expression the user wrote, for example
-///     <c>new global::ZCrew.Extensions.DependencyInjection.Registration.ServiceAttribute(typeof(global::Sample.IFoo))</c>.
-///     The positional arguments are rendered from <see cref="AttributeData.ConstructorArguments"/> so the selected
-///     constructor overload is reproduced exactly; named arguments become an object initializer over the <c>init</c>
-///     properties.
+///     Renders a <see cref="TypedConstant"/> from an attribute argument as the C# expression the user wrote, for
+///     example <c>typeof(global::Sample.IFoo)</c> for a type, <c>global::Sample.Region.West</c> for an enum, or
+///     <c>(long)5</c> for a widened primitive. Used to re-emit the service type and key values a <c>[Service]</c>
+///     declaration carries into the <c>Service.From(...)</c> call.
 /// </summary>
 internal static class AttributeArgumentRenderer
 {
     private static readonly SymbolDisplayFormat FullyQualified = SymbolDisplayFormat.FullyQualifiedFormat;
-
-    public static string RenderConstruction(AttributeData attribute)
-    {
-        var typeName = attribute.AttributeClass?.ToDisplayString(FullyQualified) ?? "object";
-
-        var builder = new FormattedStringBuilder("new ")
-            .Append(typeName)
-            .Append('(')
-            .AppendJoined(attribute.ConstructorArguments, ", ", (b, a) => b.Append(RenderTypedConstant(a)))
-            .Append(')');
-
-        if (attribute.NamedArguments.Length > 0)
-        {
-            // Don't use a block here to render single-line
-            builder
-                .Append(" { ")
-                .AppendJoined(
-                    attribute.NamedArguments,
-                    ", ",
-                    (b, a) =>
-                    {
-                        b.Append(a.Key).Append(" = ").Append(RenderTypedConstant(a.Value));
-                    }
-                )
-                .Append(" }");
-        }
-
-        return builder.ToString();
-    }
 
     public static string RenderTypedConstant(TypedConstant constant)
     {

@@ -12,7 +12,7 @@ public class CacheTests
 
         public interface IWidget;
 
-        [Service(typeof(IWidget))]
+        [Service, As<IWidget>]
         public class Widget : IWidget;
         """;
 
@@ -23,7 +23,7 @@ public class CacheTests
 
         public interface IGadget;
 
-        [Service(typeof(IGadget))]
+        [Service, As<IGadget>]
         public class Gadget : IGadget;
         """;
 
@@ -34,7 +34,7 @@ public class CacheTests
 
         public interface IGadget;
 
-        [Service(typeof(IGadget))]
+        [Service, As<IGadget>]
         public class RenamedGadget : IGadget;
         """;
 

@@ -170,7 +170,7 @@ A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's
 Prefer declaring registrations on the type itself? The package bundles a source generator (as an analyzer — nothing extra to install). Annotate a type with `[Service]` and it's collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`) — no startup reflection:
 
 ```csharp
-[Service(typeof(IEmailSender), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped, As<IEmailSender>]
 public class Emailer : IEmailSender;
 
 // then, in the same assembly (optionally narrowed via ServiceFilter filters like .Where(...) / .BasedOn<T>()):

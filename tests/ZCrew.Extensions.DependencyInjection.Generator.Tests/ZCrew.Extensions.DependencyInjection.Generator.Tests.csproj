@@ -7,9 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The runtime types the generated code and the test sources reference (Service, ServiceAttribute). -->
     <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
-    <!-- The generator + analyzer under test, referenced for their types (not applied as a live analyzer here). -->
     <ProjectReference Include="../../src/ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj" />
   </ItemGroup>
 

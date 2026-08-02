@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using ZCrew.Extensions.DependencyInjection.Registration;
 
 namespace Sample;
@@ -6,6 +5,8 @@ namespace Sample;
 public interface IFoo;
 
 public interface IBar;
+
+public interface IRepository<T>;
 
 public enum Region
 {
@@ -16,30 +17,36 @@ public enum Region
 [Service]
 public class PlainService;
 
-[Service(typeof(IFoo))]
+[Service]
+[As<IFoo>]
 public class FooService : IFoo;
 
-[Service(typeof(IFoo), typeof(IBar))]
+[Service, As<IFoo>, As<IBar>]
 public class MultiShared : IFoo, IBar;
 
-[Service(typeof(IFoo), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped]
+[As<IFoo>]
 public class ScopedFoo : IFoo;
 
-[Service(typeof(IBar), Key = "primary")]
+[Service, Keyed("primary")]
 public class StringKeyed : IBar;
 
-[Service(typeof(IBar), Key = Region.West)]
+[Service, Keyed(Region.West)]
 public class EnumKeyed : IBar;
 
-[Service(typeof(IBar), Key = 5L)]
+[Service, Keyed(5L)]
 public class LongKeyed : IBar;
 
-[Service(typeof(IFoo))]
-[Service(typeof(IBar), Key = "second")]
-public class MultiAttr : IFoo, IBar;
+[Service]
+[As<IBar>("smtp"), As<IBar>("ses")]
+public class MultiKeyed : IBar;
 
-[Service(typeof(IFoo))]
-public class OpenGeneric<T> : IFoo;
+[Service]
+[As<IFoo>("Database"), As<IBar>]
+public class MixedKeyed : IFoo, IBar;
+
+[Service, As(typeof(IRepository<>))]
+public class OpenGeneric<T> : IRepository<T>;
 
 [Service]
 public struct StructService;

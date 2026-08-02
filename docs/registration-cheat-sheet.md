@@ -165,24 +165,26 @@ services.Add(
 The attribute-driven alternative to scanning. Annotate types with `[Service]`; a Roslyn generator — shipped **inside** the Registration package as an analyzer — collects them into a compile-time `Services.FromThisAssembly()` list, so there is no startup reflection. Full guide: [source-generator.md](source-generator.md).
 
 ```csharp
-[Service]                                                                 // self, singleton
+[Service]                                                    // self, singleton
 public class Clock;
 
-[Service(typeof(IFoo), typeof(IBar), Lifetime = ServiceLifetime.Scoped)]  // self + IFoo + IBar, one shared instance
+[Service, Scoped]
+[As<IFoo>, As<IBar>]                                         // self + IFoo + IBar, one shared scoped instance
 public class FooBar : IFoo, IBar;
 
-[Service(typeof(IEmailSender), Key = "smtp")]                             // keyed…
-[Service(typeof(IEmailSender), Key = "ses")]                             // …twice: two registrations, one type
+[Service]
+[As<IEmailSender>("smtp"), As<IEmailSender>("ses")]          // one instance, two keyed registrations of one type
 public class Emailer : IEmailSender;
 ```
 
-| `[Service]` member                             | Meaning                                                                    |
-|------------------------------------------------|----------------------------------------------------------------------------|
-| `ServiceAttribute(params Type[] serviceTypes)` | Service types to register against, **beyond the implementation itself**    |
-| `Lifetime` (init)                              | Registration lifetime; defaults to `Singleton`                             |
-| `Key` (init)                                   | Optional service key; applies to the impl and every forwarded service type |
+| Attribute                                  | Meaning                                                                                      |
+|--------------------------------------------|----------------------------------------------------------------------------------------------|
+| `[Service]`                                | Marks the type for registration (bare = self, singleton). One per type.                      |
+| `[As<T>(key?)]` / `[As(Type, key?)]`       | Adds a service type with an optional per-type key. Repeatable; non-generic for open generics |
+| `[Singleton]` / `[Scoped]` / `[Transient]` | Sets the lifetime; defaults to `Singleton`. At most one                                      |
+| `[Keyed(key)]`                             | Keys the implementation's own registration                                                   |
 
-`[Service]` allows multiples — several attributes on one type each produce an independent registration. Semantics match `Service.From(...).As(...)`: self-backing, one shared instance for `Singleton`/`Scoped` with 2+ types, `Transient` independent.
+Bracket grouping is cosmetic (`[Service, Scoped]` == `[Service][Scoped]`). Semantics match `Service.From(...).As(...)`: self-backing, one shared instance for `Singleton`/`Scoped`, `Transient` independent. Diagnostics: `ZCDI001`–`ZCDI004`.
 
 **Consume** the generated `ServiceFilter`. Its filters mirror the [type filters](#type-filters) but match on the **implementation type**; there is no service/key/lifetime stage (the attribute already decided those):
 

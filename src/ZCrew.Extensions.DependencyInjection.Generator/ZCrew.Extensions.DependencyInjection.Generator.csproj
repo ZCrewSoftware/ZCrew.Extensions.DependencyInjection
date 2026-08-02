@@ -9,7 +9,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <!-- Don't include in build output as the source generator only needs to be present at compile-time -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- Copy package dependencies beside the generator so analyzer-mode consumers can load them -->
+    <!-- Puts ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll beside the generator so Registration can pack it -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <!-- https://github.com/dotnet/roslyn/issues/63290 -->
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -19,18 +19,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Runtime DI dependency inherited from src\Directory.Build.props; the netstandard2.0 analyzer must not carry it -->
     <PackageReference Remove="Microsoft.Extensions.DependencyInjection.Abstractions" />
-
-    <PackageReference Include="IsExternalInit">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Polyfill">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="ZCrew.Extensions.CodeAnalysis.CSharp">
       <PrivateAssets>analyzers</PrivateAssets>
     </PackageReference>

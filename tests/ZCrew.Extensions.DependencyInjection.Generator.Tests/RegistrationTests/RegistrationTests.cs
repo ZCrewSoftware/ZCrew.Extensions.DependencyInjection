@@ -8,10 +8,8 @@ public class RegistrationTests
 {
     private static readonly TestPath TestCases = TestPath.ForCaller() / "TestCases";
 
-    private static readonly SourceGeneratorTestBuilder<
-        ServiceRegistrationSourceGenerator,
-        DefaultVerifier
-    > ServiceBaseline = GeneratorTest.CreateBaseline<ServiceRegistrationSourceGenerator>();
+    private static readonly RoslynTestBuilder<DefaultVerifier> ServiceBaseline =
+        GeneratorTest.CreateBaseline<ServiceRegistrationSourceGenerator>();
 
     [Theory]
     [InlineData("ServiceScenarios.json")]

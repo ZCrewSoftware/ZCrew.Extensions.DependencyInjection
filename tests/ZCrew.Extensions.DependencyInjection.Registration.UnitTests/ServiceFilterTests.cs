@@ -11,8 +11,8 @@ public class ServiceFilterTests
         // Arrange
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -29,7 +29,7 @@ public class ServiceFilterTests
     public void ToServiceCollection_WhenCalled_ShouldReturnSameServiceCollection()
     {
         // Arrange
-        var filter = new ServiceFilter([Service.From(typeof(CustomerService), new ServiceAttribute())]);
+        var filter = new ServiceFilter([Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null)]);
         var services = new ServiceCollection();
 
         // Act
@@ -44,7 +44,7 @@ public class ServiceFilterTests
     {
         // Arrange
         var filter = new ServiceFilter(
-            [Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService)))]
+            [Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null))]
         );
 
         // Act
@@ -74,8 +74,8 @@ public class ServiceFilterTests
         // Arrange — mirrors Services.FromThisAssembly().Where(...).ToServiceCollection(services).
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -94,8 +94,8 @@ public class ServiceFilterTests
         // Arrange
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -114,8 +114,8 @@ public class ServiceFilterTests
         // Arrange
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -134,8 +134,8 @@ public class ServiceFilterTests
         // Arrange
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -154,8 +154,8 @@ public class ServiceFilterTests
         // Arrange
         var filter = new ServiceFilter(
             [
-                Service.From(typeof(CustomerService), new ServiceAttribute(typeof(ICustomerService))),
-                Service.From(typeof(OrderService), new ServiceAttribute(typeof(IOrderService))),
+                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
             ]
         );
         var services = new ServiceCollection();
@@ -172,12 +172,16 @@ public class ServiceFilterTests
     public void ToServiceCollection_WhenServiceHasKeyAndLifetime_ShouldRegisterAsDeclared()
     {
         // Arrange
-        var attribute = new ServiceAttribute(typeof(ICustomerService))
-        {
-            Lifetime = ServiceLifetime.Scoped,
-            Key = "primary",
-        };
-        var filter = new ServiceFilter([Service.From(typeof(CustomerService), attribute)]);
+        var filter = new ServiceFilter(
+            [
+                Service.From(
+                    typeof(CustomerService),
+                    ServiceLifetime.Scoped,
+                    "primary",
+                    (typeof(ICustomerService), "primary")
+                ),
+            ]
+        );
         var services = new ServiceCollection();
 
         // Act

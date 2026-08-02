@@ -18,7 +18,7 @@ public interface IGreetingService
 ///     the lifetime is <see cref="ServiceLifetime.Scoped"/> with more than one service type, the interface forwards
 ///     to the concrete registration (shown as a factory in the printed output).
 /// </summary>
-[Service(typeof(IGreetingService), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped, As<IGreetingService>]
 public sealed class GreetingService : IGreetingService
 {
     /// <inheritdoc />

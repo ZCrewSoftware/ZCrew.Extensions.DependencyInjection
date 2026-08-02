@@ -19,7 +19,7 @@ public interface IEmailSender
 ///     Registered against <see cref="IEmailSender"/> under the <c>"smtp"</c> key. Resolve it with
 ///     <c>GetRequiredKeyedService&lt;IEmailSender&gt;("smtp")</c>.
 /// </summary>
-[Service(typeof(IEmailSender), Key = "smtp")]
+[Service, As<IEmailSender>("smtp")]
 public sealed class SmtpEmailSender : IEmailSender
 {
     /// <inheritdoc />
@@ -30,7 +30,7 @@ public sealed class SmtpEmailSender : IEmailSender
 ///     Registered against <see cref="IEmailSender"/> under the <c>"sendgrid"</c> key. Two senders share one
 ///     contract, told apart by their keys.
 /// </summary>
-[Service(typeof(IEmailSender), Key = "sendgrid")]
+[Service, As<IEmailSender>("sendgrid")]
 public sealed class SendGridEmailSender : IEmailSender
 {
     /// <inheritdoc />

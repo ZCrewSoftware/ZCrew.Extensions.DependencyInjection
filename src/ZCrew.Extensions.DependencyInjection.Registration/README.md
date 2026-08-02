@@ -107,7 +107,7 @@ no reflection at startup:
 using Microsoft.Extensions.DependencyInjection;
 using ZCrew.Extensions.DependencyInjection.Registration;
 
-[Service(typeof(IEmailSender), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped, As<IEmailSender>]
 public class Emailer : IEmailSender;
 
 // then, in the same assembly:
@@ -115,8 +115,8 @@ services.Add(Services.FromThisAssembly());                          // add all [
 services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow with ServiceFilter filters
 ```
 
-See **[Compile-Time Registration with `[Service]`](../../docs/source-generator.md)** for the full attribute model,
-semantics, and the `ZCDI001` diagnostic.
+See **[Compile-Time Registration with `[Service]`](../../docs/source-generator.md)** for the full attribute model
+(`[As<T>]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`), semantics, and the `ZCDI001`–`ZCDI004` diagnostics.
 
 ## Full API reference
 

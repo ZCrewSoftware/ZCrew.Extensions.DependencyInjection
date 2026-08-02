@@ -8,20 +8,28 @@ public interface IGeneratedBar;
 
 public interface IGeneratedEmail;
 
+public interface IGeneratedHealthCheck;
+
+public interface IGeneratedDatabaseHealthCheck;
+
 [Service]
 public class GeneratedSelfService;
 
-[Service(typeof(IGeneratedFoo))]
+[Service, As<IGeneratedFoo>]
 public class GeneratedFooService : IGeneratedFoo;
 
-[Service(typeof(IGeneratedBar), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped, As<IGeneratedBar>]
 public class GeneratedScopedBar : IGeneratedBar;
 
-[Service(typeof(IGeneratedEmail), Key = "smtp")]
+[Service, As<IGeneratedEmail>("smtp")]
 public class GeneratedSmtpEmail : IGeneratedEmail;
 
-[Service(typeof(IGeneratedEmail), Key = "ses")]
+[Service, As<IGeneratedEmail>("ses")]
 public class GeneratedSesEmail : IGeneratedEmail;
+
+[Service]
+[As<IGeneratedHealthCheck>("Database"), As<IGeneratedDatabaseHealthCheck>]
+public class GeneratedDatabaseHealthCheck : IGeneratedHealthCheck, IGeneratedDatabaseHealthCheck;
 
 /// <summary>
 ///     Drives the generator end-to-end: the <c>[Service]</c> types above are collected by the source generator into
@@ -158,5 +166,25 @@ public class ServiceGeneratorTests
         // Assert
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(IGeneratedFoo));
         Assert.DoesNotContain(services, descriptor => descriptor.ServiceType == typeof(IGeneratedEmail));
+    }
+
+    [Fact]
+    public void FromThisAssembly_ForPerServiceTypeKeys_ShouldResolveKeyedAndUnkeyedToSameInstance()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        Services
+            .FromThisAssembly()
+            .Where(service => service.ImplementationType == typeof(GeneratedDatabaseHealthCheck))
+            .ToServiceCollection(services);
+
+        // Act
+        var provider = services.BuildServiceProvider();
+
+        // Assert — the "Database"-keyed health check and the unkeyed database health check are one shared instance.
+        var keyed = provider.GetRequiredKeyedService<IGeneratedHealthCheck>("Database");
+        var unkeyed = provider.GetRequiredService<IGeneratedDatabaseHealthCheck>();
+        Assert.Same(keyed, unkeyed);
+        Assert.IsType<GeneratedDatabaseHealthCheck>(keyed);
     }
 }
