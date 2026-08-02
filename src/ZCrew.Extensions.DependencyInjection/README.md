@@ -69,4 +69,4 @@ services.AddKeyedDecorator<IGreeter, LoggingGreeter>("friendly");
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](../../LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md) file for details.

@@ -3,19 +3,6 @@
     <ProjectReference Include="../ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
 
-  <!--
-    The [Service] source generator ships as an analyzer inside this package (not as a standalone package).
-    OutputItemType=Analyzer also runs it during this repo's own builds; ReferenceOutputAssembly=false keeps the
-    netstandard2.0 generator assembly out of the runtime reference set, and PrivateAssets=all keeps the (non-packable)
-    generator project from leaking in as a package dependency.
-  -->
-  <ItemGroup>
-    <ProjectReference Include="../ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj"
-                      ReferenceOutputAssembly="false"
-                      OutputItemType="Analyzer"
-                      PrivateAssets="all" />
-  </ItemGroup>
-
   <!-- NuGet package metadata -->
   <PropertyGroup>
     <PackageTags>dependency-injecting;scanning;registration;castle;windsor</PackageTags>
@@ -44,26 +31,20 @@
     </Compile>
   </ItemGroup>
 
-  <!--
-    Pack the generator DLL and its runtime dependency (ZCrew.Extensions.CodeAnalysis.CSharp.dll, present in the
-    generator output because the generator sets CopyLocalLockFileAssemblies=true) into analyzers/dotnet/cs. The
-    Roslyn/System assemblies also in that output are host-provided and must NOT be packed. This runs in the outer
-    (TFM-agnostic) build via _GetPackageFiles, so the multi-TFM pack adds each file exactly once.
-  -->
+  <ItemGroup>
+    <!-- Build-order only: the pack items below read the generator's output, they don't build it -->
+    <ProjectReference Include="../ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
   <PropertyGroup>
-    <_GeneratorProject>$(MSBuildThisFileDirectory)../ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj</_GeneratorProject>
+    <_GeneratorOutput>../ZCrew.Extensions.DependencyInjection.Generator/bin/$(Configuration)/netstandard2.0</_GeneratorOutput>
   </PropertyGroup>
 
-  <Target Name="_PackServiceGeneratorAsAnalyzer" BeforeTargets="_GetPackageFiles">
-    <MSBuild Projects="$(_GeneratorProject)" Targets="GetTargetPath" Properties="Configuration=$(Configuration)">
-      <Output TaskParameter="TargetOutputs" ItemName="_ServiceGeneratorAssembly" />
-    </MSBuild>
-    <ItemGroup>
-      <None Include="@(_ServiceGeneratorAssembly)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-      <None Include="%(_ServiceGeneratorAssembly.RootDir)%(_ServiceGeneratorAssembly.Directory)ZCrew.Extensions.CodeAnalysis.CSharp.dll"
-            Pack="true"
-            PackagePath="analyzers/dotnet/cs"
-            Visible="false" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <!-- Ships the generator as an analyzer within this nuget package -->
+    <None Include="$(_GeneratorOutput)/ZCrew.Extensions.DependencyInjection.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(_GeneratorOutput)/ZCrew.Extensions.CodeAnalysis.CSharp.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 </Project>

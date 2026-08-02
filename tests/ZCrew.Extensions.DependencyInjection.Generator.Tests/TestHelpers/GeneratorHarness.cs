@@ -96,7 +96,7 @@ internal static class GeneratorHarness
     /// </summary>
     public static async Task<ImmutableArray<Diagnostic>> AnalyzerDiagnosticsAsync(this HarnessRun run)
     {
-        var compilation = run.OutputCompilation.WithAnalyzers([new RegistrationKeyAnalyzer()]);
+        var compilation = run.OutputCompilation.WithAnalyzers([new ServiceRegistrationAnalyzer()]);
         return await compilation.GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
     }
 
@@ -111,7 +111,7 @@ internal static class GeneratorHarness
         var trusted = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator);
         var paths = new HashSet<string>(trusted, StringComparer.OrdinalIgnoreCase)
         {
-            typeof(ServiceAttribute).Assembly.Location,
+            typeof(Service).Assembly.Location,
             typeof(ServiceLifetime).Assembly.Location,
         };
         return [.. paths.Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))];

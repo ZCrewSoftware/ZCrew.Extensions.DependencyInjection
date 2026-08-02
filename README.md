@@ -54,7 +54,7 @@ The library throws `InvalidOperationException` at registration time if a decorat
 Scan assemblies and register services by convention using a fluent API inspired by Castle Windsor.
 
 > [!TIP]
-> **Looking for a quick lookup?** The **[Registration Cheat Sheet](docs/registration-cheat-sheet.md)** is a single-page reference covering every entry point, filter, selector, keyed overload, and lifetime helper — with copy-paste recipes. Bookmark it.
+> **Looking for a quick lookup?** The **[Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)** is a single-page reference covering every entry point, filter, selector, keyed overload, and lifetime helper — with copy-paste recipes. Bookmark it.
 
 ```csharp
 using ZCrew.Extensions.DependencyInjection.Registration;
@@ -170,28 +170,28 @@ A Windsor-style `services.Add(chain.AsSingleton())` form is also supported. It's
 Prefer declaring registrations on the type itself? The package bundles a source generator (as an analyzer — nothing extra to install). Annotate a type with `[Service]` and it's collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`) — no startup reflection:
 
 ```csharp
-[Service(typeof(IEmailSender), Lifetime = ServiceLifetime.Scoped)]
+[Service, Scoped, As<IEmailSender>]
 public class Emailer : IEmailSender;
 
 // then, in the same assembly (optionally narrowed via ServiceFilter filters like .Where(...) / .BasedOn<T>()):
 services.Add(Services.FromThisAssembly());
 ```
 
-See [Compile-Time Registration with `[Service]`](docs/source-generator.md) for the full model.
+See [Compile-Time Registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md) for the full model.
 
 ## Documentation
 
-See the [docs](docs) folder for detailed guides:
+See the [docs](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/tree/main/docs) folder for detailed guides:
 
-- [Introduction](docs/introduction.md)
-- [Decorators](docs/decorators.md)
-- [Convention-Based Registration](docs/registration.md)
-- [Compile-Time Registration with `[Service]`](docs/source-generator.md)
-- [Services](docs/services.md)
-- **[Registration Cheat Sheet](docs/registration-cheat-sheet.md)** — one-page API reference (start here when you need to look something up)
-- [Type Selectors](docs/type-selectors.md)
-- [Type Filters](docs/type-filters.md)
-- [Service Selectors](docs/service-selectors.md)
-- [Keyed Service Selectors](docs/service-key-selectors.md)
-- [Shared Services](docs/shared-services.md)
-- [Castle Windsor Comparison](docs/castle-windsor-comparison.md)
+- [Introduction](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/introduction.md)
+- [Decorators](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/decorators.md)
+- [Convention-Based Registration](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration.md)
+- [Compile-Time Registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md)
+- [Services](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/services.md)
+- **[Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)** — one-page API reference (start here when you need to look something up)
+- [Type Selectors](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/type-selectors.md)
+- [Type Filters](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/type-filters.md)
+- [Service Selectors](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/service-selectors.md)
+- [Keyed Service Selectors](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/service-key-selectors.md)
+- [Shared Services](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/shared-services.md)
+- [Castle Windsor Comparison](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/castle-windsor-comparison.md)

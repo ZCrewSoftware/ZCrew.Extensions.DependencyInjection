@@ -15,6 +15,7 @@ public readonly record struct Service
 {
     private readonly Type implementation;
     private readonly IReadOnlyList<Type> services;
+    private readonly IReadOnlyList<KeyValuePair<Type, object?>>? keyedServices;
     private readonly ServiceLifetime? lifetime;
     private readonly Func<Type, ServiceLifetime>? lifetimeProvider;
     private readonly object? serviceKey;
@@ -22,8 +23,8 @@ public readonly record struct Service
     private readonly Func<Type, Type, object?>? serviceKeyProvider;
 
     /// <summary>
-    ///     Create a new service service registered against the <paramref name="implementation"/> itself. Any further
-    ///     services are added on top of it, so they resolve to a single shared instance.
+    ///     Create a new service registered against the <paramref name="implementation"/> itself. Any further services
+    ///     are added on top of it, so they resolve to a single shared instance.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     internal Service(Type implementation)
@@ -33,7 +34,7 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Create a new service service.
+    ///     Create a new service.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
@@ -44,23 +45,44 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Create a service directly from a <see cref="ServiceAttribute"/> declaration, for the source generator. The
-    ///     implementation is seeded among the services (so the shared-instance path applies exactly as
-    ///     with the fluent API) and the attribute's lifetime and key are lifted directly. The service types are
-    ///     trusted as-declared and are not re-validated for assignability; the compiler already saw them.
+    ///     Create a service from the primitive registration values the source generator emits for a <c>[Service]</c>
+    ///     declaration: the implementation seeded as its own service, the resolved lifetime and implementation key, and
+    ///     each <c>[As]</c> service type paired with its own key.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
-    /// <param name="attribute">The declared attribute to map.</param>
-    private Service(Type implementation, ServiceAttribute attribute)
+    /// <param name="lifetime">The resolved lifetime.</param>
+    /// <param name="key">The implementation's own service key, or <see langword="null"/>.</param>
+    /// <param name="serviceTypes">The additional service types with their per-type keys.</param>
+    /// <remarks>
+    ///     The service types are trusted as-declared and are not re-validated for assignability; the compiler and
+    ///     analyzers already handled them.
+    /// </remarks>
+    private Service(
+        Type implementation,
+        ServiceLifetime lifetime,
+        object? key,
+        (Type ServiceType, object? Key)[] serviceTypes
+    )
     {
         this.implementation = implementation;
-        this.services = [implementation, .. attribute.ServiceTypes];
-        this.lifetime = attribute.Lifetime;
-        this.serviceKey = attribute.Key;
+        this.services = [implementation];
+        this.lifetime = lifetime;
+        this.serviceKey = key;
+
+        if (serviceTypes.Length > 0)
+        {
+            var pairs = new KeyValuePair<Type, object?>[serviceTypes.Length];
+            for (var index = 0; index < serviceTypes.Length; index++)
+            {
+                pairs[index] = new KeyValuePair<Type, object?>(serviceTypes[index].ServiceType, serviceTypes[index].Key);
+            }
+
+            this.keyedServices = pairs;
+        }
     }
 
     /// <summary>
-    ///     Create a new service service with modifications. Not all properties may be set to meaningful values.
+    ///     Create a new service with modifications. Not all properties may be set to meaningful values.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
@@ -68,13 +90,15 @@ public readonly record struct Service
     /// <param name="lifetimeProvider">The dynamic service lifetime provider.</param>
     /// <param name="serviceKey">The shared service key.</param>
     /// <param name="serviceKeyProvider">The dynamic service key provider.</param>
+    /// <param name="keyedServices">The additional service types with their per-type keys.</param>
     private Service(
         Type implementation,
         IReadOnlyList<Type> services,
         ServiceLifetime? lifetime,
         Func<Type, ServiceLifetime>? lifetimeProvider,
         object? serviceKey,
-        Func<Type, Type, object?>? serviceKeyProvider
+        Func<Type, Type, object?>? serviceKeyProvider,
+        IReadOnlyList<KeyValuePair<Type, object?>>? keyedServices
     )
     {
         this.implementation = implementation;
@@ -83,6 +107,7 @@ public readonly record struct Service
         this.lifetimeProvider = lifetimeProvider;
         this.serviceKey = serviceKey;
         this.serviceKeyProvider = serviceKeyProvider;
+        this.keyedServices = keyedServices;
     }
 
     /// <summary>
@@ -110,26 +135,32 @@ public readonly record struct Service
     }
 
     /// <summary>
-    ///     Maps a <see cref="ServiceAttribute"/> declaration to a <see cref="Service"/>. The
-    ///     <paramref name="implementation"/> is registered against itself plus the attribute's
-    ///     <see cref="ServiceAttribute.ServiceTypes"/> (resolving to a single shared instance for
-    ///     <see cref="ServiceLifetime.Singleton"/> and <see cref="ServiceLifetime.Scoped"/> lifetimes), with the
-    ///     attribute's <see cref="ServiceAttribute.Lifetime"/> and <see cref="ServiceAttribute.Key"/> applied.
+    ///     Maps a <c>[Service]</c> declaration to a <see cref="Service"/> from its primitive registration values. The
+    ///     <paramref name="implementation"/> is registered against itself plus each of the <paramref name="serviceTypes"/>
+    ///     (resolving to a single shared instance for <see cref="ServiceLifetime.Singleton"/> and
+    ///     <see cref="ServiceLifetime.Scoped"/> lifetimes), with the given <paramref name="lifetime"/> and per-type keys
+    ///     applied. The implementation's own registration is keyed with <paramref name="key"/>.
     /// </summary>
     /// <remarks>
     ///     This overload exists for the code the source generator emits for <c>Services.FromThisAssembly()</c>; it is
     ///     not intended to be called directly. It is public only because that generated code compiles into the
-    ///     consuming assembly, where an internal member would be unreachable.
+    ///     consuming assembly, where an internal member would be unreachable. The attributes carrying these values live
+    ///     in the consuming assembly (embedded by the generator), so this overload takes primitives rather than an
+    ///     attribute instance.
     /// </remarks>
-    /// <param name="implementation">The implementation type carrying the <paramref name="attribute"/>.</param>
-    /// <param name="attribute">The declared <see cref="ServiceAttribute"/> to map.</param>
+    /// <param name="implementation">The implementation type carrying the <c>[Service]</c> declaration.</param>
+    /// <param name="lifetime">The resolved lifetime.</param>
+    /// <param name="key">The implementation's own service key, or <see langword="null"/>.</param>
+    /// <param name="serviceTypes">The additional service types with their per-type keys.</param>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static Service From(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementation,
-        ServiceAttribute attribute
+        ServiceLifetime lifetime,
+        object? key,
+        params (Type ServiceType, object? Key)[] serviceTypes
     )
     {
-        return new Service(implementation, attribute);
+        return new Service(implementation, lifetime, key, serviceTypes);
     }
 
     /// <summary>
@@ -168,7 +199,8 @@ public readonly record struct Service
             this.lifetime,
             this.lifetimeProvider,
             this.serviceKey,
-            this.serviceKeyProvider
+            this.serviceKeyProvider,
+            this.keyedServices
         );
     }
 
@@ -230,7 +262,8 @@ public readonly record struct Service
             this.lifetime,
             this.lifetimeProvider,
             this.serviceKey,
-            this.serviceKeyProvider
+            this.serviceKeyProvider,
+            this.keyedServices
         );
     }
 
@@ -252,7 +285,8 @@ public readonly record struct Service
             lifetime,
             null,
             this.serviceKey,
-            this.serviceKeyProvider
+            this.serviceKeyProvider,
+            this.keyedServices
         );
     }
 
@@ -277,7 +311,8 @@ public readonly record struct Service
             this.lifetime,
             lifetimeProvider,
             this.serviceKey,
-            this.serviceKeyProvider
+            this.serviceKeyProvider,
+            this.keyedServices
         );
     }
 
@@ -298,7 +333,8 @@ public readonly record struct Service
             this.lifetime,
             this.lifetimeProvider,
             null,
-            null
+            null,
+            this.keyedServices
         );
     }
 
@@ -320,7 +356,8 @@ public readonly record struct Service
             this.lifetime,
             this.lifetimeProvider,
             serviceKey,
-            null
+            null,
+            this.keyedServices
         );
     }
 
@@ -344,7 +381,8 @@ public readonly record struct Service
             this.lifetime,
             this.lifetimeProvider,
             null,
-            serviceKeyProvider
+            serviceKeyProvider,
+            this.keyedServices
         );
     }
 
@@ -374,29 +412,58 @@ public readonly record struct Service
 
         var lifetime = this.lifetimeProvider?.Invoke(this.implementation) ?? this.lifetime ?? ServiceLifetime.Singleton;
 
-        // Shortcut for when there is only 1 - this also skips the open generic check and distinct processing
-        if (this.services.Count == 1)
+        // Build the (service, key) entries: each declared service type paired with its resolved key, then any
+        // per-service-type keyed services from the source-generator path.
+        var entries = new List<(Type Service, object? Key)>(this.services.Count + (this.keyedServices?.Count ?? 0));
+        foreach (var service in this.services)
         {
-            serviceCollection.Add(Registration(lifetime, this.services[0]));
+            entries.Add((service, this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey));
+        }
+
+        if (this.keyedServices is not null)
+        {
+            foreach (var keyedService in this.keyedServices)
+            {
+                entries.Add((keyedService.Key, keyedService.Value));
+            }
+        }
+
+        // Preserve ordering in-case it matters but de-duplicate by (service, key) so the same service type can appear
+        // more than once under different keys while identical registrations collapse.
+        var seen = new HashSet<(Type, object?)>(entries.Count);
+        var distinctServices = new List<(Type Service, object? Key)>(entries.Count);
+        foreach (var entry in entries)
+        {
+            if (seen.Add(entry))
+            {
+                distinctServices.Add(entry);
+            }
+        }
+
+        // Shortcut for when there is only 1 - this also skips the open generic check and shared processing
+        if (distinctServices.Count == 1)
+        {
+            serviceCollection.Add(Registration(lifetime, distinctServices[0].Service, distinctServices[0].Key));
             return;
         }
 
-        // Preserve ordering in-case it matters but still expose the hashset instead of just using Distinct() which
-        // just returns the underlying sequential-iterator
-        var seenServices = new HashSet<Type>(this.services.Count);
-        var distinctServices = new List<Type>(this.services.Count);
-        foreach (var service in this.services)
+        var implementationAmongServices = false;
+        foreach (var entry in distinctServices)
         {
-            if (seenServices.Add(service))
+            if (entry.Service == this.implementation)
             {
-                distinctServices.Add(service);
+                implementationAmongServices = true;
+                break;
             }
         }
 
         // This also doesn't register a shared service if the implementation isn't in the service list
-        if (lifetime == ServiceLifetime.Transient || !seenServices.Contains(this.implementation))
+        if (lifetime == ServiceLifetime.Transient || !implementationAmongServices)
         {
-            AddIndependentServiceDescriptors(distinctServices, lifetime, serviceCollection);
+            foreach (var entry in distinctServices)
+            {
+                serviceCollection.Add(Registration(lifetime, entry.Service, entry.Key));
+            }
             return;
         }
 
@@ -412,23 +479,11 @@ public readonly record struct Service
             );
         }
 
-        AddServiceDescriptors(distinctServices, lifetime, serviceCollection);
+        AddSharedServiceDescriptors(distinctServices, lifetime, serviceCollection);
     }
 
-    private void AddIndependentServiceDescriptors(
-        IEnumerable<Type> services,
-        ServiceLifetime lifetime,
-        IServiceCollection serviceCollection
-    )
-    {
-        foreach (var service in services)
-        {
-            serviceCollection.Add(Registration(lifetime, service));
-        }
-    }
-
-    private void AddServiceDescriptors(
-        IEnumerable<Type> services,
+    private void AddSharedServiceDescriptors(
+        List<(Type Service, object? Key)> services,
         ServiceLifetime lifetime,
         IServiceCollection serviceCollection
     )
@@ -439,32 +494,35 @@ public readonly record struct Service
             implementationKey == null
                 ? (serviceProvider, _) => serviceProvider.GetRequiredService(impl)
                 : (serviceProvider, _) => serviceProvider.GetRequiredKeyedService(impl, implementationKey);
-        foreach (var service in services)
+
+        var implementationRegistered = false;
+        foreach (var entry in services)
         {
-            // Skip forwarding the service to itself
-            if (service == impl)
+            // The implementation registers itself directly under its own key; every other service type (including the
+            // implementation under a different key) forwards to it so they share the one instance.
+            if (!implementationRegistered && entry.Service == impl && Equals(entry.Key, implementationKey))
             {
-                serviceCollection.Add(Registration(lifetime, impl));
+                serviceCollection.Add(Registration(lifetime, impl, entry.Key));
+                implementationRegistered = true;
                 continue;
             }
 
-            serviceCollection.Add(ForwardRegistration(lifetime, service, factory));
+            serviceCollection.Add(ForwardRegistration(lifetime, entry.Service, entry.Key, factory));
         }
     }
 
-    private ServiceDescriptor Registration(ServiceLifetime lifetime, Type service)
+    private ServiceDescriptor Registration(ServiceLifetime lifetime, Type service, object? serviceKey)
     {
-        var serviceKey = this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey;
         return new ServiceDescriptor(service, serviceKey, this.implementation, lifetime);
     }
 
     private ServiceDescriptor ForwardRegistration(
         ServiceLifetime lifetime,
         Type service,
+        object? serviceKey,
         Func<IServiceProvider, object?, object> factory
     )
     {
-        var specificServiceKey = this.serviceKeyProvider?.Invoke(this.implementation, service) ?? this.serviceKey;
-        return new ServiceDescriptor(service, specificServiceKey, factory, lifetime);
+        return new ServiceDescriptor(service, serviceKey, factory, lifetime);
     }
 }

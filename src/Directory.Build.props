@@ -22,8 +22,8 @@
   <PropertyGroup>
     <Authors>Matt Zawislak</Authors>
     <Company>ZCrew</Company>
-    <PackageProjectUrl>https://github.com/zcrew/ZCrew.Extensions.DependencyInjection</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/zcrew/ZCrew.Extensions.DependencyInjection.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -37,6 +37,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <!-- Make internals visible to the corresponding test project(s) -->

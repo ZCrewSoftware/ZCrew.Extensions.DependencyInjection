@@ -17,7 +17,7 @@ public interface IIdGenerator
 ///     service type independently rather than forwarding to one shared instance, so the interface resolves straight
 ///     to the implementation type (not a factory) in the printed output.
 /// </summary>
-[Service(typeof(IIdGenerator), Lifetime = ServiceLifetime.Transient)]
+[Service, Transient, As<IIdGenerator>]
 public sealed class GuidIdGenerator : IIdGenerator
 {
     /// <inheritdoc />

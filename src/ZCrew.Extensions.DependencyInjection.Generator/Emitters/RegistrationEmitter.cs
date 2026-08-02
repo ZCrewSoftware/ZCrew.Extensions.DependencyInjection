@@ -8,20 +8,17 @@ namespace ZCrew.Extensions.DependencyInjection.Generator.Emitters;
 /// <summary>
 ///     Emits one attributed-registration scan file: an <c>[Embedded] internal static</c> entry point whose
 ///     <c>FromThisAssembly()</c> returns a <c>ServiceFilter</c> wrapping the hard-coded <c>Service[]</c>, one
-///     <c>Service.From(typeof(impl), attribute)</c> element per attribute usage. Items are flattened to one element per
-///     attribute and ordered so the output is stable across runs.
+///     <c>Service.From(typeof(impl), ...)</c> element per <c>[Service]</c> type. Items are ordered so the output is
+///     stable across runs.
 /// </summary>
 internal static class RegistrationEmitter
 {
     public static string Emit(RegistrationEmitConfig config, ImmutableArray<RegistrationScanInfo> items)
     {
-        var entries = new List<(string Implementation, string Construction)>();
+        var entries = new List<(string Implementation, string Construction)>(items.Length);
         foreach (var item in items)
         {
-            foreach (var construction in item.AttributeConstructions)
-            {
-                entries.Add((item.ImplementationTypeof, construction));
-            }
+            entries.Add((item.ImplementationTypeof, item.Construction));
         }
 
         entries.Sort(

@@ -13,8 +13,7 @@
 
   <!--
     Local project references until the v3 NuGet package (which bundles the [Service] source generator as an
-    analyzer) is published. Once it is, both references below - and the _AddGeneratorAnalyzerDependencies target -
-    can be replaced with a single package reference:
+    analyzer) is published. Once it is, both references below can be replaced with a single package reference:
       <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="..." />
   -->
   <ItemGroup>
@@ -23,21 +22,4 @@
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>
-
-  <!--
-    A ProjectReference analyzer contributes only the generator DLL, not its runtime dependency. The generator
-    depends on ZCrew.Extensions.CodeAnalysis.CSharp, which CopyLocalLockFileAssemblies copies beside it; add that
-    DLL as an analyzer too so the generator can load - mirroring what the packaged analyzers/dotnet/cs folder ships.
-  -->
-  <Target Name="_AddGeneratorAnalyzerDependencies"
-          BeforeTargets="CoreCompile"
-          DependsOnTargets="ResolveProjectReferences">
-    <MSBuild Projects="..\..\..\src\ZCrew.Extensions.DependencyInjection.Generator\ZCrew.Extensions.DependencyInjection.Generator.csproj"
-             Targets="GetTargetPath">
-      <Output TaskParameter="TargetOutputs" ItemName="_ServiceGeneratorAssembly" />
-    </MSBuild>
-    <ItemGroup>
-      <Analyzer Include="%(_ServiceGeneratorAssembly.RootDir)%(_ServiceGeneratorAssembly.Directory)ZCrew.Extensions.CodeAnalysis.CSharp.dll" />
-    </ItemGroup>
-  </Target>
 </Project>
