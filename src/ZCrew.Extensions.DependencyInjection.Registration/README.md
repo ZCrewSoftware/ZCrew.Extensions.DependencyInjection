@@ -3,7 +3,7 @@
 Convention-based service registration for `Microsoft.Extensions.DependencyInjection`, inspired by Castle Windsor's registration API. Scan assemblies, filter types, and bulk-register services using a fluent interface.
 
 > [!TIP]
-> **One-page API reference: [Registration Cheat Sheet](../../docs/registration-cheat-sheet.md).**
+> **One-page API reference: [Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md).**
 > Every entry point, filter, selector, keyed overload, and lifetime helper in one place — plus copy-paste recipes. The fastest way to find the method you need.
 
 ## Features
@@ -115,13 +115,13 @@ services.Add(Services.FromThisAssembly());                          // add all [
 services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow with ServiceFilter filters
 ```
 
-See **[Compile-Time Registration with `[Service]`](../../docs/source-generator.md)** for the full attribute model
+See **[Compile-Time Registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md)** for the full attribute model
 (`[As<T>]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`), semantics, and the `ZCDI001`–`ZCDI004` diagnostics.
 
 ## Full API reference
 
-The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](../../docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](../../docs).
+The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/tree/main/docs).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](../../LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md) file for details.
