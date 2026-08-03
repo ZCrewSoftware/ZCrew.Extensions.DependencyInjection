@@ -11,6 +11,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <IsPackable>true</IsPackable>
+    <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2067;IL2070;IL2072;IL2075;IL2077;IL2111;IL3050</WarningsAsErrors>
   </PropertyGroup>
 
   <!-- Common projects for all library projects -->

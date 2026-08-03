@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -7,12 +8,21 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     Entry point for convention-based registration of concrete, non-abstract classes. Provides static factory
 ///     methods to begin a registration chain from an assembly or a collection of types, filtering to classes only.
 /// </summary>
+/// <remarks>
+///     This API is not compatible with trimming or native AOT. Use the <c>[Service]</c> source generator
+///     (<c>Services.FromThisAssembly()</c>) or <see cref="Service.From(Type)"/> instead.
+/// </remarks>
 public static class Classes
 {
+    internal const string RequiresUnreferencedCodeMessage =
+        "Convention-based registration inspects types reflectively and cannot be made trim-safe. Use the [Service] "
+        + "source generator (Services.FromThisAssembly()) or Service.From for trim-compatible registration.";
+
     /// <summary>
     ///     Begins registration from the specified collection of types, filtering to concrete, non-abstract classes.
     /// </summary>
     /// <param name="types">The types to select from.</param>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static TypeFilter From(IEnumerable<Type> types)
     {
         ArgumentNullException.ThrowIfNull(types);
@@ -23,6 +33,7 @@ public static class Classes
     ///     Begins registration from the specified types, filtering to concrete, non-abstract classes.
     /// </summary>
     /// <param name="types">The types to select from.</param>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static TypeFilter From(params Type[] types)
     {
         ArgumentNullException.ThrowIfNull(types);
@@ -33,6 +44,7 @@ public static class Classes
     ///     Begins registration by scanning the specified assembly for concrete, non-abstract classes.
     /// </summary>
     /// <param name="assembly">The assembly to scan.</param>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static AssemblyTypeSelector FromAssembly(Assembly assembly)
     {
         ArgumentNullException.ThrowIfNull(assembly);
@@ -44,6 +56,7 @@ public static class Classes
     ///     classes.
     /// </summary>
     /// <param name="type">A type whose containing assembly will be scanned.</param>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static AssemblyTypeSelector FromAssemblyContaining(Type type)
     {
         ArgumentNullException.ThrowIfNull(type);
@@ -55,6 +68,7 @@ public static class Classes
     ///     classes.
     /// </summary>
     /// <typeparam name="T">A type whose containing assembly will be scanned.</typeparam>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     public static AssemblyTypeSelector FromAssemblyContaining<T>()
     {
         return FromAssemblyContaining(typeof(T));
@@ -63,6 +77,7 @@ public static class Classes
     /// <summary>
     ///     Begins registration by scanning the calling assembly for concrete, non-abstract classes.
     /// </summary>
+    [RequiresUnreferencedCode(RequiresUnreferencedCodeMessage)]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static AssemblyTypeSelector FromThisAssembly()
     {

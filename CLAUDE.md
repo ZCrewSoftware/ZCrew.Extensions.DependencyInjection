@@ -124,6 +124,17 @@ The `fixtures/` directory contains projects that mirror real-world code for inte
   - `Infrastructure/` — Repository implementations (`SqlCustomerRepository`, `InMemoryRepository<T>`), external integrations (`StripePaymentGateway`), notification senders
   - Includes internal types, nested classes, static classes, and generic types for thorough visibility and type-filtering test coverage
 
+## Trimming / Native AOT
+
+Both library projects set `<IsAotCompatible>true</IsAotCompatible>` (in the csprojs, **not** `src/Directory.Build.props` — the `netstandard2.0` Generator project imports that file and the property is invalid below net7). This turns on the trim/AOT analyzers, so **the build must stay at zero IL2xxx/IL3xxx warnings**.
+
+Two paths, treated differently on purpose:
+
+- **Trim-safe — annotate.** The `[Service]` generator path, `Service.From`, and the decorator API. `Service` carries a private `ImplementationMembers` constant (`PublicConstructors | Interfaces`) applied to the `implementation` field, every constructor, `ImplementationType`, and the `From` factories; `PublicConstructors` satisfies `ServiceDescriptor`, `Interfaces` satisfies the `As*` selectors and `ServiceFilter`. In `TypeExtensions`, the members that call `GetInterfaces()` live in a **second `extension(...)` block** with an annotated receiver so the namespace helpers aren't over-constrained.
+- **Not trim-safe — `[RequiresUnreferencedCode]` at the entry, suppress inside.** Assembly scanning can't survive trimming. Every `Classes`/`Types` entry point is RUC (message in `Classes.RequiresUnreferencedCodeMessage`); the chain types (`AssemblyTypeSelector`, `TypeFilter`, `ServiceSelector`, `ServiceSelectorExtensions`) carry **type-level** `[UnconditionalSuppressMessage]` with `ScanPath.Justification`, since their internal constructors make them reachable only from those entries. This yields one warning per chain instead of one per stage.
+
+Gotchas: a lambda that calls a DAM-annotated method becomes a delegate the trimmer can't follow (IL2111) — use an explicit loop. Interface-selector helpers must hoist `GetInterfaces()` onto `service.ImplementationType` **outside** the lambda, because annotations don't flow through `Func<Type, …>`. Open generics still warn inside MSDI (`MakeGenericType`); that's a container limitation, not ours.
+
 ## Code Conventions
 
 - **Formatting:** CSharpier (auto-runs via pre-commit hook). Run `dotnet tool run CSharpier format .` to format manually.

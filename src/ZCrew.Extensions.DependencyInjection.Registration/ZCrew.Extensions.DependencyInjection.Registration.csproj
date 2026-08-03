@@ -3,6 +3,10 @@
     <ProjectReference Include="../ZCrew.Extensions.DependencyInjection/ZCrew.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <!-- NuGet package metadata -->
   <PropertyGroup>
     <PackageTags>dependency-injecting;scanning;registration;castle;windsor</PackageTags>

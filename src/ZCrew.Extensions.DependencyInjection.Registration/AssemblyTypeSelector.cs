@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
@@ -8,6 +9,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     <see cref="IncludeInternalTypes"/> or <see cref="IncludeAllTypes"/> to broaden the scope. The assembly is not
 ///     scanned until the chain is terminated.
 /// </summary>
+[UnconditionalSuppressMessage(
+    "Trimming",
+    "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+    Justification = Aot.Justification
+)]
 public sealed class AssemblyTypeSelector : TypeFilter
 {
     private readonly Assembly assembly;

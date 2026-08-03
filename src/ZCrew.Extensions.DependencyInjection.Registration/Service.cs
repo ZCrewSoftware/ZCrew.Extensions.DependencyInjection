@@ -13,6 +13,10 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 /// </summary>
 public readonly record struct Service
 {
+    private const DynamicallyAccessedMemberTypes ImplementationMembers =
+        DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces;
+
+    [DynamicallyAccessedMembers(ImplementationMembers)]
     private readonly Type implementation;
     private readonly IReadOnlyList<Type> services;
     private readonly IReadOnlyList<KeyValuePair<Type, object?>>? keyedServices;
@@ -27,7 +31,7 @@ public readonly record struct Service
     ///     are added on top of it, so they resolve to a single shared instance.
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
-    internal Service(Type implementation)
+    internal Service([DynamicallyAccessedMembers(ImplementationMembers)] Type implementation)
     {
         this.implementation = implementation;
         this.services = [implementation];
@@ -38,7 +42,10 @@ public readonly record struct Service
     /// </summary>
     /// <param name="implementation">The implementation type.</param>
     /// <param name="services">The services to register for the <paramref name="implementation"/>.</param>
-    internal Service(Type implementation, IReadOnlyList<Type> services)
+    internal Service(
+        [DynamicallyAccessedMembers(ImplementationMembers)] Type implementation,
+        IReadOnlyList<Type> services
+    )
     {
         this.implementation = implementation;
         this.services = services;
@@ -58,7 +65,7 @@ public readonly record struct Service
     ///     analyzers already handled them.
     /// </remarks>
     private Service(
-        Type implementation,
+        [DynamicallyAccessedMembers(ImplementationMembers)] Type implementation,
         ServiceLifetime lifetime,
         object? key,
         (Type ServiceType, object? Key)[] serviceTypes
@@ -92,7 +99,7 @@ public readonly record struct Service
     /// <param name="serviceKeyProvider">The dynamic service key provider.</param>
     /// <param name="keyedServices">The additional service types with their per-type keys.</param>
     private Service(
-        Type implementation,
+        [DynamicallyAccessedMembers(ImplementationMembers)] Type implementation,
         IReadOnlyList<Type> services,
         ServiceLifetime? lifetime,
         Func<Type, ServiceLifetime>? lifetimeProvider,
@@ -115,9 +122,7 @@ public readonly record struct Service
     ///     <paramref name="type"/> itself; services added with <c>As</c> are forwarded to it.
     /// </summary>
     /// <param name="type">The implementation type to build a registration from.</param>
-    public static Service From(
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type
-    )
+    public static Service From([DynamicallyAccessedMembers(ImplementationMembers)] Type type)
     {
         return new Service(type);
     }
@@ -127,9 +132,7 @@ public readonly record struct Service
     ///     against the type itself; services added with <c>As</c> are forwarded to it.
     /// </summary>
     /// <typeparam name="T">The implementation type to build a registration from.</typeparam>
-    public static Service From<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T
-    >()
+    public static Service From<[DynamicallyAccessedMembers(ImplementationMembers)] T>()
     {
         return new Service(typeof(T));
     }
@@ -154,7 +157,7 @@ public readonly record struct Service
     /// <param name="serviceTypes">The additional service types with their per-type keys.</param>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static Service From(
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementation,
+        [DynamicallyAccessedMembers(ImplementationMembers)] Type implementation,
         ServiceLifetime lifetime,
         object? key,
         params (Type ServiceType, object? Key)[] serviceTypes
@@ -166,6 +169,7 @@ public readonly record struct Service
     /// <summary>
     ///     The implementation type.
     /// </summary>
+    [DynamicallyAccessedMembers(ImplementationMembers)]
     public Type ImplementationType => this.implementation;
 
     /// <summary>

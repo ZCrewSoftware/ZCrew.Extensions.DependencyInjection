@@ -113,12 +113,12 @@ types **and** the `Services.FromThisAssembly()` call site must live in the same 
 
 The `ServiceRegistrationAnalyzer` reports misuse of the attribute family. All rules are errors.
 
-| Rule       | Reported when…                                                                                                        |
-|------------|-----------------------------------------------------------------------------------------------------------------------|
-| `ZCDI001`  | A `[Keyed]` or `[As]` key is an array. Arrays compare by reference, so a fresh array never matches a lookup - use a value-equatable key (string, enum, primitive). |
-| `ZCDI002`  | A modifier attribute (`[As]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`) is used on a type with no `[Service]`; the modifier has no effect. |
-| `ZCDI003`  | An `[As]` service type is one the implementation is not assignable to. (`As<T>` is intentionally unconstrained, so this analyzer enforces assignability instead.) |
-| `ZCDI004`  | A type carries more than one of `[Singleton]`, `[Scoped]`, `[Transient]`.                                             |
+| Rule      | Reported when…                                                                                                                                                     |
+|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ZCDI001` | A `[Keyed]` or `[As]` key is an array. Arrays compare by reference, so a fresh array never matches a lookup - use a value-equatable key (string, enum, primitive). |
+| `ZCDI002` | A modifier attribute (`[As]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`) is used on a type with no `[Service]`; the modifier has no effect.                |
+| `ZCDI003` | An `[As]` service type is one the implementation is not assignable to. (`As<T>` is intentionally unconstrained, so this analyzer enforces assignability instead.)  |
+| `ZCDI004` | A type carries more than one of `[Singleton]`, `[Scoped]`, `[Transient]`.                                                                                          |
 
 ```csharp
 [Service, Keyed(new[] { 1, 2 })]   // ZCDI001: use a value-equatable key
@@ -142,3 +142,18 @@ public class TwoLifetimes;
 | `Classes` / `Types` scan     | You want convention-based bulk registration (by base type, namespace, naming) at startup. |
 
 Both share the same runtime `Service`/`ServiceDescriptor` machinery, so their registrations behave identically.
+
+## Trimming and Native AOT
+
+This is the trim-safe registration path, and the reason to prefer it when publishing trimmed or AOT. The generated
+`Service.From(typeof(Impl), …)` calls reference each implementation as a `typeof` literal, and `Service` annotates the
+implementation with `[DynamicallyAccessedMembers]` for public constructors (so `ServiceDescriptor` can still activate
+it) and interfaces (so the `As*` selectors and `ServiceFilter` still see the hierarchy). Nothing is discovered at
+startup, so there is nothing for the trimmer to remove out from under you.
+
+The reflection-based `Classes`/`Types` scan is the opposite case: its entry points are annotated
+`[RequiresUnreferencedCode]` and produce one `IL2026` per chain, because the trimmer removes unreferenced types before
+the scan can see them.
+
+The remaining unavoidable gap is **open generic** service types, which the Microsoft container resolves via
+`MakeGenericType`; that is a container limitation rather than something this package can annotate away.

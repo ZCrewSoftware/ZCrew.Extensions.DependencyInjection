@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
 /// <summary>
@@ -6,6 +8,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     <c>BasedOn</c> methods. Maintains an immutable chain: each filter method returns a new <see cref="TypeFilter"/>
 ///     instance. When the stage is skipped, all types pass through unfiltered.
 /// </summary>
+[UnconditionalSuppressMessage(
+    "Trimming",
+    "IL2067:Target parameter argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The source value must declare at least the same requirements as those declared on the target location it is assigned to",
+    Justification = Aot.Justification
+)]
 public class TypeFilter : ServiceSelector
 {
     private static readonly IEnumerable<Type> DefaultBases = [typeof(object)];
