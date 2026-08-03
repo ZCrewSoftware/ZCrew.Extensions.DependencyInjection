@@ -2,32 +2,31 @@
 
 ## Type-based decorators
 
-The simplest way to register a decorator is by specifying the service interface and the decorator type. The decorator must accept the service interface as a constructor parameter so the container can inject the inner (delegate) service.
+The easiest way to register a decorator is to name the service interface and the decorator type. Give the decorator a constructor parameter of the service interface and the container passes in the service being wrapped:
 
 ```csharp
 services.AddSingleton<IEmailService, EmailService>();
 services.AddSingletonDecorator<IEmailService, LoggingEmailService>();
 ```
 
-Non-generic overloads are also available:
+There are non-generic overloads for when you only have the types at runtime:
 
 ```csharp
 services.AddSingletonDecorator(typeof(IEmailService), typeof(LoggingEmailService));
 ```
 
-### Lifetime-specific methods
+### Picking a lifetime
 
-| Method                  | Decorator lifetime               |
-|-------------------------|----------------------------------|
-| `AddSingletonDecorator` | Singleton                        |
-| `AddScopedDecorator`    | Scoped                           |
-| `AddTransientDecorator` | Transient                        |
-| `AddDecorator`          | Inherits the delegate's lifetime |
+| Method                  | Decorator lifetime                |
+|-------------------------|-----------------------------------|
+| `AddSingletonDecorator` | Singleton                         |
+| `AddScopedDecorator`    | Scoped                            |
+| `AddTransientDecorator` | Transient                         |
+| `AddDecorator`          | Same as the service it wraps      |
 
 ## Factory-based decorators
 
-When you need to pass additional arguments to the decorator or perform custom construction, use a factory delegate.
-The factory receives the `IServiceProvider` and the inner service:
+Use a factory when the decorator needs something the container can't hand it, or when you want to construct it yourself. The factory gets the `IServiceProvider` and the service being wrapped:
 
 ```csharp
 services.AddSingleton<IEmailService, EmailService>();
@@ -38,7 +37,7 @@ services.AddSingletonDecorator<IEmailService>((IServiceProvider sp, IEmailServic
 });
 ```
 
-Non-generic overloads accept `Func<IServiceProvider, object, object>`:
+The non-generic overloads take a `Func<IServiceProvider, object, object>`:
 
 ```csharp
 services.AddSingletonDecorator(typeof(IEmailService), (IServiceProvider sp, object next) =>
@@ -49,10 +48,9 @@ services.AddSingletonDecorator(typeof(IEmailService), (IServiceProvider sp, obje
 
 ## Keyed decorators
 
-Keyed decorators target services registered with a specific service key.
-They only decorate registrations that match both the service type and the key.
+A keyed decorator only wraps registrations that match both the service type and the key.
 
-### Keyed type-based
+### By type
 
 ```csharp
 services.AddKeyedSingleton<IEmailService, EmailService>("notifications");
@@ -65,9 +63,9 @@ Non-generic:
 services.AddKeyedSingletonDecorator(typeof(IEmailService), typeof(LoggingEmailService), "notifications");
 ```
 
-### Keyed factory-based
+### By factory
 
-The factory receives the `IServiceProvider`, the inner service, and the service key:
+The factory gets the `IServiceProvider`, the service being wrapped, and the service key:
 
 ```csharp
 services.AddKeyedSingleton<IEmailService, EmailService>("notifications");
@@ -93,8 +91,7 @@ services.AddKeyedSingletonDecorator(
 
 ## Stacking decorators
 
-Multiple decorators can be applied to the same service.
-They are resolved in registration order, meaning the **last registered decorator is the outermost wrapper**:
+You can put as many decorators as you like on one service. They are applied in registration order, so the last one you register ends up on the outside:
 
 ```csharp
 services.AddSingleton<IEmailService, EmailService>();
@@ -102,7 +99,7 @@ services.AddDecorator<IEmailService, FilteredEmailService>();
 services.AddDecorator<IEmailService, LoggingEmailService>();
 ```
 
-When `IEmailService` is resolved, the call chain is:
+Resolving `IEmailService` gives you this call chain:
 
 ```
 LoggingEmailService → FilteredEmailService → EmailService
@@ -110,4 +107,6 @@ LoggingEmailService → FilteredEmailService → EmailService
 
 ## Lifetime validation
 
-A decorator with a longer lifetime than its delegate creates a captive dependency — the decorator holds a stale reference to an instance that should have been recreated. The library throws `InvalidOperationException` at registration time when this happens. Use `AddDecorator` (without a lifetime prefix) to inherit the delegate's lifetime automatically.
+A decorator that outlives the service it wraps is a captive dependency: it holds on to an instance that should have been thrown away and rebuilt. Rather than let that slip through, the library throws an `InvalidOperationException` when you register it.
+
+If you don't want to think about it, use `AddDecorator` and the decorator takes whatever lifetime the service it wraps has.

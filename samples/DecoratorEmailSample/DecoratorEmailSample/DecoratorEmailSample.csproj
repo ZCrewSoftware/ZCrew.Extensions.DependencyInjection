@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageReference Include="ZCrew.Extensions.DependencyInjection" Version="1.0.0" />
-    <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="1.0.0" />
+    <PackageReference Include="ZCrew.Extensions.DependencyInjection" Version="3.0.0" />
   </ItemGroup>
 </Project>

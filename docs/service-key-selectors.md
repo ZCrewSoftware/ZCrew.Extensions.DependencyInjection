@@ -1,12 +1,14 @@
-# Service Key Selectors
+# Service key selectors
 
-After choosing a [service selector](service-selectors.md), you can optionally assign **service keys** to the resulting registrations using `Keyed`. This produces [keyed services](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#service-keys) — registrations that are resolved by both their service type and a key. `Keyed` (and `Unkeyed`) return a `ServiceLifetimeSelector`, so the chain can continue into [lifetime selection](shared-services.md) or terminate directly.
+Once you've picked a [service selector](service-selectors.md), you can give the resulting registrations a service key with `Keyed`. That produces [keyed services](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection#service-keys), which are resolved by service type and key together.
 
-Keys can also be derived from **attributes on the implementation type** via `KeyedByAttribute` (see [Keying from attributes](#keying-from-attributes)), which likewise returns a `ServiceLifetimeSelector`.
+`Keyed` and `Unkeyed` return a `ServiceLifetimeSelector`, so you can carry on into [lifetime selection](shared-services.md) or stop there.
+
+Keys can also come from an attribute on the implementation, via `KeyedByAttribute`. See [Keying from attributes](#keying-from-attributes).
 
 ## `Keyed()`
 
-Auto-detects a string key by stripping the service type's interface name from the implementation type's name. If the implementation name ends with the service name and has a non-empty prefix, that prefix becomes the key. Otherwise the descriptor is left unkeyed.
+Works the key out by stripping the service interface name off the end of the implementation name. If the implementation name ends with the service name and something is left over, that becomes the key. Otherwise the registration is left unkeyed.
 
 ```csharp
 Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
@@ -22,32 +24,32 @@ public class PayPalPaymentGateway : IPaymentGateway { }
 public class StripePaymentGateway : IPaymentGateway { }
 ```
 
-Registers:
+You get:
 
 ```
 PayPalPaymentGateway  → IPaymentGateway (key: "PayPal")
 StripePaymentGateway  → IPaymentGateway (key: "Stripe")
 ```
 
-The convention strips `PaymentGateway` (from `IPaymentGateway`) off the end of each implementation name, leaving `PayPal` and `Stripe`.
+`PaymentGateway` (from `IPaymentGateway`) comes off the end of each name, leaving `PayPal` and `Stripe`.
 
-### When auto-detection is skipped
+### When you get no key
 
-If the implementation name does not end with the service name, or if stripping it would leave an empty string, the descriptor is left unkeyed:
+If the implementation name doesn't end with the service name, or stripping it leaves nothing, the registration stays unkeyed:
 
 ```csharp
 Classes.From(typeof(PayPalPaymentGateway))
     .AsSelf()
     .Keyed()
-// PayPalPaymentGateway registered as PayPalPaymentGateway (unkeyed)
-// "PayPalPaymentGateway" stripped of "PayPalPaymentGateway" leaves "", so no key is applied
+// PayPalPaymentGateway registered as PayPalPaymentGateway, unkeyed.
+// Stripping "PayPalPaymentGateway" from "PayPalPaymentGateway" leaves nothing, so no key.
 ```
 
-Generic type arity suffixes (e.g., `` `1 ``) are stripped before matching, so `InMemoryRepository<T>` registered as `IRepository<T>` would yield key `InMemory`.
+Generic arity suffixes (`` `1 ``) are stripped before matching, so `InMemoryRepository<T>` registered as `IRepository<T>` gets the key `InMemory`.
 
 ## `Keyed(object?)`
 
-Assigns the same key to all registrations. When `null` is passed, the descriptors are returned unchanged (no keying applied):
+Gives every registration the same key. Pass `null` and nothing is keyed:
 
 ```csharp
 Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
@@ -55,23 +57,23 @@ Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
     .Keyed("payments")
 ```
 
-Registers:
+You get:
 
 ```
 PayPalPaymentGateway  → IPaymentGateway (key: "payments")
 StripePaymentGateway  → IPaymentGateway (key: "payments")
 ```
 
-Passing `null` is a no-op, which is useful when the key comes from a configuration value that may or may not be set:
+The `null` case is handy when the key comes from config and might not be set:
 
 ```csharp
 .Keyed(config.GetValue<string>("ServiceKey"))
-// If config value is null, registrations remain unkeyed
+// Config value missing? The registrations stay unkeyed.
 ```
 
 ## `Keyed(Func<Type, object?>)`
 
-Computes a key per registration based on the implementation type. When the function returns `null`, that descriptor is left unkeyed:
+Computes a key from the implementation type. Return `null` and that one is left unkeyed:
 
 ```csharp
 Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
@@ -79,16 +81,16 @@ Classes.From(typeof(PayPalPaymentGateway), typeof(StripePaymentGateway))
     .Keyed((Func<Type, object?>)(type => type.Name))
 ```
 
-Registers:
+You get:
 
 ```
 PayPalPaymentGateway  → IPaymentGateway (key: "PayPalPaymentGateway")
 StripePaymentGateway  → IPaymentGateway (key: "StripePaymentGateway")
 ```
 
-> **Note:** When passing a lambda directly, you may need the `(Func<Type, object?>)` cast to disambiguate from the `Func<Type, Type, object?>` overload.
+> Passing a bare lambda can be ambiguous with the `Func<Type, Type, object?>` overload, so you may need the `(Func<Type, object?>)` cast.
 
-Returning `null` for specific types lets you selectively key a subset:
+Returning `null` for some types lets you key only a subset:
 
 ```csharp
 .Keyed((Func<Type, object?>)(type =>
@@ -99,7 +101,7 @@ Returning `null` for specific types lets you selectively key a subset:
 
 ## `Keyed(Func<Type, Type, object?>)`
 
-Like the single-parameter overload, but the delegate also receives the service type. This is useful when the key should depend on the relationship between the implementation and its service type:
+Same as above, except the delegate also gets the service type. Use it when the key depends on both:
 
 ```csharp
 Classes.From(typeof(EmailNotificationSender), typeof(SmsNotificationSender))
@@ -107,7 +109,7 @@ Classes.From(typeof(EmailNotificationSender), typeof(SmsNotificationSender))
     .Keyed((impl, svc) => $"{impl.Name}:{svc.Name}")
 ```
 
-Registers:
+You get:
 
 ```
 EmailNotificationSender → INotificationSender (key: "EmailNotificationSender:INotificationSender")
@@ -116,15 +118,15 @@ SmsNotificationSender   → INotificationSender (key: "SmsNotificationSender:INo
 
 ## Keying from attributes
 
-Instead of computing keys from type names or delegates, `KeyedByAttribute` reads the key from an **attribute applied to the implementation type**. This keeps the key definition next to the implementation it belongs to. All overloads share the same rules:
+Instead of deriving keys from type names or a delegate, `KeyedByAttribute` reads the key from an attribute on the implementation, which keeps the key next to the class it belongs to. The rules are the same across all the overloads:
 
-- **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
-- **No match means no key.** Implementation types without a matching attribute — or for which the resolved key is `null` — are left unkeyed, exactly like a `Func` overload returning `null`.
-- **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
+- Inherited attributes count by default. Each overload has a twin that takes a leading `bool inherited`. Pass `false` to only look at attributes declared on the type itself.
+- No match means no key. A type without a matching attribute, or one where the key comes back `null`, is left unkeyed. Same as a `Func` overload returning `null`.
+- Exactly one match. Two matching attributes on a type throws an `AmbiguousMatchException` when the chain is enumerated.
 
 ## `KeyedByAttribute<TAttribute>(Func<TAttribute, object?>)`
 
-Projects a specific attribute through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+Reads a specific attribute. `TAttribute` can be a concrete attribute type, or an interface that one or more attributes implement:
 
 ```csharp
 Classes.From(typeof(RegionalCustomerStore), typeof(RegionalOrderStore))
@@ -148,18 +150,18 @@ public class RegionalCustomerStore : IStore { }
 public class RegionalOrderStore : IStore { }
 ```
 
-Registers:
+You get:
 
 ```
 RegionalCustomerStore → IStore (key: "customers")
 RegionalOrderStore    → IStore (key: "orders")
 ```
 
-Types without the attribute, or for which the selector returns `null`, are left unkeyed. An `inherited` overload — `KeyedByAttribute<TAttribute>(bool inherited, Func<TAttribute, object?>)` — controls whether inherited attributes are inspected.
+Types without the attribute, or where the selector returns `null`, stay unkeyed. There is also an `inherited` overload, `KeyedByAttribute<TAttribute>(bool inherited, Func<TAttribute, object?>)`.
 
 ## `KeyedByAttribute(Type, Func<Attribute, object?>)`
 
-The non-generic form, for when the attribute type is only known at runtime. The selector receives the matching attribute as `Attribute`, so it is cast before the key is read:
+The non-generic form, for when you only know the attribute type at runtime. The selector gets an `Attribute`, so cast it before reading the key:
 
 ```csharp
 Classes.From(typeof(RegionalCustomerStore), typeof(RegionalOrderStore))
@@ -167,32 +169,32 @@ Classes.From(typeof(RegionalCustomerStore), typeof(RegionalOrderStore))
     .KeyedByAttribute(typeof(RegionAttribute), attribute => ((RegionAttribute)attribute).Region)
 ```
 
-This registers the same keys as the generic overload above. An `inherited` overload — `KeyedByAttribute(Type, bool inherited, Func<Attribute, object?>)` — is also available.
+Same keys as the generic overload above. There is an `inherited` overload too, `KeyedByAttribute(Type, bool inherited, Func<Attribute, object?>)`.
 
 ## Resolving keyed services
 
-Keyed services are resolved using `[FromKeyedServices]` or by calling `GetKeyedService` on the service provider:
+Use `[FromKeyedServices]` or `GetKeyedService` on the provider:
 
 ```csharp
-// Via attribute injection
+// Injected
 public class CheckoutService(
     [FromKeyedServices("Stripe")] IPaymentGateway stripeGateway,
     [FromKeyedServices("PayPal")] IPaymentGateway paypalGateway)
 { }
 
-// Via service provider
+// Resolved directly
 var gateway = provider.GetKeyedService<IPaymentGateway>("Stripe");
 ```
 
 ## Choosing the right overload
 
-| Scenario                                        | Overload                                                               | Example                                     |
+| What you want                                   | Overload                                                               | Example                                     |
 |-------------------------------------------------|------------------------------------------------------------------------|---------------------------------------------|
-| Key by naming convention                        | `Keyed()`                                                              | `PayPalPaymentGateway` → key `"PayPal"`     |
-| Same key for all registrations                  | `Keyed(object?)`                                                       | All keyed as `"payments"`                   |
-| Key based on implementation type                | `Keyed(Func<Type, object?>)`                                           | Key is `type.Name`                          |
-| Key based on both types                         | `Keyed(Func<Type, Type, object?>)`                                     | Key is `$"{impl}:{svc}"`                    |
-| Key by projecting a typed attribute             | `KeyedByAttribute<TAttribute>(Func<TAttribute, object?>)`              | `[Region("customers")]` → key `"customers"` |
-| Key by projecting an attribute known at runtime | `KeyedByAttribute(Type, Func<Attribute, object?>)`                     | As above, `Type` resolved at runtime        |
-| Conditionally skip keying                       | Any `Func` overload returning `null`, or an unmatched/`null` attribute | `null` → left unkeyed                       |
-| No key                                          | `Keyed(null)` or don't call at all                                     | Descriptors unchanged                       |
+| Key from the naming convention                  | `Keyed()`                                                              | `PayPalPaymentGateway` → key `"PayPal"`     |
+| One key for everything                          | `Keyed(object?)`                                                       | All keyed as `"payments"`                   |
+| Key from the implementation type                | `Keyed(Func<Type, object?>)`                                           | Key is `type.Name`                          |
+| Key from both types                             | `Keyed(Func<Type, Type, object?>)`                                     | Key is `$"{impl}:{svc}"`                    |
+| Key from a typed attribute                      | `KeyedByAttribute<TAttribute>(Func<TAttribute, object?>)`              | `[Region("customers")]` → key `"customers"` |
+| Key from an attribute known at runtime          | `KeyedByAttribute(Type, Func<Attribute, object?>)`                     | As above, `Type` resolved at runtime        |
+| Skip keying for some types                      | Any `Func` overload returning `null`, or an unmatched/`null` attribute | `null` → left unkeyed                       |
+| No keys at all                                  | `Keyed(null)`, or just don't call it                                   | Registrations unchanged                     |

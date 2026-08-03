@@ -1,27 +1,38 @@
-# Decorator Email Sample
+# Decorator email sample
 
-This sample demonstrates how to use `ZCrew.Extensions.DependencyInjection` to apply the decorator pattern to a mock email service.
+This sample applies the decorator pattern to a mock email service with `ZCrew.Extensions.DependencyInjection`.
 
-## Overview
+## What it does
 
 An `IEmailService` is registered as a singleton, then two decorators are stacked on top of it:
 
-1. **`FilteredEmailService`** — blocks emails sent to addresses ending in `@contoso.com`. Registered via a factory delegate with `AddSingletonDecorator` so the blocked domain can be passed to the constructor.
-2. **`LoggingEmailService`** — wraps each call with a trace ID and logs whether the email was sent. Registered with `AddScopedDecorator` so a new trace ID is generated per scope.
+1. `FilteredEmailService` blocks anything sent to an address ending in `@contoso.com`. It's registered through a factory with `AddSingletonDecorator` so the blocked domain can be passed to the constructor.
+2. `LoggingEmailService` wraps each call with a trace ID and logs whether the email went out. It's registered with `AddScopedDecorator` so each scope gets a new trace ID.
 
-When the service is resolved, the call chain is:
+Resolving the service gives you this call chain:
 
 ```
 LoggingEmailService → FilteredEmailService → EmailService
 ```
 
-## Running the sample
+## Setting it up
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  <PackageReference Include="ZCrew.Extensions.DependencyInjection" Version="3.0.0" />
+</ItemGroup>
+```
+
+The decorator package is plain library code, so there's no analyzer or source generator in play and nothing else to configure. Add the reference, add `using ZCrew.Extensions.DependencyInjection;`, and the `AddDecorator` methods show up on `IServiceCollection`.
+
+## Running it
 
 ```bash
 dotnet run --project samples/DecoratorEmailSample/DecoratorEmailSample/DecoratorEmailSample.csproj
 ```
 
-The app prompts for an email address and a message. Type `quit` to exit.
+It asks for an email address and a message. Type `quit` to exit.
 
 ### Example output
 
@@ -49,18 +60,18 @@ Blocked email to 'user@contoso.com' since it ends with '@contoso.com'.
 [8b2e4f1a-9c3d-4e5f-a6b7-1234567890ab] Email was not sent.
 ```
 
-## Key registration code
+## The registration code
 
 ```csharp
 var serviceCollection = new ServiceCollection();
 
-// Register the base service
+// The service being decorated
 serviceCollection.AddSingleton<IEmailService, EmailService>();
 
-// Add a singleton decorator using a factory (to pass the blocked domain)
+// A singleton decorator built by a factory, so we can pass the blocked domain
 serviceCollection.AddSingletonDecorator<IEmailService>(
     (_, next) => new FilteredEmailService(next, "@contoso.com"));
 
-// Add a scoped decorator using a type registration
+// A scoped decorator registered by type
 serviceCollection.AddScopedDecorator<IEmailService, LoggingEmailService>();
 ```

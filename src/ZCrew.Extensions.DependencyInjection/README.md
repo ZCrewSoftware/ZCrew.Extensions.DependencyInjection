@@ -1,14 +1,14 @@
 # ZCrew.Extensions.DependencyInjection
 
-Decorator pattern support for `Microsoft.Extensions.DependencyInjection`. Wrap existing service registrations with decorator implementations using a simple, familiar API.
+Decorator support for `Microsoft.Extensions.DependencyInjection`. Wrap a service that's already registered with another implementation, using an API that looks like the one you already use.
 
-## Features
+## What you get
 
-- **Type-based and factory-based** decorator registration
-- **Lifetime-specific** methods (`AddSingletonDecorator`, `AddScopedDecorator`, `AddTransientDecorator`) or lifetime-inheriting (`AddDecorator`)
-- **Keyed service** support (`AddKeyedDecorator`, `AddKeyedSingletonDecorator`, etc.)
-- **Lifetime validation** — prevents invalid combinations (e.g., a singleton decorator wrapping a transient service)
-- **Multiple decorators** — stack decorators by calling `AddDecorator` multiple times for the same service
+- Decorators registered by type, or built by a factory
+- A lifetime of your choosing (`AddSingletonDecorator`, `AddScopedDecorator`, `AddTransientDecorator`) or the one the wrapped service already has (`AddDecorator`)
+- Keyed services (`AddKeyedDecorator`, `AddKeyedSingletonDecorator`, and so on)
+- Mismatched lifetimes caught at registration, like a singleton decorator around a transient service
+- As many decorators on one service as you want. Call `AddDecorator` again
 
 ## Installation
 
@@ -16,9 +16,19 @@ Decorator pattern support for `Microsoft.Extensions.DependencyInjection`. Wrap e
 dotnet add package ZCrew.Extensions.DependencyInjection
 ```
 
-## Quick Start
+or in your `.csproj`:
 
-Given a service and decorator:
+```xml
+<ItemGroup>
+  <PackageReference Include="ZCrew.Extensions.DependencyInjection" Version="3.0.0" />
+</ItemGroup>
+```
+
+This one is plain library code. There's no analyzer or source generator involved, so there's nothing else to configure.
+
+## Quick start
+
+Given a service and a decorator:
 
 ```csharp
 public interface IGreeter
@@ -46,21 +56,21 @@ Register the decorator:
 ```csharp
 services.AddScoped<IGreeter, Greeter>();
 
-// Inherit the delegate's lifetime (scoped)
+// Inherit the lifetime of the service being wrapped (scoped here)
 services.AddDecorator<IGreeter, LoggingGreeter>();
 
-// Or specify an explicit lifetime
+// Or set one explicitly
 services.AddSingletonDecorator<IGreeter, LoggingGreeter>();
 ```
 
-Use a factory for more control:
+Use a factory when you want to build it yourself:
 
 ```csharp
 services.AddDecorator<IGreeter>((provider, inner) =>
     new LoggingGreeter(inner, provider.GetRequiredService<ILogger<LoggingGreeter>>()));
 ```
 
-### Keyed Services
+### Keyed services
 
 ```csharp
 services.AddKeyedScoped<IGreeter, Greeter>("friendly");
@@ -69,4 +79,4 @@ services.AddKeyedDecorator<IGreeter, LoggingGreeter>("friendly");
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md) file for details.
+MIT. See [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md).
