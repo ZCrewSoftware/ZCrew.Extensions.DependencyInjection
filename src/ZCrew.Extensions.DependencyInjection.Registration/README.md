@@ -118,6 +118,23 @@ services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow
 See **[Compile-Time Registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md)** for the full attribute model
 (`[As<T>]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`), semantics, and the `ZCDI001`–`ZCDI004` diagnostics.
 
+## Trimming and Native AOT
+
+The package is marked `IsAotCompatible`, but only the compile-time path is trim-safe:
+
+| Path                                            | Trimming / AOT                                                         |
+|-------------------------------------------------|------------------------------------------------------------------------|
+| `[Service]` + `Services.FromThisAssembly()`     | ✅ Safe: the registrations are baked in at compile time.                |
+| `Service.From<T>()` / `Service.From(typeof(T))` | ✅ Safe: the implementation type keeps its constructors and interfaces. |
+| `Classes` / `Types` assembly scanning           | ⚠️ Not supported: the entry points are `[RequiresUnreferencedCode]`.   |
+
+Assembly scanning cannot be made trim-safe: the trimmer removes unreferenced types *before* the scan runs, so types
+would silently disappear from the container. Rather than fail at runtime, every `Classes`/`Types` entry point warns at
+compile time (one `IL2026` per chain) and points you at the generator. If you publish trimmed or AOT, use `[Service]`.
+
+> One caveat that is outside this package's control: registering **open generic** service types uses
+> `MakeGenericType`, which Microsoft's container cannot make AOT-safe.
+
 ## Full API reference
 
 The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/tree/main/docs).

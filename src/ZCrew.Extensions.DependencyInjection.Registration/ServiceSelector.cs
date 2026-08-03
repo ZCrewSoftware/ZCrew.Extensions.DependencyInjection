@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ZCrew.Extensions.DependencyInjection.Registration;
 
@@ -9,6 +10,11 @@ namespace ZCrew.Extensions.DependencyInjection.Registration;
 ///     (e.g. <c>AsSelf().AsAllInterfaces()</c>): each returns a new <see cref="ServiceSelector"/> and accumulates
 ///     the distinct service types, in-order.
 /// </summary>
+[UnconditionalSuppressMessage(
+    "Trimming",
+    "IL2067:Target parameter argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The source value must declare at least the same requirements as those declared on the target location it is assigned to",
+    Justification = Aot.Justification
+)]
 public class ServiceSelector : ServiceKeySelector
 {
     private readonly IEnumerable<Service>? services;

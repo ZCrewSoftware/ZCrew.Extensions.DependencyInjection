@@ -20,7 +20,7 @@ public static partial class ServiceExtensions
         /// <returns>The modified service.</returns>
         public Service AsAllTypes()
         {
-            return service.As(type => type.GetTypes().Where(service => !service.IsAbstractClass));
+            return service.As(service.ImplementationType.GetTypes().Where(candidate => !candidate.IsAbstractClass));
         }
 
         /// <summary>
@@ -39,10 +39,11 @@ public static partial class ServiceExtensions
         /// <returns>The modified service.</returns>
         public Service AsAllNonSystemTypes()
         {
-            return service.As(type =>
-                type.GetTypes()
-                    .Where(service => !service.IsAbstractClass)
-                    .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
+            return service.As(
+                service
+                    .ImplementationType.GetTypes()
+                    .Where(candidate => !candidate.IsAbstractClass)
+                    .Where(candidate => !candidate.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
             );
         }
 
@@ -63,10 +64,12 @@ public static partial class ServiceExtensions
         /// <returns>The modified service.</returns>
         public Service AsDefaultTypes()
         {
-            return service.As(type =>
-                type.GetTypes()
-                    .Where(service => !service.IsAbstractClass)
-                    .Where(service => type.Name.Contains(service.GetInterfaceName()))
+            var implementation = service.ImplementationType;
+            return service.As(
+                implementation
+                    .GetTypes()
+                    .Where(candidate => !candidate.IsAbstractClass)
+                    .Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
             );
         }
 
@@ -89,11 +92,13 @@ public static partial class ServiceExtensions
         /// <returns>The modified service.</returns>
         public Service AsDefaultNonSystemTypes()
         {
-            return service.As(type =>
-                type.GetTypes()
-                    .Where(service => !service.IsAbstractClass)
-                    .Where(service => type.Name.Contains(service.GetInterfaceName()))
-                    .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
+            var implementation = service.ImplementationType;
+            return service.As(
+                implementation
+                    .GetTypes()
+                    .Where(candidate => !candidate.IsAbstractClass)
+                    .Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
+                    .Where(candidate => !candidate.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
             );
         }
     }

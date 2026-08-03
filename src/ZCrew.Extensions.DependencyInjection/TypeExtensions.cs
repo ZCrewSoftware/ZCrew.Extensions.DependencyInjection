@@ -1,4 +1,4 @@
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ZCrew.Extensions.DependencyInjection;
 
@@ -8,6 +8,11 @@ namespace ZCrew.Extensions.DependencyInjection;
 /// </summary>
 public static partial class TypeExtensions
 {
+    private const string InterfaceWalkJustification =
+        "Type.GetInterfaces() returns the flattened interface closure, so each element's own interfaces are already "
+        + "part of the preserved set. If one were trimmed away, the only effect is that an inherited interface is not "
+        + "removed and the type is registered against it as well.";
+
     extension(Type type)
     {
         /// <summary>
@@ -17,31 +22,6 @@ public static partial class TypeExtensions
         public bool IsAbstractClass
         {
             get => type is { IsAbstract: true, IsInterface: false };
-        }
-
-        /// <summary>
-        ///     Returns the type itself, all classes the current type extends, and all interfaces the current type
-        ///     implements.
-        /// </summary>
-        /// <returns>The list of all types the current type represents.</returns>
-        public IEnumerable<Type> GetTypes()
-        {
-            // Every type is itself
-            yield return type;
-
-            // And all base types
-            var baseType = type.BaseType;
-            while (baseType != null)
-            {
-                yield return baseType;
-                baseType = baseType.BaseType;
-            }
-
-            // And all interfaces
-            foreach (var @interface in type.GetInterfaces())
-            {
-                yield return @interface;
-            }
         }
 
         /// <summary>
@@ -133,6 +113,49 @@ public static partial class TypeExtensions
         }
 
         /// <summary>
+        ///     Returns the name without any generic arity.
+        /// </summary>
+        /// <returns>The name of the type without the generic arity.</returns>
+        /// <example>
+        ///     <see cref="List{T}"/> would be return the string <c>"List"</c>.
+        /// </example>
+        public string GetNonGenericName()
+        {
+            var backtick = type.Name.IndexOf('`');
+            return backtick > 0 ? type.Name[..backtick] : type.Name;
+        }
+    }
+
+    // Members that walk the interface hierarchy. The receiver keeps its interfaces when trimming so that
+    // Type.GetInterfaces() still returns the full set.
+    extension([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
+    {
+        /// <summary>
+        ///     Returns the type itself, all classes the current type extends, and all interfaces the current type
+        ///     implements.
+        /// </summary>
+        /// <returns>The list of all types the current type represents.</returns>
+        public IEnumerable<Type> GetTypes()
+        {
+            // Every type is itself
+            yield return type;
+
+            // And all base types
+            var baseType = type.BaseType;
+            while (baseType != null)
+            {
+                yield return baseType;
+                baseType = baseType.BaseType;
+            }
+
+            // And all interfaces
+            foreach (var @interface in type.GetInterfaces())
+            {
+                yield return @interface;
+            }
+        }
+
+        /// <summary>
         ///     Returns the most-derived (top-level) interfaces implemented by the type, excluding interfaces that are
         ///     inherited by other interfaces the type implements.
         /// </summary>
@@ -147,6 +170,18 @@ public static partial class TypeExtensions
         ///     <c>IUserRepository</c>, because <c>IRepository</c> is already inherited by
         ///     <c>IUserRepository</c>.
         /// </example>
+        // IL2075 is the analyzer's code for this and IL2065 is ILLink's; both are needed or the warning
+        // reappears in consumers' publish output.
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2075:'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method",
+            Justification = InterfaceWalkJustification
+        )]
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2065:Value passed to implicit 'this' parameter of method can not be statically determined",
+            Justification = InterfaceWalkJustification
+        )]
         public IEnumerable<Type> GetTopLevelInterfaces()
         {
             var interfaces = type.GetInterfaces();
@@ -161,19 +196,6 @@ public static partial class TypeExtensions
             }
 
             return topLevel;
-        }
-
-        /// <summary>
-        ///     Returns the name without any generic arity.
-        /// </summary>
-        /// <returns>The name of the type without the generic arity.</returns>
-        /// <example>
-        ///     <see cref="List{T}"/> would be return the string <c>"List"</c>.
-        /// </example>
-        public string GetNonGenericName()
-        {
-            var backtick = type.Name.IndexOf('`');
-            return backtick > 0 ? type.Name[..backtick] : type.Name;
         }
 
         /// <summary>
@@ -203,13 +225,31 @@ public static partial class TypeExtensions
         ///     generic type definition so the DI container can resolve them.
         /// </summary>
         /// <param name="baseTypes">The base types to match against.</param>
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2072:'target parameter' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method",
+            Justification = "The interfaces come from the receiver's preserved interface closure; see "
+                + "GetTopLevelInterfaces for why walking them further is safe."
+        )]
         public IEnumerable<Type> GetTopLevelInterfacesMatchingBaseTypes(IEnumerable<Type> baseTypes)
         {
             var matches = new HashSet<Type>();
             var baseTypeArray = baseTypes.ToArray();
             foreach (var topLevelInterface in type.GetTopLevelInterfaces())
             {
-                if (!baseTypeArray.Any(baseType => topLevelInterface.IsBasedOn(baseType)))
+                // Looped rather than baseTypeArray.Any(...): a lambda calling the annotated IsBasedOn becomes a
+                // delegate the trimmer can't follow (IL2111).
+                var matchesBaseType = false;
+                foreach (var baseType in baseTypeArray)
+                {
+                    if (topLevelInterface.IsBasedOn(baseType))
+                    {
+                        matchesBaseType = true;
+                        break;
+                    }
+                }
+
+                if (!matchesBaseType)
                 {
                     continue;
                 }

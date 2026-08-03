@@ -18,7 +18,7 @@ public static partial class ServiceExtensions
         /// <returns>The modified service, or the same service if the implementation has no interfaces.</returns>
         public Service AsAllInterfaces()
         {
-            return service.As(type => type.GetInterfaces());
+            return service.As(service.ImplementationType.GetInterfaces());
         }
 
         /// <summary>
@@ -36,8 +36,10 @@ public static partial class ServiceExtensions
         /// <returns>The modified service, or the same service if no interfaces matched.</returns>
         public Service AsAllNonSystemInterfaces()
         {
-            return service.As(type =>
-                type.GetInterfaces().Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
+            return service.As(
+                service
+                    .ImplementationType.GetInterfaces()
+                    .Where(candidate => !candidate.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
             );
         }
 
@@ -56,8 +58,9 @@ public static partial class ServiceExtensions
         /// <returns>The modified service, or the same service if no interfaces matched.</returns>
         public Service AsDefaultInterfaces()
         {
-            return service.As(type =>
-                type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName()))
+            var implementation = service.ImplementationType;
+            return service.As(
+                implementation.GetInterfaces().Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
             );
         }
 
@@ -73,10 +76,12 @@ public static partial class ServiceExtensions
         /// <returns>The modified service, or the same service if no interfaces matched.</returns>
         public Service AsDefaultNonSystemInterfaces()
         {
-            return service.As(type =>
-                type.GetInterfaces()
-                    .Where(service => type.Name.Contains(service.GetInterfaceName()))
-                    .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
+            var implementation = service.ImplementationType;
+            return service.As(
+                implementation
+                    .GetInterfaces()
+                    .Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
+                    .Where(candidate => !candidate.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
             );
         }
 
@@ -93,11 +98,9 @@ public static partial class ServiceExtensions
         /// <returns>The modified service, or the same service if the implementation has no interfaces.</returns>
         public Service AsFirstInterface()
         {
-            return service.As(type =>
-            {
-                var firstInterface = type.GetInterfaces().FirstOrDefault();
-                return firstInterface != null ? [firstInterface] : [];
-            });
+            var firstInterface = service.ImplementationType.GetInterfaces().FirstOrDefault();
+            Type[] services = firstInterface != null ? [firstInterface] : [];
+            return service.As(services);
         }
     }
 }

@@ -18,7 +18,11 @@ internal class DecoratorServiceDescriptor
     /// <param name="serviceType">The <see cref="Type" /> of the service.</param>
     /// <param name="decoratorType">The decorator <see cref="Type" /> implementing the service.</param>
     /// <param name="lifetime">The <see cref="ServiceLifetime" /> of the service.</param>
-    public DecoratorServiceDescriptor(Type serviceType, Type decoratorType, ServiceLifetime? lifetime)
+    public DecoratorServiceDescriptor(
+        Type serviceType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type decoratorType,
+        ServiceLifetime? lifetime
+    )
         : this(serviceType, null, decoratorType, lifetime) { }
 
     /// <summary>
@@ -32,7 +36,7 @@ internal class DecoratorServiceDescriptor
     public DecoratorServiceDescriptor(
         Type serviceType,
         object? serviceKey,
-        Type decoratorType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type decoratorType,
         ServiceLifetime? lifetime
     )
         : this(serviceType, serviceKey, lifetime)
