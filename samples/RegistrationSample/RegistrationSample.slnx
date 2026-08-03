@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/External/">
-    <Project Path="../../src/ZCrew.Extensions.DependencyInjection.Generator/ZCrew.Extensions.DependencyInjection.Generator.csproj" />
-    <Project Path="../../src/ZCrew.Extensions.DependencyInjection.Registration/ZCrew.Extensions.DependencyInjection.Registration.csproj" />
-  </Folder>
   <Folder Name="/Solution Items/">
     <File Path="global.json" />
     <File Path="README.md" />

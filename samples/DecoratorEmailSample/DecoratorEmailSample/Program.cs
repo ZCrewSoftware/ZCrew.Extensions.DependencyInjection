@@ -4,7 +4,6 @@ using DecoratorEmailSample.Models;
 using DecoratorEmailSample.Services;
 using Microsoft.Extensions.DependencyInjection;
 using ZCrew.Extensions.DependencyInjection;
-using ZCrew.Extensions.DependencyInjection.Registration;
 
 Console.WriteLine(
     """
@@ -24,7 +23,6 @@ var serviceCollection = new ServiceCollection();
 serviceCollection.AddSingleton<IEmailService, EmailService>();
 serviceCollection.AddSingletonDecorator<IEmailService>((_, next) => new FilteredEmailService(next, "@contoso.com"));
 serviceCollection.AddScopedDecorator<IEmailService, LoggingEmailService>();
-serviceCollection.AddSingleton(Classes.FromThisAssembly())
 
 while (true)
 {

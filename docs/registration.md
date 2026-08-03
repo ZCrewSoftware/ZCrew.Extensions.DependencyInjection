@@ -1,17 +1,17 @@
-# Convention-Based Registration
+# Convention-based registration
 
-`ZCrew.Extensions.DependencyInjection.Registration` adds convention-based service registration to Microsoft's dependency injection container, inspired by [Castle Windsor's registration API](https://github.com/castleproject/Windsor/blob/master/docs/registering-services-by-conventions.md).
+`ZCrew.Extensions.DependencyInjection.Registration` lets you register services by convention instead of one at a time. The API is modelled on [Castle Windsor's registration API](https://github.com/castleproject/Windsor/blob/master/docs/registering-services-by-conventions.md).
 
-Instead of registering each service one-by-one:
+Instead of this:
 
 ```csharp
 services.AddSingleton<ICustomerRepository, CustomerRepository>();
 services.AddSingleton<IOrderRepository, OrderRepository>();
 services.AddSingleton<IProductRepository, ProductRepository>();
-// ... and so on for every service
+// ...and so on, for every service you own
 ```
 
-You describe which types to register and how to register them:
+you describe the rule once:
 
 ```csharp
 using ZCrew.Extensions.DependencyInjection.Registration;
@@ -23,26 +23,26 @@ services.AddSingleton(
 );
 ```
 
-This scans the assembly, finds every non-abstract class that implements a descendant of `IRepository`, and registers each one against its most-derived interface. New repository implementations are picked up automatically — no manual registration needed.
+That scans the assembly, picks every non-abstract class implementing something that derives from `IRepository`, and registers each one against its most derived interface. Write a new repository later and it gets picked up on its own.
 
 ## How it works
 
-The API is a fluent chain with six stages:
+The chain has six stages:
 
-1. **Entry point** — Choose where types come from (`Classes` for non-abstract classes, `Types` for everything)
-2. **Type selection** — Optionally control assembly visibility (`IncludeInternalTypes`, `IncludeAllTypes`)
-3. **Type filtering** — Narrow down which types to register (`Where`, `BasedOn`, `InNamespace`, `HasAttribute`)
-4. **Service selection** — Decide what service type each implementation registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, etc.); selectors can be chained (e.g. `AsSelf().AsAllInterfaces()`) to accumulate the distinct union of their service types
-5. **Keyed service selection** — Optionally assign service keys via `Keyed`
-6. **Lifetime selection** — Optionally choose a lifetime (`AsSingleton`, `AsScoped`, `AsTransient`, or per type via `AsLifetime` / `AsLifetimeByAttribute`); defaults to `Singleton`
+1. **Entry point.** Where the types come from. `Classes` for non-abstract classes, `Types` for everything.
+2. **Type selection.** Assembly visibility, if you are scanning (`IncludeInternalTypes`, `IncludeAllTypes`).
+3. **Type filtering.** Which of those types you actually want (`Where`, `BasedOn`, `InNamespace`, `HasAttribute`).
+4. **Service selection.** What each class registers as (`AsInterface`, `AsDefaultInterfaces`, `AsSelf`, and so on). Selectors chain, so `AsSelf().AsAllInterfaces()` gives you both.
+5. **Keyed selection.** Service keys, via `Keyed`.
+6. **Lifetime.** `AsSingleton`, `AsScoped`, `AsTransient`, or per type with `AsLifetime` / `AsLifetimeByAttribute`. Defaults to singleton.
 
-Pass the chain to `services.AddSingleton`, `AddScoped`, or `AddTransient` — overloads exist for every stage of the chain — or call `.ToServiceCollection()` to produce an `IServiceCollection` directly.
+Everything after the entry point is optional. Pass the chain to `services.AddSingleton`, `AddScoped` or `AddTransient` (there is an overload for every stage, so you can stop wherever you like), or call `.ToServiceCollection()` if you want the `IServiceCollection` yourself.
 
-## Quick patterns
+## Common patterns
 
-### Register by interface convention
+### Register by naming convention
 
-The most common pattern: register each class against the interface whose name matches by convention — `CustomerService` maps to `ICustomerService`, `OrderService` to `IOrderService`, and so on:
+The one you will reach for most: register each class against the interface whose name matches it. `CustomerService` goes to `ICustomerService`, `OrderService` to `IOrderService`, and so on.
 
 ```csharp
 services.AddScoped(
@@ -52,11 +52,11 @@ services.AddScoped(
 );
 ```
 
-`AsDefaultInterfaces` matches each class to interfaces where the interface name (minus the `I` prefix) appears in the class name. This is useful for application service layers where the naming convention is consistent.
+`AsDefaultInterfaces` matches a class to an interface when the interface name, minus the leading `I`, shows up in the class name. It works well for an application service layer where the naming is consistent.
 
 ### Register by base type
 
-When your types share a common base interface, use `BasedOn` to filter and `AsInterface` to register against the most-derived interface:
+When your types share a base interface, filter with `BasedOn` and register with `AsInterface`:
 
 ```csharp
 services.AddSingleton(
@@ -76,11 +76,11 @@ IRepository
     └── SqlOrderRepository
 ```
 
-`SqlCustomerRepository` registers as `ICustomerRepository`, and `SqlOrderRepository` as `IOrderRepository`. The base `IRepository` interface is not used as the service type — `AsInterface` picks the most-derived (top-level) interface that descends from the `BasedOn` type.
+`SqlCustomerRepository` registers as `ICustomerRepository` and `SqlOrderRepository` as `IOrderRepository`. `IRepository` itself is never used as the service type. `AsInterface` picks the most derived interface below the type you passed to `BasedOn`.
 
 ### Register by closed generic interface
 
-When your types implement a generic interface, use `BasedOn` with the open generic type and `AsBase` to register each implementation against its closed generic form:
+For types implementing a generic interface, pass the open generic to `BasedOn` and use `AsBase`:
 
 ```csharp
 services.AddTransient(
@@ -98,9 +98,9 @@ public class OrderValidator : IValidator<Order> { }
 public class CustomerValidator : IValidator<Customer> { }
 ```
 
-`OrderValidator` registers as `IValidator<Order>` and `CustomerValidator` as `IValidator<Customer>`. The open generic `IValidator<>` in `BasedOn` matches any closed form, and `AsBase` uses the resolved closed generic as the service type.
+`OrderValidator` registers as `IValidator<Order>` and `CustomerValidator` as `IValidator<Customer>`. The open `IValidator<>` matches any closed form, and `AsBase` uses the closed form it resolved.
 
-You can combine this with `Where` to control which implementations are included:
+Add a `Where` if you need to leave some of them out:
 
 ```csharp
 services.AddTransient(
@@ -113,7 +113,7 @@ services.AddTransient(
 
 ### Filter by attribute
 
-`HasAttribute` narrows to types decorated with a given attribute — handy for opt-in registration:
+`HasAttribute` narrows to types carrying a given attribute, which is handy when you want registration to be opt-in:
 
 ```csharp
 services.AddSingleton(
@@ -133,9 +133,7 @@ services.AddSingleton(
 );
 ```
 
-The attribute type may also be a **marker interface** that several attributes implement. Matching is by
-assignability, so this catches any attribute assignable to the interface — and lets you filter on a property
-the interface defines:
+The attribute type can also be an interface that several attributes implement. Matching is by assignability, so this catches any of them and lets you filter on a property they share:
 
 ```csharp
 public interface IRegionAware { string Region { get; } }
@@ -152,7 +150,7 @@ public class PartitionedAttribute(string region) : Attribute, IRegionAware
     public string Region => region;
 }
 
-// Matches types carrying *either* attribute, filtered by the shared Region property:
+// Matches types carrying either attribute, filtered on the shared Region property:
 services.AddSingleton(
     Classes.FromThisAssembly()
         .HasAttribute<IRegionAware>(a => a.Region == "customers")
@@ -160,8 +158,7 @@ services.AddSingleton(
 );
 ```
 
-When a type can carry **multiple** instances of an attribute (`AllowMultiple = true`), use `HasAttributes`
-(plural) to evaluate the whole set at once:
+When a type can carry the same attribute more than once (`AllowMultiple = true`), use `HasAttributes` to look at the whole set at once:
 
 ```csharp
 services.AddSingleton(
@@ -171,20 +168,19 @@ services.AddSingleton(
 );
 ```
 
-Both `HasAttribute` and `HasAttributes` also have a non-generic `Type` overload and an optional `inherited`
-flag that controls whether attributes inherited from base types are considered.
+Both have a non-generic `Type` overload, and an optional `inherited` flag that decides whether attributes on base types count.
 
-## Entry points: `Classes` vs `Types`
+## `Classes` or `Types`?
 
-Both `Classes` and `Types` offer the same set of factory methods (`From`, `FromAssembly`, `FromAssemblyContaining`, `FromThisAssembly`). The difference is what passes through:
+Both offer the same factory methods (`From`, `FromAssembly`, `FromAssemblyContaining`, `FromThisAssembly`). The difference is what gets through:
 
-- **`Classes`** filters to concrete, non-abstract classes — the typical choice for service registration.
-- **`Types`** includes everything: interfaces, abstract classes, structs, enums, static classes. Useful when you need to discover interface types or work with value types.
+- `Classes` only lets concrete, non-abstract classes through. This is what you want almost all of the time.
+- `Types` lets everything through: interfaces, abstract classes, structs, enums, static classes. Useful when you need to find interface types or work with value types.
 
 ```csharp
 // Only concrete classes
 Classes.FromAssemblyContaining<Startup>()
 
-// All types including interfaces and structs
+// All types, including interfaces and structs
 Types.FromAssemblyContaining<Startup>()
 ```

@@ -1,26 +1,28 @@
-# Service Selectors
+# Service selectors
 
-Service selectors determine **what service type** each implementation type is registered as. This stage follows [type selection](type-selectors.md) and [type filtering](type-filters.md) in the registration chain. Each service selector method returns a `ServiceSelector`, so selectors can be **chained** (e.g. `AsSelf().AsAllInterfaces()`) — see [Combining selectors](#combining-selectors) — and the chain then flows into [service key selection](service-key-selectors.md) via `Keyed` and [lifetime selection](shared-services.md) (`AsSingleton`, `AsScoped`, …). Terminate the chain with `ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)`) to produce the `IServiceCollection` of `ServiceDescriptor`s ready to be added to your container.
+Service selectors decide what service type each implementation is registered as. This stage comes after [type selection](type-selectors.md) and [type filtering](type-filters.md).
 
-Service types can also be declared with **attributes on the implementation type** via `AsServicesFromAttribute` (see [Selecting services from attributes](#selecting-services-from-attributes)).
+Every selector returns a `ServiceSelector`, so you can chain them (see [Combining selectors](#combining-selectors)) and then carry on into [keyed selection](service-key-selectors.md) with `Keyed`, and [lifetime selection](shared-services.md) with `AsSingleton`, `AsScoped` and the rest. Finish with `ToServiceCollection()` or a bulk add like `services.AddSingleton(...)`.
+
+You can also declare service types with an attribute on the implementation. See [Selecting services from attributes](#selecting-services-from-attributes).
 
 ## Combining selectors
 
-Because every selector returns a `ServiceSelector`, selectors can be **chained**, and each one adds its service types to the running selection. The implementation is ultimately registered against the **distinct union** of every selected service type, in **first-occurrence order** — a service type contributed by more than one selector is registered only once, at the position of its first occurrence:
+Since every selector returns a `ServiceSelector`, you can chain them, and each one adds to the running selection. The implementation ends up registered against the union of everything selected, in the order the types were first seen. A service type picked by two selectors is only registered once:
 
 ```csharp
 Classes.From(typeof(SqlCustomerRepository))
     .AsSelf()          // SqlCustomerRepository
-    .AsAllInterfaces() // ICustomerRepository, IRepository<Customer>, … (SqlCustomerRepository is not repeated)
+    .AsAllInterfaces() // ICustomerRepository, IRepository<Customer>, ... (SqlCustomerRepository is not repeated)
 ```
 
-This is the idiomatic way to include the implementation among its own service types so they resolve to a single [shared instance](shared-services.md): `AsSelf().AsAllInterfaces().AsSingleton()` registers `SqlCustomerRepository` once and forwards every interface to it. Selectors that map interfaces only (without `AsSelf()`) register each service type independently.
+This is how you get the implementation into its own service list so everything resolves to a single [shared instance](shared-services.md). `AsSelf().AsAllInterfaces().AsSingleton()` registers `SqlCustomerRepository` once and points every interface at it. Selectors that only map interfaces, without `AsSelf()`, register each service type on its own.
 
-The selectors below are therefore **not mutually exclusive** — the [Choosing the right selector](#choosing-the-right-selector) table lists the individual strategies, any number of which can be combined.
+So the selectors below are not either-or. The [table at the bottom](#choosing-the-right-selector) lists the individual strategies, and you can combine as many as you need.
 
 ## `AsAllInterfaces()`
 
-Registers each type against **every** interface it implements, including inherited and system interfaces:
+Registers each type against every interface it implements, inherited and system interfaces included:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -37,7 +39,7 @@ public interface ICustomerRepository : IRepository<Customer> { }
 public class SqlCustomerRepository : RepositoryBase<Customer>, ICustomerRepository { }
 ```
 
-Registers `SqlCustomerRepository` as:
+`SqlCustomerRepository` registers as:
 
 ```
 ICustomerRepository
@@ -49,7 +51,7 @@ IAsyncDisposable
 
 ## `AsAllNonSystemInterfaces()`
 
-Like `AsAllInterfaces()`, but excludes interfaces in the `System` namespace and its sub-namespaces. This is typically what you want — it avoids polluting the container with `IDisposable`, `IAsyncDisposable`, `IEquatable<T>`, and similar framework interfaces:
+The same, minus anything in the `System` namespace or below it. This is usually the one you want, since it keeps `IDisposable`, `IAsyncDisposable` and `IEquatable<T>` out of your container:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -57,7 +59,7 @@ Classes.FromAssemblyContaining<SqlCustomerRepository>()
     .AsAllNonSystemInterfaces()
 ```
 
-Using the same types as above, registers `SqlCustomerRepository` as:
+With the same types as above, `SqlCustomerRepository` registers as:
 
 ```
 ICustomerRepository
@@ -65,11 +67,11 @@ IRepository<Customer>
 IReadOnlyRepository<Customer>
 ```
 
-`IDisposable` and `IAsyncDisposable` (both in `System`) are excluded.
+`IDisposable` and `IAsyncDisposable` are both in `System`, so they're dropped.
 
 ## `AsDefaultInterfaces()`
 
-Registers each type against interfaces whose name matches the type name by convention. The matching rule: the interface name (minus the `I` prefix) must appear as a case-sensitive substring in the class name.
+Registers each type against interfaces whose name matches it. The rule: strip the leading `I` from the interface name, and it has to appear in the class name (case sensitive).
 
 ```csharp
 Classes.FromAssemblyContaining<CustomerService>()
@@ -86,7 +88,7 @@ public class AuditService : IAuditService { }
 public class AuditServiceDecorator : IAuditService { }
 ```
 
-Registers:
+You get:
 
 ```
 CustomerService       → ICustomerService        ("CustomerService" contains "CustomerService")
@@ -95,11 +97,11 @@ AuditService          → IAuditService           ("AuditService" contains "Audi
 AuditServiceDecorator → IAuditService           ("AuditServiceDecorator" contains "AuditService")
 ```
 
-Note that `AuditServiceDecorator` also matches `IAuditService` because "AuditServiceDecorator" contains "AuditService". Use `Where` to exclude decorators if needed.
+Watch that last one. `AuditServiceDecorator` matches `IAuditService` because the name contains it. Use `Where` to keep decorators out if that isn't what you want.
 
 ## `AsDefaultNonSystemInterfaces()`
 
-Combines convention matching with system interface exclusion — equivalent to `AsDefaultInterfaces()` but also strips out interfaces from the `System` namespace:
+Name matching plus the system filter:
 
 ```csharp
 Classes.FromAssemblyContaining<EmailNotificationSender>()
@@ -113,17 +115,17 @@ public class EmailNotificationSender : INotificationSender { }
 // INotificationSender : IDisposable
 ```
 
-Registers:
+You get:
 
 ```
 EmailNotificationSender → INotificationSender
 ```
 
-`IDisposable` is excluded even though "Disposable" does not appear in the class name anyway. The system filter provides an extra safety net.
+`IDisposable` was never going to match on name anyway, but the system filter is a useful backstop.
 
 ## `AsFirstInterface()`
 
-Registers each type against the **first** interface it implements. Types with no interfaces are skipped:
+Registers each type against the first interface it implements. Types with no interfaces are skipped:
 
 ```csharp
 Classes.From(
@@ -139,20 +141,20 @@ public class CustomerService : ICustomerService { }
 public class OrderService : IOrderService { }
 ```
 
-Registers:
+You get:
 
 ```
 CustomerService → ICustomerService
 OrderService    → IOrderService
 ```
 
-The "first" interface is determined by the runtime's reflection ordering, which typically follows declaration order but is not guaranteed by the CLR specification.
+"First" comes from reflection ordering, which usually follows declaration order but isn't guaranteed by the CLR spec.
 
 ## `AsInterface()`
 
-Registers each type against its **top-level interfaces that derive from the base types** set via `BasedOn`. "Top-level" means the most-derived interface in the hierarchy — it picks the leaf, not the root.
+Registers each type against its top-level interfaces that derive from the base types you set with `BasedOn`. Top-level means the most derived interface, so it picks the leaf and not the root.
 
-This method requires [`BasedOn`](type-filters.md#basedont--basedontype--basedonparams-type) to be called first to set the base type context:
+You have to call [`BasedOn`](type-filters.md#basedont--basedontype--basedonparams-type) first, since that's what sets the base type:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -170,40 +172,40 @@ IRepository<T>
     └── SqlOrderRepository
 ```
 
-Registers:
+You get:
 
 ```
 SqlCustomerRepository → ICustomerRepository
 SqlOrderRepository    → IOrderRepository
 ```
 
-`AsInterface()` picks `ICustomerRepository` (not `IRepository<Customer>`) because it's the most-derived interface descending from the `BasedOn` type.
+`AsInterface()` picks `ICustomerRepository` and not `IRepository<Customer>`, because it's the most derived interface below the `BasedOn` type.
 
 ## `AsInterface<T>()` / `AsInterface(Type)`
 
-Like `AsInterface()`, but specifies the base interface type inline instead of relying on `BasedOn`:
+Same idea, but you name the base interface inline instead of relying on `BasedOn`:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
     .AsInterface<IRepository<object>>()
-// Won't match — use the open generic form:
+// That won't match. Use the open generic form:
 
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
     .AsInterface(typeof(IRepository<>))
 ```
 
-Given the same hierarchy as above, registers:
+With the same hierarchy as above:
 
 ```
 SqlCustomerRepository → ICustomerRepository
 SqlOrderRepository    → IOrderRepository
 ```
 
-This is convenient when you want to filter and select in one call without a separate `BasedOn` step.
+Handy when you want to filter and select in one call instead of adding a separate `BasedOn`.
 
 ## `AsInterfaces(params Type[])`
 
-Like `AsInterface(Type)`, but accepts multiple base interface types. Each type is registered against its top-level interfaces that derive from **any** of the specified types:
+Like `AsInterface(Type)` but takes several base interfaces. Each type is registered against its top-level interfaces deriving from any of them:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -218,7 +220,7 @@ public class SqlCustomerRepository : RepositoryBase<Customer>, ICustomerReposito
 public class OrderValidator : IValidator<Order> { }
 ```
 
-Registers:
+You get:
 
 ```
 SqlCustomerRepository → ICustomerRepository   (top-level of IRepository<>)
@@ -227,7 +229,7 @@ OrderValidator        → IValidator<Order>     (top-level of IValidator<>)
 
 ## `As(Func<Type, Type[]>)`
 
-Full control over service type selection via a delegate. The function receives the implementation type and returns the service types to register:
+Full control through a delegate. It gets the implementation type and returns the service types:
 
 ```csharp
 Classes.FromAssemblyContaining<CustomerService>()
@@ -244,7 +246,7 @@ public class CustomerService : ICustomerService { }
 public class AuditService : IAuditService { }
 ```
 
-Registers:
+You get:
 
 ```
 CustomerService → ICustomerService
@@ -253,7 +255,7 @@ AuditService    → IAuditService
 
 ## `As(Func<Type, Type[], Type[]>)`
 
-Like the single-parameter `As`, but the delegate also receives the resolved base types from `BasedOn`. This is useful when you want to compute service types relative to the base type context:
+Same, but the delegate also gets the resolved base types from `BasedOn`, which is useful when the service types depend on them:
 
 ```csharp
 Classes.FromAssemblyContaining<SqlCustomerRepository>()
@@ -268,18 +270,18 @@ public class SqlCustomerRepository : RepositoryBase<Customer>, ICustomerReposito
 public class SqlOrderRepository : RepositoryBase<Order>, IOrderRepository { }
 ```
 
-The `baseTypes` for `SqlCustomerRepository` are the resolved forms of the `BasedOn` types — in this case `IRepository<Customer>`. Registers:
+The `baseTypes` for `SqlCustomerRepository` are the resolved `BasedOn` types, here `IRepository<Customer>`. So you get:
 
 ```
 SqlCustomerRepository → IRepository<Customer>
 SqlOrderRepository    → IRepository<Order>
 ```
 
-This is equivalent to `AsBase()` in this scenario, but the delegate form allows more complex logic.
+That's what `AsBase()` does in this case. The delegate is there for when you need something more involved.
 
 ## `AsSelf()`
 
-Registers each type as itself — the implementation type is also the service type:
+Registers each type as itself:
 
 ```csharp
 Classes.FromAssemblyContaining<OrderValidator>()
@@ -294,18 +296,18 @@ public class OrderValidator : IValidator<Order> { }
 public class CustomerValidator : IValidator<Customer> { }
 ```
 
-Registers:
+You get:
 
 ```
 OrderValidator    → OrderValidator
 CustomerValidator → CustomerValidator
 ```
 
-This is useful when consumers depend on the concrete type directly rather than an interface.
+Use it when callers depend on the concrete type rather than an interface.
 
 ## `AsBase()`
 
-Registers each type against the base types set via `BasedOn`. The base types are resolved to their closed generic forms when applicable:
+Registers each type against the base types set with `BasedOn`, resolved to their closed form where that applies:
 
 ```csharp
 Classes.FromAssemblyContaining<OrderValidator>()
@@ -320,27 +322,27 @@ public class OrderValidator : IValidator<Order> { }
 public class CustomerValidator : IValidator<Customer> { }
 ```
 
-Registers:
+You get:
 
 ```
 OrderValidator    → IValidator<Order>
 CustomerValidator → IValidator<Customer>
 ```
 
-The open generic `IValidator<>` in `BasedOn` is resolved to the closed form (`IValidator<Order>`, `IValidator<Customer>`) for each implementation.
+The open `IValidator<>` from `BasedOn` is closed per implementation, giving `IValidator<Order>` and `IValidator<Customer>`.
 
 ## Selecting services from attributes
 
-Instead of computing service types from interfaces or delegates, `AsServicesFromAttribute` reads the target service types from an **attribute applied to the implementation type**. This keeps the service-type declaration next to the implementation it belongs to. All overloads share the same rules:
+Rather than working the service types out from interfaces or a delegate, `AsServicesFromAttribute` reads them from an attribute on the implementation. That keeps the declaration next to the class it describes. The rules are the same across all the overloads:
 
-- **Inherited attributes are inspected by default.** Each overload has a companion that takes a leading `bool inherited` parameter; pass `false` to consider only attributes declared directly on the implementation type.
-- **No match means no registration.** An implementation type without a matching attribute — or whose attribute yields no service types — is **not registered at all**. Use the `…OrSelf()` companion to register such a type against itself instead.
-- **A single match is required.** If a type carries more than one matching attribute, an `AmbiguousMatchException` is thrown when the chain is enumerated.
-- **No assignability check.** The declared service types are used verbatim, exactly like the `As(delegate)` form. Declaring a service type the implementation does not satisfy fails at resolution time, not registration time.
+- Inherited attributes count by default. Each overload has a twin that takes a leading `bool inherited`. Pass `false` to only look at attributes declared on the type itself.
+- No match means no registration. A type without a matching attribute, or whose attribute yields no service types, isn't registered at all. Use the `...OrSelf()` twin to fall back to registering it as itself.
+- Exactly one match. Two matching attributes on a type throws an `AmbiguousMatchException` when the chain is enumerated.
+- No assignability check. The service types are used as given, same as the `As(delegate)` form. Name a service type the implementation doesn't satisfy and it fails when you resolve it, not when you register it.
 
 ### `AsServicesFromAttribute<TAttribute>(Func<TAttribute, IEnumerable<Type>>)`
 
-Projects a specific attribute through a selector. `TAttribute` may be a concrete attribute type or an interface implemented by one or more attributes (marker-interface matching):
+Reads a specific attribute. `TAttribute` can be a concrete attribute type, or an interface that one or more attributes implement:
 
 ```csharp
 Classes.FromThisAssembly()
@@ -360,34 +362,34 @@ public sealed class ContractAttribute(params Type[] contracts) : Attribute
 public class CustomerService : ICustomerService { }
 ```
 
-Registers `CustomerService → ICustomerService`. Types without the attribute, or for which the selector yields no service types, are not registered (use `AsServicesFromAttributeOrSelf<TAttribute>(…)` to fall back to self). An `inherited` overload — `AsServicesFromAttribute<TAttribute>(bool inherited, Func<TAttribute, IEnumerable<Type>>)` — controls whether inherited attributes are inspected.
+That registers `CustomerService → ICustomerService`. Types without the attribute, or where the selector comes back empty, aren't registered. Use `AsServicesFromAttributeOrSelf<TAttribute>(...)` if you want them registered as themselves instead. There is also an `inherited` overload, `AsServicesFromAttribute<TAttribute>(bool inherited, Func<TAttribute, IEnumerable<Type>>)`.
 
 ### `AsServicesFromAttribute(Type, Func<Attribute, IEnumerable<Type>>)`
 
-The non-generic form, for when the attribute type is only known at runtime. The selector receives the matching attribute as `Attribute`, so it is cast before the service types are read:
+The non-generic form, for when you only know the attribute type at runtime. The selector gets an `Attribute`, so cast it before reading the service types:
 
 ```csharp
 Classes.FromThisAssembly()
     .AsServicesFromAttribute(typeof(ContractAttribute), attribute => ((ContractAttribute)attribute).Contracts)
 ```
 
-This registers the same services as the generic overload above. An `inherited` overload — `AsServicesFromAttribute(Type, bool inherited, Func<Attribute, IEnumerable<Type>>)` — and an `AsServicesFromAttributeOrSelf(Type, …)` fallback are also available.
+Same result as the generic overload above. There is an `inherited` overload, `AsServicesFromAttribute(Type, bool inherited, Func<Attribute, IEnumerable<Type>>)`, and an `AsServicesFromAttributeOrSelf(Type, ...)` fallback.
 
 ## Choosing the right selector
 
-Selectors are **not mutually exclusive** — [chain](#combining-selectors) any number of them and the implementation is registered against the distinct union of their service types.
+These aren't either-or. [Chain](#combining-selectors) as many as you like and the implementation is registered against the union of their service types.
 
-| Scenario                           | Selector                     | Example                                         |
+| What you want                      | Selector                     | Example                                         |
 |------------------------------------|------------------------------|-------------------------------------------------|
-| Register against all interfaces    | `AsAllInterfaces()`          | Every interface a type implements               |
-| Same, but skip `IDisposable` etc.  | `AsAllNonSystemInterfaces()` | All non-`System` interfaces                     |
+| Every interface                    | `AsAllInterfaces()`          | Every interface a type implements               |
+| Every interface not from `System.*`  | `AsAllNonSystemInterfaces()` | Skips `IDisposable`, `IEquatable<T>`, etc.      |
 | Naming convention (`Foo` → `IFoo`) | `AsDefaultInterfaces()`      | `CustomerService` → `ICustomerService`          |
-| Most-derived interface from a base | `AsInterface()`              | `SqlCustomerRepository` → `ICustomerRepository` |
-| Register as the base type itself   | `AsBase()`                   | `OrderValidator` → `IValidator<Order>`          |
-| Register as the concrete type      | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
-| Custom logic                       | `As(delegate)`               | Full control via a function                     |
+| Most derived interface from a base | `AsInterface()`              | `SqlCustomerRepository` → `ICustomerRepository` |
+| The base type itself               | `AsBase()`                   | `OrderValidator` → `IValidator<Order>`          |
+| The concrete type                  | `AsSelf()`                   | `OrderValidator` → `OrderValidator`             |
+| Something else entirely            | `As(delegate)`               | Full control through a function                 |
 | Service types from an attribute    | `AsServicesFromAttribute<TAttribute>(…)` | `[Contract(typeof(ICustomerService))]` → `a.Contracts` |
 
 ## Type-based variants
 
-`AsAllTypes()`, `AsAllNonSystemTypes()`, `AsDefaultTypes()`, and `AsDefaultNonSystemTypes()` mirror the interface methods but match against base types instead of interfaces.
+`AsAllTypes()`, `AsAllNonSystemTypes()`, `AsDefaultTypes()` and `AsDefaultNonSystemTypes()` work like the interface versions, but match base types instead of interfaces.

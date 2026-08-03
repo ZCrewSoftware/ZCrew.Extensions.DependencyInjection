@@ -1,12 +1,10 @@
 # Services
 
-A **service** is a single concrete type registered against one or more services.
-Where [`Classes` and `Types`](type-selectors.md) scan an assembly and apply a convention to everything they find, `Service` starts
-from one type you already know, so there is no [type filtering](type-filters.md) or [service selection](service-selectors.md) stage.
-This mirrors Castle Windsor's [`Component.For<T>()`](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md) model.
+A service is one concrete type registered against one or more service types.
 
-Every service added to a service is **forwarded to the implementation**, so a `Singleton` or `Scoped` service
-resolves to a single shared instance across all of its services.
+Where [`Classes` and `Types`](type-selectors.md) scan an assembly and apply a convention to whatever they find, `Service` starts from a single type you already know. There's no [type filtering](type-filters.md) or [service selection](service-selectors.md) stage to go through. This is the same idea as Castle Windsor's [`Component.For<T>()`](https://github.com/castleproject/Windsor/blob/master/docs/registering-components-one-by-one.md).
+
+Every service type you add is forwarded to the implementation, so a `Singleton` or `Scoped` service resolves to one shared instance no matter which service type you ask for.
 
 ```csharp
 services.Add(Service.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDisposable>());
@@ -14,26 +12,23 @@ services.Add(Service.From(typeof(PayPalPaymentGateway)).As<IPaymentGateway, IDis
 
 ## `Service.From(Type)`
 
-Begins a service from a concrete type. The service starts registered **against the type itself**:
+Starts a service from a concrete type. It begins registered against the type itself:
 
 ```csharp
 services.Add(Service.From<CustomerService>());
 ```
 
-Registers:
+That gives you:
 
 ```
 CustomerService → CustomerService (Singleton)
 ```
 
-This is the one place the service API differs from the fluent chain. `Classes.From(...)` treats "register as self" as
-a *default* that any `As*` selector replaces; `Service.From` treats it as the *starting point* that `As` adds to.
-The implementation is therefore always among a service's services, which is what makes sharing automatic and makes
-this a *service* by default.
+This is the one place the service API behaves differently from the fluent chain. `Classes.From(...)` treats "register as self" as a default that any `As*` selector replaces. `Service.From` treats it as the starting point that `As` adds to. The implementation is therefore always in the list, which is what makes sharing automatic.
 
-## `As<T1>()` … `As<T1, …, T8>()`
+## `As<T1>()` through `As<T1, …, T8>()`
 
-Adds services to the service, for one to eight types. Each service is forwarded to the implementation:
+Adds one to eight service types, each forwarded to the implementation:
 
 ```csharp
 services.Add(Service.From<PayPalPaymentGateway>().As<IPaymentGateway, IDisposable>());
@@ -46,7 +41,7 @@ public interface IPaymentGateway : IDisposable { }
 public class PayPalPaymentGateway : IPaymentGateway { }
 ```
 
-Registers:
+you get:
 
 ```
 PayPalPaymentGateway → PayPalPaymentGateway (registered directly)
@@ -54,18 +49,18 @@ IPaymentGateway      → resolves to the PayPalPaymentGateway instance
 IDisposable          → resolves to the PayPalPaymentGateway instance
 ```
 
-Resolving `IPaymentGateway` and `IDisposable` from the same provider yields the **same** `PayPalPaymentGateway` instance.
+Resolve `IPaymentGateway` and `IDisposable` from the same provider and you get the same object.
 
 ## `As(Type)` / `As(IEnumerable<Type>)`
 
-The non-generic forms, for service types only known at runtime:
+The non-generic forms, for service types you only know at runtime:
 
 ```csharp
 services.Add(Service.From<PayPalPaymentGateway>().As(typeof(IPaymentGateway)));
 services.Add(Service.From<PayPalPaymentGateway>().As([typeof(IPaymentGateway), typeof(IDisposable)]));
 ```
 
-`As` **accumulates** rather than replaces, so calls can be chained and mixed freely with the generic overloads:
+`As` adds rather than replaces, so you can chain calls and mix them with the generic overloads:
 
 ```csharp
 Service.From<PayPalPaymentGateway>()
@@ -74,12 +69,11 @@ Service.From<PayPalPaymentGateway>()
 // PayPalPaymentGateway, IPaymentGateway, IDisposable
 ```
 
-Duplicate services are allowed and are collapsed when the service is registered, so `As<IPaymentGateway>().As<IPaymentGateway>()` produces one `IPaymentGateway` registration.
+Duplicates are fine. They're collapsed when the service is registered, so `As<IPaymentGateway>().As<IPaymentGateway>()` gives you one `IPaymentGateway` registration.
 
-## Selecting services by convention
+## Picking service types by convention
 
-The `As*` selectors from the [registration chain](service-selectors.md) also work on a service, so services can be
-chosen by convention without giving up the shared instance:
+The `As*` selectors from the [registration chain](service-selectors.md) work here too, so you can pick service types by convention and still get the shared instance:
 
 ```csharp
 services.Add(Service.From<PayPalPaymentGateway>().AsAllNonSystemInterfaces());
@@ -92,66 +86,62 @@ public interface IPaymentGateway : IDisposable { }
 public class PayPalPaymentGateway : IPaymentGateway { }
 ```
 
-Registers:
+you get:
 
 ```
 PayPalPaymentGateway → PayPalPaymentGateway (registered directly)
 IPaymentGateway      → resolves to the PayPalPaymentGateway instance
-                       (IDisposable is in System and is excluded)
+                       (IDisposable is in System, so it's excluded)
 ```
 
-Selection **accumulates onto the implementation** rather than replacing it, so the implementation stays first among the
-services and the service stays shared. The same selector on a chain drops it:
-`Classes.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces()` registers `IPaymentGateway` alone, with no
-`PayPalPaymentGateway` registration for it to share.
+Selection adds to the implementation instead of replacing it, so the implementation stays first in the list and the service stays shared. The same selector on a chain drops it: `Classes.From(typeof(PayPalPaymentGateway)).AsAllNonSystemInterfaces()` registers `IPaymentGateway` on its own, with no `PayPalPaymentGateway` registration to share.
 
 | Method                                                                        | Service types added                                                                      |
 |-------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
 | `AsAllInterfaces()`                                                           | Every interface implemented                                                              |
-| `AsAllNonSystemInterfaces()`                                                  | Every interface except `System.*`                                                        |
+| `AsAllNonSystemInterfaces()`                                                  | Every interface not from `System.*`                                                      |
 | `AsDefaultInterfaces()`                                                       | Interfaces whose name appears in the class name (`CustomerService` → `ICustomerService`) |
-| `AsDefaultNonSystemInterfaces()`                                              | Default interfaces, excluding `System.*`                                                 |
+| `AsDefaultNonSystemInterfaces()`                                              | Default interfaces, not counting `System.*`                                              |
 | `AsFirstInterface()`                                                          | The first interface in metadata order                                                    |
-| `AsAllTypes()` / `AsAllNonSystemTypes()`                                      | Like the `Interfaces` variants, plus every non-abstract base class                       |
-| `AsDefaultTypes()` / `AsDefaultNonSystemTypes()`                              | Like the above, restricted to convention-matching names                                  |
-| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttribute(Type, …)` | Service types projected from an attribute on the implementation                          |
+| `AsAllTypes()` / `AsAllNonSystemTypes()`                                      | Like the interface versions, plus every non-abstract base class                          |
+| `AsDefaultTypes()` / `AsDefaultNonSystemTypes()`                              | The same, restricted to names that match the convention                                  |
+| `AsServicesFromAttribute<TAttribute>(…)` / `AsServicesFromAttribute(Type, …)` | Service types read from an attribute on the implementation                               |
 
-Per-method semantics are identical to the chain — see [service selectors](service-selectors.md). Selectors chain and
-accumulate here too, so `AsDefaultInterfaces().AsAllInterfaces()` registers the distinct union of both.
+Each method behaves exactly as it does on the chain, so see [service selectors](service-selectors.md) for the details. Selectors accumulate here too, so `AsDefaultInterfaces().AsAllInterfaces()` registers the union of both.
 
-### When nothing matches, the implementation is still registered
+### A selector that matches nothing still leaves you registered
 
-A selector that finds no services leaves the service untouched rather than emptying it:
+If a selector finds no service types, the service is left as it was rather than emptied:
 
 ```csharp
 services.Add(Service.From<Customer>().AsDefaultInterfaces());
-// Customer → Customer (Singleton) — Customer has no interfaces
+// Customer → Customer (Singleton). Customer has no interfaces.
 ```
 
-The chain registers *nothing* in this situation. This is also why a service has no `AsSelf()` and no `*OrSelf`
-selectors: the implementation is seeded from the start, so "or self" is already the behavior — `AsAllInterfacesOrSelf()`
-would do exactly what `AsAllInterfaces()` does here. `AsBase()` and `AsInterface()` are absent for a different reason:
-they read the base types set by [`BasedOn`](type-filters.md), and a service has no filtering stage to set them.
+The chain registers nothing at all in that situation.
 
-### Attribute selectors are validated too
+That's also why there's no `AsSelf()` and no `*OrSelf` selectors here. The implementation is seeded from the start, so "or self" is already what happens. `AsAllInterfacesOrSelf()` would do exactly what `AsAllInterfaces()` already does.
 
-Attribute-selected services go through the same check as any other `As` call, so an attribute naming a service type the
-implementation isn't based on throws:
+`AsBase()` and `AsInterface()` are missing for a different reason: they read the base types that [`BasedOn`](type-filters.md) sets, and a service has no filtering stage to set them.
+
+### Attribute selectors are checked too
+
+Service types from an attribute go through the same check as any other `As` call, so an attribute naming a type the implementation doesn't implement throws:
 
 ```csharp
 [Contract(typeof(IProvidedServiceA))]
-public class ContractBase;  // ...but does not implement IProvidedServiceA
+public class ContractBase;  // ...but doesn't implement IProvidedServiceA
 
 Service.From<ContractBase>().AsServicesFromAttribute<ContractAttribute>(attribute => attribute.Contracts)
 // Throws ArgumentException:
 //   "The implementation ContractBase is not based on the service type IProvidedServiceA"
 ```
 
-The chain accepts this — it registers whatever the attribute names without checking.
+The chain accepts this. It registers whatever the attribute names without checking.
 
 ## Lifetime
 
-A service with no lifetime set registers as `Singleton` — the same default a [skipped lifetime stage](shared-services.md#lifetime-methods) uses. To choose another, call `AsLifetime`:
+A service with no lifetime set is a `Singleton`, the same default a [skipped lifetime stage](shared-services.md#lifetime-methods) uses. Call `AsLifetime` for anything else:
 
 ```csharp
 services.Add(
@@ -161,9 +151,9 @@ services.Add(
 );
 ```
 
-`AsLifetime(Func<Type, ServiceLifetime>)` takes the lifetime from a delegate that receives the implementation type, matching the chain's [per-type lifetime](shared-services.md#lifetime-methods) helper.
+`AsLifetime(Func<Type, ServiceLifetime>)` takes the lifetime from a delegate that gets the implementation type, matching the chain's [per-type lifetime](shared-services.md#lifetime-methods) helper.
 
-`Transient` services are **never shared** — a transient produces a new instance on every resolution by definition, so each service type is registered independently against the implementation:
+Transients are never shared. A transient makes a new instance on every resolve by definition, so each service type is registered against the implementation independently:
 
 ```csharp
 Service.From<PayPalPaymentGateway>()
@@ -175,17 +165,17 @@ Service.From<PayPalPaymentGateway>()
 
 ## Service keys
 
-`Keyed(object?)` assigns one key to every service on the service, and `Unkeyed()` removes any key. See [service key selectors](service-key-selectors.md) for how keys behave:
+`Keyed(object?)` gives every service type on the service the same key, and `Unkeyed()` takes it away again. See [service key selectors](service-key-selectors.md) for how keys behave:
 
 ```csharp
 services.Add(Service.From<StripePaymentGateway>().As<IPaymentGateway>().Keyed("Stripe"));
 ```
 
-`Keyed(Func<Type, Type, object?>)` computes the key from the implementation and service type, and is evaluated when the service is added to the container. Returning `null` leaves that registration unkeyed.
+`Keyed(Func<Type, Type, object?>)` works the key out from the implementation and service type, and runs when the service is added to the container. Return `null` and that registration is left unkeyed.
 
 ## Adding to the container
 
-`services.Add(service)` registers a single service, and a `params` overload registers several at once:
+`services.Add(service)` registers one service, and there's a `params` overload for several at once:
 
 ```csharp
 services.Add(Service.From<CustomerService>().As<ICustomerService>());
@@ -197,11 +187,11 @@ services.Add(
 );
 ```
 
-Unlike the [registration chain](registration.md), there are no `AddSingleton` / `AddScoped` / `AddTransient` overloads for a service — a service already carries its own lifetime, so set it with `AsLifetime` and add it with `Add`.
+There are no `AddSingleton` / `AddScoped` / `AddTransient` overloads like the [registration chain](registration.md) has. A service already carries its own lifetime, so set it with `AsLifetime` and add it with `Add`.
 
 ## Validation
 
-`As` verifies that the implementation is assignable to each service **when it is called**, and throws an `ArgumentException` naming both types:
+`As` checks that the implementation is assignable to each service type as soon as you call it, and throws an `ArgumentException` naming both:
 
 ```csharp
 Service.From<CustomerService>().As<IPaymentGateway>()
@@ -209,11 +199,11 @@ Service.From<CustomerService>().As<IPaymentGateway>()
 //   "The implementation CustomerService is not based on the service type IPaymentGateway"
 ```
 
-This is eager, unlike the chain — a `Classes.From(...)` chain defers all work until it is enumerated, whereas a service holds one known type and can check immediately.
+This happens right away, unlike the chain. A `Classes.From(...)` chain defers everything until it's enumerated, while a service holds one known type and can check on the spot.
 
-## Open generic limitation
+## Open generics
 
-Because a service forwards its services through a factory, and Microsoft's container does not support factory-based resolution of open generic types (see [dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)), an open generic service cannot have services added to it:
+A service forwards its service types through a factory, and Microsoft's container can't resolve open generics that way (see [dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)). So you can't add service types to an open generic service:
 
 ```csharp
 services.Add(Service.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>)))
@@ -221,22 +211,22 @@ services.Add(Service.From(typeof(InMemoryRepository<>)).As(typeof(IRepository<>)
 //   "Open generic services can not be forwarded."
 ```
 
-An open generic service with no services added registers fine, since there is nothing to forward:
+An open generic service with no service types added registers fine, since there's nothing to forward:
 
 ```csharp
 services.Add(Service.From(typeof(InMemoryRepository<>)));
 // InMemoryRepository<> → InMemoryRepository<> (Singleton)
 ```
 
-To map an open generic implementation to its interfaces, use the chain instead — `Classes.From(typeof(InMemoryRepository<>)).AsInterface()` registers each service type independently and does not forward. See [shared services](shared-services.md#open-generic-limitation).
+To map an open generic implementation to its interfaces, use the chain. `Classes.From(typeof(InMemoryRepository<>)).AsInterface()` registers each service type independently and doesn't forward. See [shared services](shared-services.md#open-generic-limitation).
 
-## Choosing between `Service` and `Classes`
+## `Service` or `Classes`?
 
-| Scenario                                                        | Entry point                                            |
-|-----------------------------------------------------------------|--------------------------------------------------------|
-| One known type, services named explicitly                       | `Service.From(type).As<...>()`                       |
-| One known type, services chosen by convention                   | `Service.From(type).AsAllInterfaces()`               |
-| Many types matched by a convention                              | `Classes.FromThisAssembly()...`                        |
-| Several services must share one instance                        | `Service.From(type).As<...>()` — shared by default   |
-| Several services must each have their own instance              | `Classes.From(type).AsAllInterfaces()` — not shared    |
-| Open generic implementation mapped to an open generic interface | `Classes.From(typeof(Repository<>)).AsInterface()`     |
+| What you have                                                    | What to use                                          |
+|------------------------------------------------------------------|------------------------------------------------------|
+| One known type, service types named explicitly                   | `Service.From(type).As<...>()`                       |
+| One known type, service types by convention                      | `Service.From(type).AsAllInterfaces()`               |
+| Lots of types matching a convention                              | `Classes.FromThisAssembly()...`                      |
+| Several service types that must share one instance               | `Service.From(type).As<...>()`, shared by default    |
+| Several service types that each need their own instance          | `Classes.From(type).AsAllInterfaces()`, not shared   |
+| An open generic mapped to an open generic interface              | `Classes.From(typeof(Repository<>)).AsInterface()`   |

@@ -1,34 +1,36 @@
 # Upgrading from v2 to v3
 
-v3 of `ZCrew.Extensions.DependencyInjection.Registration` makes two breaking changes: it replaces the per-stage chain **interfaces** with a concrete **class hierarchy**, and it removes the configurable **`SharingMode`** option in favor of automatic instance sharing. Each stage is now a `public` class that derives from the next, so skipping a stage falls out of ordinary inheritance instead of interface bridging. Chains built through the `Classes` / `Types` entry points keep working unchanged — the breaks affect only code that named the old interfaces directly or called one of the removed sharing helpers (`AsSingletonDependent`, `AsScopedIndependent`, …).
+v3 of `ZCrew.Extensions.DependencyInjection.Registration` makes two breaking changes. The per-stage chain interfaces are now concrete classes, and the `SharingMode` option is gone in favor of automatic sharing.
 
-The decorator library (`ZCrew.Extensions.DependencyInjection`) is unaffected.
+Each stage is a `public` class deriving from the next, so skipping a stage falls out of ordinary inheritance instead of interface bridging. Chains built through `Classes` or `Types` keep working as they are. The breaks only hit code that named the old interfaces directly, or called one of the removed sharing helpers (`AsSingletonDependent`, `AsScopedIndependent`, and so on).
+
+The decorator library, `ZCrew.Extensions.DependencyInjection`, is unaffected.
 
 ## At a glance
 
 | Change                                                        | Severity | What to do                                                                                                                        |
 |---------------------------------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
-| Chain stages are concrete classes, not interfaces             | Low      | Recompile. Retype any interface-typed local/field/parameter to the class (or `var`).                                              |
-| The six chain interfaces were removed                         | Low      | Replace `IServiceSource` → `ServiceSource`, `IServiceSelector` → `ServiceSelector`, etc. `ITypeSelector` folds into `TypeFilter`. |
-| Custom implementations of a stage interface no longer compile | Low      | The stages are `internal`-constructor classes you cannot implement; build chains through `Classes` / `Types` instead.             |
-| `SharingMode` and its lifetime helpers were removed           | Medium   | Drop the `Dependent` / `Independent` suffix and use `AsSingleton` / `AsScoped` / `AsTransient`. Sharing is now automatic (see below).  |
-| Assembly scanning is fully deferred until the terminal call   | None     | No action — this is a non-breaking laziness improvement.                                                                          |
-| Service selectors now chain and accumulate                    | None     | Additive. Optionally combine selectors — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types. |
+| Chain stages are classes, not interfaces                      | Low      | Recompile. Retype any interface-typed local, field or parameter to the class, or use `var`.                                       |
+| The six chain interfaces were removed                         | Low      | `IServiceSource` → `ServiceSource`, `IServiceSelector` → `ServiceSelector`, and so on. `ITypeSelector` folds into `TypeFilter`.   |
+| You can no longer implement a stage yourself                  | Low      | The stages have internal constructors. Build chains through `Classes` / `Types` instead.                                          |
+| `SharingMode` and its lifetime helpers were removed           | Medium   | Drop the `Dependent` / `Independent` suffix and use `AsSingleton` / `AsScoped` / `AsTransient`. Sharing is automatic now.         |
+| Assembly scanning is fully deferred to the terminal call      | None     | Nothing. It just does less work than it used to.                                                                                 |
+| Service selectors chain and accumulate                        | None     | Nothing. Optionally combine selectors, like `AsSelf().AsAllInterfaces()`, to register the union of their service types.           |
 
 ## Interfaces became classes
 
-In v2 each stage of the chain was an interface, with internal implementation classes and abstract `*Base` bridge classes behind them. In v3 the interfaces and bridges are gone; the stage is the class:
+In v2 each stage was an interface, with internal implementations and abstract `*Base` bridge classes behind it. In v3 the interfaces and bridges are gone and the stage is the class:
 
 | v2 interface            | v3 class                               |
 |-------------------------|----------------------------------------|
 | `IAssemblyTypeSelector` | `AssemblyTypeSelector` (sealed)        |
-| `ITypeSelector`         | *(removed — folded into `TypeFilter`)* |
+| `ITypeSelector`         | *(removed, folded into `TypeFilter`)*  |
 | `ITypeFilter`           | `TypeFilter`                           |
 | `IServiceSelector`      | `ServiceSelector`                      |
 | `IServiceKeySelector`   | `ServiceKeySelector`                   |
 | `IServiceSource`        | `ServiceSource`                        |
 
-The classes form a single inheritance chain, base last:
+They form one inheritance chain, base last:
 
 ```csharp
 // v3
@@ -40,11 +42,11 @@ public class ServiceLifetimeSelector : ServiceSource { }
 public class ServiceSource { }
 ```
 
-Skipping a stage is now inheritance rather than an interface default: the default for a skipped stage (selection → self, key → unkeyed, lifetime → `Singleton`) is installed in each stage's constructor, so terminating early produces the expected descriptors.
+Skipping a stage is now inheritance rather than an interface default. Each stage's constructor installs the default for the stage after it (selection to self, key to unkeyed, lifetime to `Singleton`), so stopping early gives you the descriptors you'd expect.
 
 ## Migrating call sites
 
-**Chains keep compiling.** Anything built and terminated in one fluent expression is unaffected, because the entry points and the extension methods now return the concrete classes:
+Chains keep compiling. Anything built and finished in one fluent expression is fine, because the entry points and extension methods return the concrete classes now:
 
 ```csharp
 // Compiles unchanged in v2 and v3
@@ -55,57 +57,59 @@ services.AddSingleton(
 );
 ```
 
-You only need to change code that **named an interface**:
+What you need to change is code that named an interface:
 
 ```csharp
 // v2
 ITypeFilter filter = Classes.From(types).BasedOn<IRepository>();
 IServiceSource source = filter.AsInterface().Unkeyed();
 
-// v3 — use the class name, or var
+// v3, use the class name or var
 TypeFilter filter = Classes.From(types).BasedOn<IRepository>();
 ServiceLifetimeSelector source = filter.AsInterface().Unkeyed();
 ```
 
-The entry-point return types changed accordingly:
+The entry point return types changed to match:
 
-- `Classes.From(...)` / `Types.From(...)` now return `TypeFilter` (were `ITypeSelector`).
-- `Classes.FromAssembly*(...)` / `Types.FromAssembly*(...)` now return `AssemblyTypeSelector` (were `IAssemblyTypeSelector`).
+- `Classes.From(...)` / `Types.From(...)` now return `TypeFilter`, previously `ITypeSelector`.
+- `Classes.FromAssembly*(...)` / `Types.FromAssembly*(...)` now return `AssemblyTypeSelector`, previously `IAssemblyTypeSelector`.
 
-You will hit a hard break only if:
+You'll only hit a hard break if:
 
-- You wrote your own implementation of `IServiceSelector` / `ITypeFilter` / `IServiceSource` (or any of the six interfaces) — those interfaces no longer exist. The stages have `internal` constructors and cannot be subclassed; construct chains through `Classes` / `Types`.
-- You used `nameof(IServiceSource)` (or another interface) or reflected over one of the interfaces — replace the reference with the corresponding class.
+- You wrote your own implementation of `IServiceSelector`, `ITypeFilter`, `IServiceSource` or any of the other three. Those interfaces are gone, and the stages have internal constructors so they can't be subclassed. Build chains through `Classes` / `Types`.
+- You used `nameof(IServiceSource)` or reflected over one of the interfaces. Point it at the class instead.
 
-## Selectors now chain and accumulate
+## Selectors chain and accumulate
 
-Every service selector (`AsSelf`, `AsInterface`, `AsAllInterfaces`, `AsBase`, `AsServicesFromAttribute`, …) now returns a **`ServiceSelector`** rather than a `ServiceKeySelector`. This is source-compatible — a `ServiceSelector` still exposes `Keyed` / `Unkeyed` and the lifetime helpers, so existing single-selector chains keep compiling — and it makes selectors **chainable**:
+Every service selector (`AsSelf`, `AsInterface`, `AsAllInterfaces`, `AsBase`, `AsServicesFromAttribute`, and the rest) now returns a `ServiceSelector` rather than a `ServiceKeySelector`.
+
+That's source compatible, since a `ServiceSelector` still has `Keyed` / `Unkeyed` and the lifetime helpers, so existing single-selector chains keep compiling. What it buys you is chaining:
 
 ```csharp
 Classes.From(typeof(SqlCustomerRepository))
     .AsSelf()          // SqlCustomerRepository
-    .AsAllInterfaces() // plus every interface — SqlCustomerRepository is not repeated
+    .AsAllInterfaces() // plus every interface. SqlCustomerRepository is not repeated
 ```
 
-Chained selectors accumulate: the implementation is registered against the **distinct union** of every selected service type, preserving first-occurrence order. This is the idiomatic way to include the implementation among its service types for a [shared instance](../shared-services.md) (see below).
+Chained selectors accumulate. The implementation is registered against the union of every selected service type, in the order the types were first seen. This is how you get the implementation into its own service list for a [shared instance](../shared-services.md), which matters for the next section.
 
 ## `SharingMode` was removed
 
-v2 exposed a second axis alongside the lifetime — a `SharingMode` (`SharedComponent` / `Dependent` / `Independent`) — surfaced through the `AsSingletonDependent()`, `AsSingletonIndependent()`, `AsScopedDependent()`, and `AsScopedIndependent()` helpers and the `AsLifetime(ServiceLifetime, SharingMode)` overload. All of these are gone in v3, along with the `SharingMode` enum itself.
+v2 had a second axis alongside the lifetime: a `SharingMode` of `SharedComponent`, `Dependent` or `Independent`, surfaced through `AsSingletonDependent()`, `AsSingletonIndependent()`, `AsScopedDependent()`, `AsScopedIndependent()` and the `AsLifetime(ServiceLifetime, SharingMode)` overload. All of it is gone in v3, including the `SharingMode` enum.
 
-Sharing is now **automatic**: when an implementation is registered against multiple service types under a `Singleton` or `Scoped` lifetime **and the implementation type is itself one of those service types**, it is registered once and the other service types forward to it (a single shared instance). In every other case each service type is registered independently. See [shared-services.md](../shared-services.md) for the full model.
+Sharing is automatic now. When a class is registered against several service types under `Singleton` or `Scoped`, and the class itself is one of those service types, it's registered once and the rest forward to it, giving you one shared instance. In every other case each service type is registered on its own. See [shared-services.md](../shared-services.md) for the full model.
 
-Migrate each removed helper:
+Migrating each removed helper:
 
-| v2                                                   | v3                                                                                                                                                                                               |
-|------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `AsSingleton()` / `AsScoped()`                       | Unchanged. Now shares only when the implementation is one of the selected services — include it in the selection (e.g. chain `.AsSelf().AsAllInterfaces()`) to share one instance.                |
-| `AsSingletonIndependent()` / `AsScopedIndependent()` | `AsSingleton()` / `AsScoped()` selecting interfaces only (e.g. `AsAllInterfaces()`), which is now independent by default.                                                                        |
-| `AsSingletonDependent()` / `AsScopedDependent()`     | Chain the implementation into the selection: `.AsSelf().AsAllInterfaces().AsSingleton()` (or `.AsScoped()`) registers the implementation once and forwards its interfaces to it — one shared instance. |
-| `AsLifetime(lifetime, SharingMode)`                  | `AsLifetime(lifetime)` — the sharing argument is gone.                                                                                                                                           |
+| v2                                                   | v3                                                                                                                                                    |
+|------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `AsSingleton()` / `AsScoped()`                       | Unchanged, but they only share when the implementation is one of the selected service types. Chain `.AsSelf().AsAllInterfaces()` to put it there.      |
+| `AsSingletonIndependent()` / `AsScopedIndependent()` | `AsSingleton()` / `AsScoped()` selecting interfaces only (`AsAllInterfaces()`), which is independent by default now.                                   |
+| `AsSingletonDependent()` / `AsScopedDependent()`     | Put the implementation in the selection: `.AsSelf().AsAllInterfaces().AsSingleton()` registers it once and forwards its interfaces to it.              |
+| `AsLifetime(lifetime, SharingMode)`                  | `AsLifetime(lifetime)`. The sharing argument is gone.                                                                                                 |
 
-> **Behavioral change:** in v2, `AsAllInterfaces().AsSingleton()` shared one instance across every interface (the implementation was self-backed under a hidden key). In v3 the implementation is not one of the selected services, so each interface resolves to its own instance. Chain `AsSelf()` — `AsSelf().AsAllInterfaces().AsSingleton()` — to add the implementation to the selection and restore a single shared instance.
+> **Watch out:** in v2, `AsAllInterfaces().AsSingleton()` shared one instance across every interface, because the implementation was self-backed under a hidden key. In v3 the implementation isn't one of the selected service types, so each interface gets its own instance. Chain `AsSelf()` to get the shared instance back.
 
 ## Assembly scanning is fully deferred
 
-A small, non-breaking improvement: `Classes.FromAssembly*` / `Types.FromAssembly*` no longer touch the assembly when the chain is built. The scan (`GetExportedTypes()` / `GetTypes()`) and every filter run only when the chain is terminated with `ToServiceCollection()` or `AddSingleton(...)`. (Lifetime helpers such as `AsSingleton()` are themselves lazy — they return a `ServiceSource` without scanning.) Building — and discarding — a chain now does no reflection work.
+A small, non-breaking improvement: `Classes.FromAssembly*` and `Types.FromAssembly*` no longer touch the assembly when you build the chain. The scan (`GetExportedTypes()` / `GetTypes()`) and every filter run only when the chain is finished with `ToServiceCollection()` or `AddSingleton(...)`. The lifetime helpers are lazy too, so `AsSingleton()` returns a `ServiceSource` without scanning anything. Building a chain and throwing it away now does no reflection at all.

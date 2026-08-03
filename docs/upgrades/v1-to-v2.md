@@ -1,31 +1,31 @@
 # Upgrading from v1 to v2
 
-v2 of `ZCrew.Extensions.DependencyInjection.Registration` reshaped the fluent API around shared-component semantics and trimmed the surface of the core interfaces. Most chains keep working unchanged, but a handful of changes are source-breaking — this page lists them with the minimum migration you need to make.
+v2 of `ZCrew.Extensions.DependencyInjection.Registration` reshaped the fluent API around shared components and trimmed down the core interfaces. Most chains keep working as they are, but a few changes will break your build. This page lists them with the smallest migration that fixes each one.
 
-The decorator library (`ZCrew.Extensions.DependencyInjection`) is unaffected.
+The decorator library, `ZCrew.Extensions.DependencyInjection`, is unaffected.
 
 ## At a glance
 
-| Change                                                         | Severity          | What to do                                                                                                                                      |
-|----------------------------------------------------------------|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| `IServiceSource` no longer implements `IServiceCollection`     | High              | Add `.ToServiceCollection()` (or a lifetime helper) to the end of any chain you pass to an `IServiceCollection` API.                            |
-| Default sharing semantics changed for `Singleton` / `Scoped`   | High (behavioral) | Audit multi-interface registrations. To restore the old per-service-type instances, use `.AsSingletonIndependent()` / `.AsScopedIndependent()`. |
-| Most fluent methods moved from interfaces to extension methods | Low               | Recompile. Only breaks `nameof(...)`, custom `IServiceSelector` / `ITypeFilter` implementations, and reflection.                                |
-| Open-generic `AsInterface()` bug fix                           | Low               | None, unless you were relying on the broken behavior.                                                                                           |
+| Change                                                       | Severity          | What to do                                                                                                                        |
+|--------------------------------------------------------------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `IServiceSource` no longer implements `IServiceCollection`   | High              | Add `.ToServiceCollection()`, or a lifetime helper, to the end of any chain you pass to an `IServiceCollection` API.               |
+| Sharing behavior changed for `Singleton` and `Scoped`        | High (behavioral) | Check your multi-interface registrations. `.AsSingletonIndependent()` / `.AsScopedIndependent()` get the old instances back.       |
+| Most fluent methods became extension methods                 | Low               | Recompile. Only breaks `nameof(...)`, custom `IServiceSelector` / `ITypeFilter` implementations, and reflection.                   |
+| Open generic `AsInterface()` bug fix                         | Low               | Nothing, unless you were working around the bug.                                                                                  |
 
 ## `IServiceSource` no longer implements `IServiceCollection`
 
-In v1 the terminal type of the registration chain *was* an `IServiceCollection`:
+In v1 the end of the chain was an `IServiceCollection`:
 
 ```csharp
 // v1
 public interface IServiceSource : IServiceCollection { ... }
 ```
 
-This let you pass a chain directly anywhere an `IServiceCollection` was expected:
+which meant you could pass a chain anywhere an `IServiceCollection` was wanted:
 
 ```csharp
-// v1 — compiled fine
+// v1, compiled fine
 var provider = Classes.FromThisAssembly()
     .BasedOn<IRepository>()
     .AsInterface()
@@ -33,7 +33,7 @@ var provider = Classes.FromThisAssembly()
     .BuildServiceProvider();
 ```
 
-In v2, `IServiceSource` is a standalone type. You materialize an `IServiceCollection` explicitly:
+In v2 it's a type of its own, and you ask for the collection explicitly:
 
 ```csharp
 // v2
@@ -41,7 +41,7 @@ public interface IServiceSource { ... }
 ```
 
 ```csharp
-// v2 — call .ToServiceCollection() (or a lifetime helper) before treating it as one
+// v2, call .ToServiceCollection() or a lifetime helper first
 var provider = Classes.FromThisAssembly()
     .BasedOn<IRepository>()
     .AsInterface()
@@ -49,13 +49,13 @@ var provider = Classes.FromThisAssembly()
     .BuildServiceProvider();
 ```
 
-In v2 the lifetime helpers (`AsSingleton`, `AsScoped`, `AsTransient`, and the `*Dependent` / `*Independent` variants, plus `AsLifetime(...)`) returned `IServiceCollection` directly. Since the `ServiceLifetimeSelector` split they return a `ServiceSource`; call `.ToServiceCollection()` (or a bulk-add such as `services.AddSingleton(...)` / `services.Add(...)`) to obtain the collection.
+In v2 the lifetime helpers (`AsSingleton`, `AsScoped`, `AsTransient`, the `*Dependent` / `*Independent` variants, and `AsLifetime(...)`) returned an `IServiceCollection` directly. Since the `ServiceLifetimeSelector` split they return a `ServiceSource`, so call `.ToServiceCollection()`, or use a bulk add like `services.AddSingleton(...)` / `services.Add(...)`.
 
-## Default sharing semantics changed
+## Sharing behavior changed
 
-This is the most subtle change because nothing about it fails to compile.
+This is the subtle one, because nothing about it fails to compile.
 
-In v1, registering one implementation against multiple service types produced **one `ServiceDescriptor` per service type**. At `Singleton` lifetime that meant **one instance per service type**, not one shared instance:
+In v1, registering one class against several service types produced one `ServiceDescriptor` per service type. At singleton lifetime that meant one instance per service type, not one shared instance:
 
 ```csharp
 public class CustomerService : ICustomerService, IAuditable { }
@@ -69,10 +69,10 @@ services.Add(
 
 // provider.GetService<ICustomerService>()
 // and provider.GetService<IAuditable>()
-// returned two different CustomerService instances
+// gave you two different CustomerService instances
 ```
 
-In v2 the default `SharingMode.SharedComponent` registers the implementation once and forwards every selected service type to it via a factory. Both service types resolve to the **same** singleton or per-scope instance — mirroring Castle Windsor's shared-component model.
+In v2 the default `SharingMode.SharedComponent` registers the class once and forwards every service type to it through a factory. Both resolve to the same singleton, or the same per-scope instance, matching Castle Windsor's shared component model.
 
 ```csharp
 // v2
@@ -83,10 +83,10 @@ services.AddSingleton(
 
 // provider.GetService<ICustomerService>()
 // and provider.GetService<IAuditable>()
-// now return the same instance
+// now give you the same instance
 ```
 
-If you depended on per-service-type instances (e.g. each interface had its own state), opt back into the old behavior with the `*Independent` lifetime helpers, or pass `SharingMode.Independent` to `AsLifetime`:
+If you were relying on separate instances, say because each interface had its own state, opt back in with the `*Independent` helpers or pass `SharingMode.Independent` to `AsLifetime`:
 
 ```csharp
 .AsSingletonIndependent()
@@ -94,28 +94,28 @@ If you depended on per-service-type instances (e.g. each interface had its own s
 .AsLifetime(ServiceLifetime.Singleton, SharingMode.Independent)
 ```
 
-Two related v2 rules worth knowing:
+Two related rules to know about in v2:
 
-- **Open generics cannot be shared.** Microsoft DI does not support factory-based resolution of open generics ([dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)). `SharedComponent` and `Dependent` modes throw `InvalidOperationException` for open-generic implementations; use `Independent` for those.
-- **Transient + sharing is rejected.** `AsLifetime(ServiceLifetime.Transient, sharingMode)` throws `ArgumentException` when `sharingMode != Independent` (in v1 sharing on transients was silently ignored).
+- **Open generics can't be shared.** Microsoft DI can't resolve open generics through a factory ([dotnet/runtime#41050](https://github.com/dotnet/runtime/issues/41050)). `SharedComponent` and `Dependent` throw an `InvalidOperationException` for open generic implementations, so use `Independent` there.
+- **Transients can't be shared.** `AsLifetime(ServiceLifetime.Transient, sharingMode)` throws an `ArgumentException` when `sharingMode` isn't `Independent`. In v1 sharing on a transient was quietly ignored.
 
-See [Shared Components](../shared-services.md) for the full model.
+See [shared services](../shared-services.md) for the full model.
 
-## Most fluent methods moved from interfaces to extension methods
+## Most fluent methods became extension methods
 
-A large chunk of the API moved off `IServiceSelector` and `ITypeFilter` and onto static extension classes (`ServiceSelectorExtensions`, `TypeFilterExtensions.Namespace`, `TypeFilterExtensions.BasedOn`):
+A large part of the API moved off `IServiceSelector` and `ITypeFilter` and onto static extension classes (`ServiceSelectorExtensions`, `TypeFilterExtensions.Namespace`, `TypeFilterExtensions.BasedOn`):
 
 `AsInterface`, `AsAllInterfaces`, `AsAllNonSystemInterfaces`, `AsDefaultInterfaces`, `AsDefaultNonSystemInterfaces`, `AsFirstInterface`, `AsInterface<T>`, `AsInterfaces`, `AsSelf`, `AsBase`, `InNamespace`, `InSameNamespaceAs`, `BasedOn<T>`, `BasedOn(Type)`.
 
-Chained call sites keep compiling. You will hit a break only if:
+Chained call sites keep compiling. You'll only hit a break if:
 
-- You used `nameof(IServiceSelector.AsInterface)` (or similar) — extension methods are not members of the interface.
-- You wrote your own `IServiceSelector` / `ITypeFilter` implementation — those members no longer exist on the interface, so remove them (the extensions delegate to the smaller core surface).
-- You enumerated the interface's `MethodInfo`s via reflection — the moved methods will no longer appear.
+- You used `nameof(IServiceSelector.AsInterface)` or similar, since extension methods aren't members of the interface.
+- You wrote your own `IServiceSelector` / `ITypeFilter` implementation. Those members are gone from the interface, so delete them. The extensions handle it on top of the smaller core.
+- You enumerated the interface's `MethodInfo`s by reflection, since the moved methods no longer show up there.
 
 ### `As(...)` delegate signatures tightened
 
-Two overloads of `As(...)` accept slightly broader/narrower parameter types:
+Two overloads of `As(...)` changed their parameter types:
 
 ```csharp
 // v1
@@ -127,13 +127,13 @@ IKeyedServiceSelector As(Func<Type, IEnumerable<Type>> serviceSelector);
 IKeyedServiceSelector As(Func<Type, IReadOnlyList<Type>, IEnumerable<Type>> serviceSelector);
 ```
 
-Inline lambdas returning arrays still compile (array covariance). You will need to update:
+Inline lambdas returning arrays still compile, thanks to array covariance. You will need to update:
 
-- Explicitly typed variables: `Func<Type, Type[]> f = ...; .As(f);` → use the new delegate types.
-- Lambdas that call `.Length` on the second parameter (`baseTypes`) — `IReadOnlyList<Type>` exposes `.Count`, not `.Length`.
+- Explicitly typed variables. `Func<Type, Type[]> f = ...; .As(f);` needs the new delegate type.
+- Lambdas calling `.Length` on the `baseTypes` parameter. `IReadOnlyList<Type>` has `.Count`.
 
-## Open-generic `AsInterface()` bug fix
+## Open generic `AsInterface()` bug fix
 
-`AsInterface()` and its overloads previously misbehaved when the implementation was an open-generic type implementing a generic interface. v2 collapses matched top-level interfaces to their generic type definition so the DI container can resolve them.
+`AsInterface()` and its overloads used to misbehave when the implementation was an open generic implementing a generic interface. v2 collapses matched top-level interfaces to their generic type definition so the container can resolve them.
 
-This is a pure bug fix. It only breaks code that worked around the old behavior — for example, by registering the open-generic interface through a separate path.
+This is a straight bug fix. The only code it breaks is code that worked around the old behavior, for instance by registering the open generic interface through a separate path.

@@ -7,19 +7,9 @@
     <RootNamespace>RegistrationSample</RootNamespace>
   </PropertyGroup>
 
+  <!-- The [Service] source generator ships inside this package as an analyzer, so nothing else is needed -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-  </ItemGroup>
-
-  <!--
-    Local project references until the v3 NuGet package (which bundles the [Service] source generator as an
-    analyzer) is published. Once it is, both references below can be replaced with a single package reference:
-      <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="..." />
-  -->
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\ZCrew.Extensions.DependencyInjection.Registration\ZCrew.Extensions.DependencyInjection.Registration.csproj" />
-    <ProjectReference Include="..\..\..\src\ZCrew.Extensions.DependencyInjection.Generator\ZCrew.Extensions.DependencyInjection.Generator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="3.0.0" />
   </ItemGroup>
 </Project>

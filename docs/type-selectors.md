@@ -1,13 +1,13 @@
-# Type Selectors
+# Type selectors
 
-Type selectors are the first stage of the registration chain. They determine **where types come from** and which types are included based on their kind and visibility.
+Type selectors are the first stage of the chain. They decide where types come from, and which ones are in play based on their kind and visibility.
 
-## Entry points: `Classes` vs `Types`
+## `Classes` or `Types`?
 
-Both `Classes` and `Types` offer the same factory methods. The difference is what passes through:
+Both offer the same factory methods. The difference is what gets through:
 
-- **`Classes`** — only concrete, non-abstract classes.
-- **`Types`** — everything: interfaces, abstract classes, structs, enums, static classes.
+- `Classes` only lets concrete, non-abstract classes through.
+- `Types` lets everything through: interfaces, abstract classes, structs, enums, static classes.
 
 Given these types in an assembly:
 
@@ -20,13 +20,13 @@ public enum OrderStatus { Pending, Shipped, Delivered }
 public static class PricingDefaults { }
 ```
 
-`Classes` selects:
+`Classes` picks:
 
 ```
 SqlCustomerRepository
 ```
 
-`Types` selects:
+`Types` picks:
 
 ```
 IRepository<T>, RepositoryBase<T>, SqlCustomerRepository, Currency, OrderStatus, PricingDefaults
@@ -36,7 +36,7 @@ IRepository<T>, RepositoryBase<T>, SqlCustomerRepository, Currency, OrderStatus,
 
 ### `From(IEnumerable<Type>)` / `From(params Type[])`
 
-Begins registration from an explicit set of types:
+Start from a list of types you already have:
 
 ```csharp
 var types = new[] { typeof(CustomerService), typeof(OrderService), typeof(ProductService) };
@@ -52,7 +52,7 @@ services.AddSingleton(
 
 ### `FromAssembly(Assembly)`
 
-Scans the specified assembly:
+Scan one assembly:
 
 ```csharp
 Classes.FromAssembly(typeof(CustomerService).Assembly)
@@ -60,7 +60,7 @@ Classes.FromAssembly(typeof(CustomerService).Assembly)
 
 ### `FromAssemblyContaining(Type)` / `FromAssemblyContaining<T>()`
 
-Scans the assembly that contains the given type — typically the most convenient way to target a specific project:
+Scan the assembly a given type lives in. Usually the easiest way to point at a specific project:
 
 ```csharp
 Classes.FromAssemblyContaining<CustomerService>()
@@ -69,16 +69,16 @@ Classes.FromAssemblyContaining<CustomerService>()
 
 ### `FromThisAssembly()`
 
-Scans the calling assembly:
+Scan the calling assembly:
 
 ```csharp
 Classes.FromThisAssembly()
 // Scans the assembly where this line of code lives
 ```
 
-## Assembly type visibility
+## Visibility
 
-When scanning an assembly (via `FromAssembly`, `FromAssemblyContaining`, or `FromThisAssembly`), the returned `AssemblyTypeSelector` exposes visibility filters. Default is **public only**.
+Scanning an assembly (`FromAssembly`, `FromAssemblyContaining`, `FromThisAssembly`) gives you an `AssemblyTypeSelector`, which has the visibility filters. You get public types by default.
 
 Given:
 
@@ -90,10 +90,10 @@ public class OrderValidator : IValidator<Order>
 internal class InternalOrderValidator : IValidator<Order> { }
 ```
 
-| Method | Selects |
+| Method | Picks |
 |---|---|
 | `IncludePublicTypes()` (default) | `OrderValidator` |
 | `IncludeInternalTypes()` | `OrderValidator`, `InternalOrderValidator` |
 | `IncludeAllTypes()` | `OrderValidator`, `OrderValidator.Strict`, `InternalOrderValidator` |
 
-`IncludeAllTypes()` may also surface compiler-emitted types — pair it with `Where` or another filter.
+`IncludeAllTypes()` can also drag in compiler-generated types, so pair it with a filter.

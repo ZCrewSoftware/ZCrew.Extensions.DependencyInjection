@@ -1,19 +1,19 @@
 # ZCrew.Extensions.DependencyInjection.Registration
 
-Convention-based service registration for `Microsoft.Extensions.DependencyInjection`, inspired by Castle Windsor's registration API. Scan assemblies, filter types, and bulk-register services using a fluent interface.
+Convention-based service registration for `Microsoft.Extensions.DependencyInjection`, modelled on Castle Windsor's registration API. Scan assemblies, filter types, and register the lot through a fluent chain.
 
 > [!TIP]
-> **One-page API reference: [Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md).**
-> Every entry point, filter, selector, keyed overload, and lifetime helper in one place — plus copy-paste recipes. The fastest way to find the method you need.
+> One-page reference: the **[registration cheat sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)**.
+> Every entry point, filter, selector, keyed overload and lifetime helper in one place, plus recipes you can paste. The fastest way to find the method you're after.
 
-## Features
+## What you get
 
-- **Assembly scanning** — scan entire assemblies or provide explicit type lists
-- **Type filtering** — filter by base type (`BasedOn`), namespace (`InNamespace`), or predicate (`Where`)
-- **Flexible service mapping** — register as interface (`AsInterface`), all interfaces (`AsAllInterfaces`), self (`AsSelf`), base type (`AsBase`), or custom mapping; chain selectors to combine them (e.g. `AsSelf().AsAllInterfaces()`)
-- **Convention-based defaults** — `AsDefaultInterfaces` matches types to interfaces by naming convention (e.g., `OrderService` to `IOrderService`)
-- **Keyed services** — assign service keys statically, by convention, or with a custom selector
-- **Visibility control** — include or exclude internal types when scanning assemblies
+- **Assembly scanning.** Scan whole assemblies, or hand it an explicit list of types
+- **Type filters.** By base type (`BasedOn`), namespace (`InNamespace`) or your own predicate (`Where`)
+- **Service mapping.** Register as an interface (`AsInterface`), every interface (`AsAllInterfaces`), the type itself (`AsSelf`), the base type (`AsBase`), or whatever your delegate says. Chain selectors to combine them, like `AsSelf().AsAllInterfaces()`
+- **Naming conventions.** `AsDefaultInterfaces` matches types to interfaces by name, so `OrderService` goes to `IOrderService`
+- **Keyed services.** Set keys directly, work them out from the names, or use your own selector
+- **Visibility control.** Include or skip internal types when scanning
 
 ## Installation
 
@@ -21,9 +21,19 @@ Convention-based service registration for `Microsoft.Extensions.DependencyInject
 dotnet add package ZCrew.Extensions.DependencyInjection.Registration
 ```
 
-## Quick Start
+or in your `.csproj`:
 
-Register all repository implementations from the current assembly:
+```xml
+<ItemGroup>
+  <PackageReference Include="ZCrew.Extensions.DependencyInjection.Registration" Version="3.0.0" />
+</ItemGroup>
+```
+
+That single reference brings both the runtime API and the `[Service]` source generator. The generator ships inside the package as an analyzer, so NuGet wires it into the compiler for you: no second package, and none of the `OutputItemType="Analyzer"` or `PrivateAssets="all"` wiring you'd write to pull a generator in from a project reference.
+
+## Quick start
+
+Register every repository in the current assembly:
 
 ```csharp
 services.AddSingleton(
@@ -33,7 +43,7 @@ services.AddSingleton(
 );
 ```
 
-Register all services by naming convention (e.g., `OrderService` registers as `IOrderService`):
+Register services by naming convention, so `OrderService` registers as `IOrderService`:
 
 ```csharp
 services.AddSingleton(
@@ -43,65 +53,63 @@ services.AddSingleton(
 );
 ```
 
-### Fluent Chain
+### The chain
 
-The API flows through the following stages — each step narrows or transforms the set of registrations:
+Each step narrows or transforms what gets registered:
 
 ```
-Entry Point → Type Filtering → Service Selection → Keyed Selection → Lifetime Selection → Terminal
+Entry point → Type filtering → Service selection → Keyed selection → Lifetime → Terminal
 ```
 
 ```csharp
 services.AddSingleton(
     Classes.FromThisAssembly()          // scan the calling assembly
-        .IncludeInternalTypes()         // include internal types (optional)
-        .BasedOn<IHandler>()            // filter to IHandler implementations
-        .Where(t => !t.IsNested)        // additional predicate filtering
+        .IncludeInternalTypes()         // internal types too (optional)
+        .BasedOn<IHandler>()            // only IHandler implementations
+        .Where(t => !t.IsNested)        // and not nested ones
         .AsInterface()                  // register each as its IHandler interface
-        .Keyed()                        // auto-detect service keys by convention
+        .Keyed()                        // keys worked out from the type names
 );
 ```
 
-### Entry Points
+### Entry points
 
-| Method                           | Description                                                     |
+| Method                           | Where types come from                                           |
 |----------------------------------|-----------------------------------------------------------------|
-| `Classes.FromThisAssembly()`     | Concrete classes from the calling assembly                      |
-| `Classes.FromAssembly(assembly)` | Concrete classes from a specific assembly                       |
-| `Classes.From(types)`            | Concrete classes from an explicit type list                     |
-| `Types.FromThisAssembly()`       | All types (interfaces, structs, etc.) from the calling assembly |
+| `Classes.FromThisAssembly()`     | Concrete classes in the calling assembly                        |
+| `Classes.FromAssembly(assembly)` | Concrete classes in a specific assembly                         |
+| `Classes.From(types)`            | Concrete classes from a list you provide                        |
+| `Types.FromThisAssembly()`       | All types (interfaces, structs, etc.) in the calling assembly   |
 
-### Service Mapping
+### Service mapping
 
-Selectors return `ServiceSelector` and can be chained — e.g. `AsSelf().AsAllInterfaces()` — to register the distinct union of their service types.
+Selectors return a `ServiceSelector`, so you can chain them. `AsSelf().AsAllInterfaces()` registers the union of both.
 
-| Method                  | Description                                           |
+| Method                  | Registers as                                          |
 |-------------------------|-------------------------------------------------------|
 | `AsInterface()`         | Top-level interfaces deriving from the `BasedOn` type |
-| `AsAllInterfaces()`     | All implemented interfaces                            |
-| `AsDefaultInterfaces()` | Interfaces matching by naming convention              |
-| `AsSelf()`              | The implementation type itself                        |
-| `AsBase()`              | The `BasedOn` base type(s)                            |
-| `As(selector)`          | Custom mapping function                               |
+| `AsAllInterfaces()`     | Every interface implemented                           |
+| `AsDefaultInterfaces()` | Interfaces matching by name                           |
+| `AsSelf()`              | The implementation type                               |
+| `AsBase()`              | The `BasedOn` base types                              |
+| `As(selector)`          | Whatever your delegate returns                        |
 
-### Keyed Services
+### Keyed services
 
 ```csharp
-// Auto-detect keys by convention (PayPalGateway → key "PayPal" for IPaymentGateway)
+// Work the key out from the names (PayPalGateway → key "PayPal" for IPaymentGateway)
 .Keyed()
 
-// Static key for all registrations
+// One key for everything
 .Keyed("myKey")
 
-// Custom key selector
+// Your own selector
 .Keyed(implType => implType.Name)
 ```
 
-## Compile-Time `[Service]` Registration
+## Compile-time `[Service]` registration
 
-The package also bundles a source generator (as an analyzer — nothing extra to install). Annotate a type with
-`[Service]` and it is collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`),
-no reflection at startup:
+The package also bundles a source generator as an analyzer, so there's nothing extra to install. Annotate a type with `[Service]` and it's collected at compile time into an assembly-local `Services.FromThisAssembly()` (a `ServiceFilter`), with no reflection at startup:
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -111,34 +119,30 @@ using ZCrew.Extensions.DependencyInjection.Registration;
 public class Emailer : IEmailSender;
 
 // then, in the same assembly:
-services.Add(Services.FromThisAssembly());                          // add all [Service] registrations
-services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow with ServiceFilter filters
+services.Add(Services.FromThisAssembly());                          // everything
+services.Add(Services.FromThisAssembly().BasedOn<IEmailSender>());  // or narrow it down first
 ```
 
-See **[Compile-Time Registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md)** for the full attribute model
-(`[As<T>]`, `[Singleton]`/`[Scoped]`/`[Transient]`, `[Keyed]`), semantics, and the `ZCDI001`–`ZCDI004` diagnostics.
+See **[Compile-time registration with `[Service]`](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/source-generator.md)** for the rest of the attributes (`[As<T>]`, `[Singleton]` / `[Scoped]` / `[Transient]`, `[Keyed]`), what they do, and the `ZCDI001` to `ZCDI004` diagnostics.
 
-## Trimming and Native AOT
+## Trimming and native AOT
 
 The package is marked `IsAotCompatible`, but only the compile-time path is trim-safe:
 
-| Path                                            | Trimming / AOT                                                         |
+| Path                                            | Trimming and AOT                                                       |
 |-------------------------------------------------|------------------------------------------------------------------------|
-| `[Service]` + `Services.FromThisAssembly()`     | ✅ Safe: the registrations are baked in at compile time.                |
-| `Service.From<T>()` / `Service.From(typeof(T))` | ✅ Safe: the implementation type keeps its constructors and interfaces. |
-| `Classes` / `Types` assembly scanning           | ⚠️ Not supported: the entry points are `[RequiresUnreferencedCode]`.   |
+| `[Service]` + `Services.FromThisAssembly()`     | ✅ Safe. The registrations are baked in at compile time.                |
+| `Service.From<T>()` / `Service.From(typeof(T))` | ✅ Safe. The implementation keeps its constructors and interfaces.      |
+| `Classes` / `Types` assembly scanning           | ⚠️ Not supported. The entry points are `[RequiresUnreferencedCode]`.   |
 
-Assembly scanning cannot be made trim-safe: the trimmer removes unreferenced types *before* the scan runs, so types
-would silently disappear from the container. Rather than fail at runtime, every `Classes`/`Types` entry point warns at
-compile time (one `IL2026` per chain) and points you at the generator. If you publish trimmed or AOT, use `[Service]`.
+Assembly scanning can't be made trim-safe. The trimmer removes unreferenced types before the scan runs, so services would quietly vanish from the container. Rather than let that fail at runtime, every `Classes` and `Types` entry point warns at compile time (one `IL2026` per chain) and points you at the generator. If you publish trimmed or AOT, use `[Service]`.
 
-> One caveat that is outside this package's control: registering **open generic** service types uses
-> `MakeGenericType`, which Microsoft's container cannot make AOT-safe.
+> One thing that's out of this package's hands: registering open generic service types goes through `MakeGenericType`, which Microsoft's container can't make AOT-safe.
 
 ## Full API reference
 
-The summaries above cover the common cases. For a complete one-page reference covering every method, overload, and recipe, see the **[Registration Cheat Sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)**. For deeper narrative guides see the [docs folder](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/tree/main/docs).
+The summaries above cover the common cases. For every method, overload and recipe on one page, see the **[registration cheat sheet](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/docs/registration-cheat-sheet.md)**. The longer guides live in the [docs folder](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/tree/main/docs).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md) file for details.
+MIT. See [LICENSE.md](https://github.com/ZCrewSoftware/ZCrew.Extensions.DependencyInjection/blob/main/LICENSE.md).
