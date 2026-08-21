@@ -1,5 +1,9 @@
 # ZCrew.Extensions.DependencyInjection
 
+> Hello there!\
+> My name is Matt and I write software like this to learn, explore topics I find neat, and hopefully help you write
+> great software. This software will be free forever, so do what you like with it.
+
 Extensions for `Microsoft.Extensions.DependencyInjection` that add decorators and convention-based registration.
 
 ## Packages
