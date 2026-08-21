@@ -2,9 +2,17 @@
 
 Quick reference for `ZCrew.Extensions.DependencyInjection.Registration`. For the longer explanation of any of it, see [registration.md](registration.md).
 
-```
-Classes/Types → IncludeXxxTypes → Where/BasedOn/InNamespace/... → AsXxx  → Keyed → AsSingleton/AsScoped/AsTransient → ToServiceCollection/AddXxx
-    entry           visibility                filter              service    key               lifetime                         terminal
+```mermaid
+flowchart LR
+    entry["Classes / Types<br><small>entry</small>"]
+    visibility["IncludeXxxTypes<br><small>visibility</small>"]
+    filter["Where / BasedOn / InNamespace / ...<br><small>filter</small>"]
+    service["AsXxx<br><small>service</small>"]
+    key["Keyed<br><small>key</small>"]
+    lifetime["AsSingleton / AsScoped / AsTransient<br><small>lifetime</small>"]
+    terminal["ToServiceCollection / AddXxx<br><small>terminal</small>"]
+
+    entry --> visibility --> filter --> service --> key --> lifetime --> terminal
 ```
 
 Every stage after the entry point is optional. Skip one and the next call uses a sensible default.
