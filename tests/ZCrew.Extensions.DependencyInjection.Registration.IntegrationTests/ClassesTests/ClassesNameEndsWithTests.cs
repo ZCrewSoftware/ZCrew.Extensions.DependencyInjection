@@ -1,3 +1,4 @@
+using System.Globalization;
 using Fixtures.SmallProject.Application.Services;
 using Fixtures.SmallProject.Infrastructure.External;
 using Fixtures.SmallProject.Infrastructure.Persistence;
@@ -72,6 +73,39 @@ public class ClassesNameEndsWithTests
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
         Assert.DoesNotContain(typeof(CustomerService), registeredTypes);
+    }
+
+    [Fact]
+    public void NameEndsWith_WithInvariantCulture_ShouldMatchIgnoringCase()
+    {
+        // Act
+        var result = Classes
+            .FromAssemblyContaining<CustomerService>()
+            .NameEndsWith("service", ignoreCase: true, CultureInfo.InvariantCulture)
+            .AsSelf()
+            .ToServiceCollection();
+
+        // Assert
+        var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
+        Assert.Contains(typeof(CustomerService), registeredTypes);
+        Assert.Contains(typeof(OrderService), registeredTypes);
+        Assert.DoesNotContain(typeof(SqlCustomerRepository), registeredTypes);
+    }
+
+    [Fact]
+    public void NameEndsWith_WithNullCulture_ShouldUseCurrentCulture()
+    {
+        // Act
+        var result = Classes
+            .FromAssemblyContaining<CustomerService>()
+            .NameEndsWith("Service", ignoreCase: false, cultureInfo: null)
+            .AsSelf()
+            .ToServiceCollection();
+
+        // Assert
+        var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
+        Assert.Contains(typeof(CustomerService), registeredTypes);
+        Assert.DoesNotContain(typeof(SqlCustomerRepository), registeredTypes);
     }
 
     [Fact]

@@ -126,6 +126,32 @@ public class ClassesNamespaceFilterTests
     }
 
     [Fact]
+    public void InNamespace_WithNullNamespace_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var filter = Classes.From(typeof(CustomerService));
+
+        // Act
+        var act = () => filter.InNamespace(null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
+    }
+
+    [Fact]
+    public void InSameNamespaceAs_WithNullType_ShouldThrowArgumentNullException()
+    {
+        // Arrange
+        var filter = Classes.From(typeof(CustomerService));
+
+        // Act
+        var act = () => filter.InSameNamespaceAs((Type)null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
+    }
+
+    [Fact]
     public void InSameNamespaceAs_AfterWhere_WithGenericAndSubnamespaces_ShouldFilterCorrectly()
     {
         // Act - .Where() produces a TypeFilter, ensuring TypeFilter.InSameNamespaceAs<T>(bool) is invoked
