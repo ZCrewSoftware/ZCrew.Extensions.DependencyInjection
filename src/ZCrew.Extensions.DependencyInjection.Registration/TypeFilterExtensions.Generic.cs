@@ -18,7 +18,7 @@ public static partial class TypeFilterExtensions
         ///     This is often implied if using other generic methods like: <see cref="GenericTypeDefinitions"/> or
         ///     <see cref="ConstructedGenericTypes"/>, so this can be skipped when calling those other methods.
         /// </remarks>
-        TypeFilter GenericTypes()
+        public TypeFilter GenericTypes()
         {
             return typeFilter.Where(type => type.IsGenericType);
         }
@@ -40,7 +40,7 @@ public static partial class TypeFilterExtensions
         ///     <see langword="true"/>. This means that <see cref="GenericTypeDefinitions"/> and
         ///     <see cref="ConstructedGenericTypes"/> are mutually exclusive and will not select the same types.
         /// </remarks>
-        TypeFilter GenericTypeDefinitions()
+        public TypeFilter GenericTypeDefinitions()
         {
             return typeFilter.Where(type => type.IsGenericTypeDefinition);
         }
@@ -62,7 +62,7 @@ public static partial class TypeFilterExtensions
         ///     <see langword="true"/>. This means that <see cref="GenericTypeDefinitions"/> and
         ///     <see cref="ConstructedGenericTypes"/> are mutually exclusive and will not select the same types.
         /// </remarks>
-        TypeFilter ConstructedGenericTypes()
+        public TypeFilter ConstructedGenericTypes()
         {
             return typeFilter.Where(type => type.IsConstructedGenericType);
         }
