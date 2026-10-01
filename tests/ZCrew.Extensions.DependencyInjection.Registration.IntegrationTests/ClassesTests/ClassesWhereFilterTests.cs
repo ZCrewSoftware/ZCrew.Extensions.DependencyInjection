@@ -223,9 +223,7 @@ public class ClassesWhereFilterTests
     public void BasedOn_WithAsLifetime_ShouldFilterToImplementors()
     {
         // Arrange
-        var filter = Classes
-            .From(typeof(CustomerService), typeof(OrderService))
-            .BasedOn<ICustomerService>();
+        var filter = Classes.From(typeof(CustomerService), typeof(OrderService)).BasedOn<ICustomerService>();
 
         // Act
         var result = filter.AsLifetime(ServiceLifetime.Scoped).ToServiceCollection();

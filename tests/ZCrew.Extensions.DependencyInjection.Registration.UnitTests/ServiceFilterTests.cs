@@ -9,12 +9,10 @@ public class ServiceFilterTests
     public void ToServiceCollection_WhenCalledWithServices_ShouldAddDescriptorsForEach()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -43,9 +41,9 @@ public class ServiceFilterTests
     public void ToServiceCollection_WhenNoArgument_ShouldReturnNewPopulatedCollection()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null))]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+        ]);
 
         // Act
         var services = filter.ToServiceCollection();
@@ -72,12 +70,10 @@ public class ServiceFilterTests
     public void Where_WhenFiltered_ShouldAddOnlyMatchingServices()
     {
         // Arrange — mirrors Services.FromThisAssembly().Where(...).ToServiceCollection(services).
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -92,12 +88,10 @@ public class ServiceFilterTests
     public void Add_WhenCalledWithFilter_ShouldAddDescriptors()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -112,12 +106,10 @@ public class ServiceFilterTests
     public void BasedOn_WhenFiltered_ShouldKeepOnlyImplementationsBasedOnTheType()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -132,12 +124,10 @@ public class ServiceFilterTests
     public void NameEndsWith_WhenFiltered_ShouldKeepMatchingImplementations()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -152,12 +142,10 @@ public class ServiceFilterTests
     public void InSameNamespaceAs_WhenFiltered_ShouldKeepImplementationsInThatNamespace()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
-                Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(typeof(CustomerService), ServiceLifetime.Singleton, null, (typeof(ICustomerService), null)),
+            Service.From(typeof(OrderService), ServiceLifetime.Singleton, null, (typeof(IOrderService), null)),
+        ]);
         var services = new ServiceCollection();
 
         // Act
@@ -172,16 +160,14 @@ public class ServiceFilterTests
     public void ToServiceCollection_WhenServiceHasKeyAndLifetime_ShouldRegisterAsDeclared()
     {
         // Arrange
-        var filter = new ServiceFilter(
-            [
-                Service.From(
-                    typeof(CustomerService),
-                    ServiceLifetime.Scoped,
-                    "primary",
-                    (typeof(ICustomerService), "primary")
-                ),
-            ]
-        );
+        var filter = new ServiceFilter([
+            Service.From(
+                typeof(CustomerService),
+                ServiceLifetime.Scoped,
+                "primary",
+                (typeof(ICustomerService), "primary")
+            ),
+        ]);
         var services = new ServiceCollection();
 
         // Act

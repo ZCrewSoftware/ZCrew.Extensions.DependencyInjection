@@ -36,6 +36,7 @@ public class ServiceSelector : ServiceKeySelector
         this.services = services;
         this.baseTypes = baseTypes;
     }
+
     // ReSharper restore PossibleMultipleEnumeration
 
     /// <summary>

@@ -305,7 +305,11 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithBasedOn_ShouldRegisterTopLevelDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(SqlCustomerRepository)).BasedOn(typeof(IRepository<>)).AsInterface().ToServiceCollection();
+        var result = Types
+            .From(typeof(SqlCustomerRepository))
+            .BasedOn(typeof(IRepository<>))
+            .AsInterface()
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -329,7 +333,10 @@ public class TypesServiceSelectionTests
     public void AsInterface_WithExplicitType_ShouldRegisterDerivedInterfaces()
     {
         // Act
-        var result = Types.From(typeof(PayPalPaymentGateway)).AsInterface(typeof(IPaymentGateway)).ToServiceCollection();
+        var result = Types
+            .From(typeof(PayPalPaymentGateway))
+            .AsInterface(typeof(IPaymentGateway))
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -365,7 +372,11 @@ public class TypesServiceSelectionTests
     public void As_WithBaseTypeContext_ShouldReceiveResolvedBaseTypes()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).BasedOn<ICustomerService>().As((_, bases) => bases).ToServiceCollection();
+        var result = Types
+            .From(typeof(CustomerService))
+            .BasedOn<ICustomerService>()
+            .As((_, bases) => bases)
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -602,7 +613,10 @@ public class TypesServiceSelectionTests
     public void AsInterfaceOrSelf_WithExplicitType_WhenMatching_ShouldRegisterInterface()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf(typeof(ICustomerService)).ToServiceCollection();
+        var result = Types
+            .From(typeof(CustomerService))
+            .AsInterfaceOrSelf(typeof(ICustomerService))
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
@@ -614,7 +628,10 @@ public class TypesServiceSelectionTests
     public void AsInterfaceOrSelf_WithExplicitType_WhenNoMatch_ShouldRegisterSelf()
     {
         // Act
-        var result = Types.From(typeof(CustomerService)).AsInterfaceOrSelf(typeof(IPaymentGateway)).ToServiceCollection();
+        var result = Types
+            .From(typeof(CustomerService))
+            .AsInterfaceOrSelf(typeof(IPaymentGateway))
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);

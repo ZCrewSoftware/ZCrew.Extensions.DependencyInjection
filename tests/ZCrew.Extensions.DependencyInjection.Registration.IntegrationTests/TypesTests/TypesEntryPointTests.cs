@@ -75,7 +75,10 @@ public class TypesEntryPointTests
     public void From_WithAbstractClasses_ShouldIncludeAbstractClasses()
     {
         // Act
-        var result = Types.From(typeof(RepositoryBase<Customer>), typeof(SqlCustomerRepository)).AsSelf().ToServiceCollection();
+        var result = Types
+            .From(typeof(RepositoryBase<Customer>), typeof(SqlCustomerRepository))
+            .AsSelf()
+            .ToServiceCollection();
 
         // Assert
         var registeredTypes = result.Select(d => d.ImplementationType).ToArray();
@@ -234,7 +237,11 @@ public class TypesEntryPointTests
     public void FromThisAssembly_WhenCalled_ShouldScanCallingAssembly()
     {
         // Act
-        var result = Types.FromThisAssembly().Where(t => t == typeof(TypesEntryPointTests)).AsSelf().ToServiceCollection();
+        var result = Types
+            .FromThisAssembly()
+            .Where(t => t == typeof(TypesEntryPointTests))
+            .AsSelf()
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);
