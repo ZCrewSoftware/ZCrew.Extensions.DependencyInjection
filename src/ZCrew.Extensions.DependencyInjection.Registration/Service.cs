@@ -81,7 +81,10 @@ public readonly record struct Service
             var pairs = new KeyValuePair<Type, object?>[serviceTypes.Length];
             for (var index = 0; index < serviceTypes.Length; index++)
             {
-                pairs[index] = new KeyValuePair<Type, object?>(serviceTypes[index].ServiceType, serviceTypes[index].Key);
+                pairs[index] = new KeyValuePair<Type, object?>(
+                    serviceTypes[index].ServiceType,
+                    serviceTypes[index].Key
+                );
             }
 
             this.keyedServices = pairs;
@@ -232,7 +235,7 @@ public readonly record struct Service
     public Service As(Func<Type, IEnumerable<Type>> serviceSelector)
     {
         ArgumentNullException.ThrowIfNull(serviceSelector);
-        var services =  serviceSelector(this.implementation);
+        var services = serviceSelector(this.implementation);
         ArgumentNullException.ThrowIfNull(services);
         var serviceArray = services.ToArray();
         if (serviceArray.Length == 0)

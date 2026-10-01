@@ -23,9 +23,7 @@ public static partial class ServiceSelectorExtensions
         /// <exception cref="AmbiguousMatchException">
         ///     Thrown when an implementation type has more than one matching <typeparamref name="TAttribute"/>.
         /// </exception>
-        public ServiceSelector AsServicesFromAttribute<TAttribute>(
-            Func<TAttribute, IEnumerable<Type>> serviceSelector
-        )
+        public ServiceSelector AsServicesFromAttribute<TAttribute>(Func<TAttribute, IEnumerable<Type>> serviceSelector)
             where TAttribute : class
         {
             return selector.AsServicesFromAttribute(true, serviceSelector);

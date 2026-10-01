@@ -25,7 +25,7 @@ internal sealed record HarnessRun(
 /// </summary>
 internal static class GeneratorHarness
 {
-    private static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.CSharp14);
+    private static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.CSharp13);
 
     private static readonly ImmutableArray<MetadataReference> References = BuildReferences();
 

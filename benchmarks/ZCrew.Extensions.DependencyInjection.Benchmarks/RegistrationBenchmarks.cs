@@ -46,7 +46,7 @@ public class RegistrationBenchmarks
         };
     }
 
-    // ── Scenario 1: All public classes → all interfaces ──
+    // Scenario 1: All public classes → all interfaces
 
     [Benchmark]
     public int ZCrew_AllInterfaces()
@@ -74,7 +74,7 @@ public class RegistrationBenchmarks
         return container;
     }
 
-    // ── Scenario 2: All public classes → default/matching interface ──
+    // Scenario 2: All public classes → default/matching interface
 
     [Benchmark]
     public int ZCrew_DefaultInterfaces()
@@ -106,7 +106,7 @@ public class RegistrationBenchmarks
         return container;
     }
 
-    // ── Scenario 3: All public classes → self ──
+    // Scenario 3: All public classes → self
 
     [Benchmark]
     public int ZCrew_AsSelf()
@@ -132,7 +132,7 @@ public class RegistrationBenchmarks
         return container;
     }
 
-    // ── Scenario 4: All types (incl. internal) → all interfaces ──
+    // Scenario 4: All types (incl. internal) → all interfaces
 
     [Benchmark]
     public int ZCrew_InternalTypes_AllInterfaces()
@@ -165,13 +165,13 @@ public class RegistrationBenchmarks
         return container;
     }
 
-    // ── Scenario 5: Filter by base type → interface ──
+    // Scenario 5: Filter by base type → interface
 
     [Benchmark]
     public int ZCrew_BasedOn_AsInterface()
     {
         var services = new ServiceCollection();
-        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).BasedOn<Service1>().AsInterface());
+        services.AddSingleton(ZCrewClasses.FromAssembly(this.assembly).BasedOn<IService1>().AsInterface());
         return services.Count;
     }
 
@@ -182,8 +182,8 @@ public class RegistrationBenchmarks
         services.Scan(scan =>
             scan.FromAssemblies(this.assembly)
                 .AddClasses(f => f.AssignableTo<IService1>())
-                // TODO: this isn't the same as what the other systems are doing... so of course it performs better
-                .AsImplementedInterfaces()
+                // Can't use AsInterface() here since that is not available from Scrutor
+                .As(type => type.GetTopLevelInterfacesMatchingBaseTypes([typeof(IService1)]))
                 .WithSingletonLifetime()
         );
         return services.Count;
@@ -193,11 +193,11 @@ public class RegistrationBenchmarks
     public IWindsorContainer Windsor_BasedOn_AllInterfaces()
     {
         var container = new WindsorContainer();
-        container.Register(CastleClasses.FromAssembly(this.assembly).BasedOn<IService1>().WithService.AllInterfaces());
+        container.Register(CastleClasses.FromAssembly(this.assembly).BasedOn<IService1>().WithService.FromInterface());
         return container;
     }
 
-    // ── Scenario 6: First interface only ──
+    // Scenario 6: First interface only
 
     [Benchmark]
     public int ZCrew_FirstInterface()

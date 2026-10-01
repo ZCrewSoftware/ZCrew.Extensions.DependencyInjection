@@ -76,8 +76,9 @@ public static partial class ServiceSelectorExtensions
         {
             return selector.As(type =>
             {
-                var interfaces = type.GetInterfaces().Where(service =>
-                    !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true)).ToArray();
+                var interfaces = type.GetInterfaces()
+                    .Where(service => !service.IsInSameNamespaceAs<object>(includeSubnamespaces: true))
+                    .ToArray();
                 return interfaces.Length == 0 ? [type] : interfaces;
             });
         }
@@ -118,7 +119,9 @@ public static partial class ServiceSelectorExtensions
         {
             return selector.As(type =>
             {
-                var interfaces = type.GetInterfaces().Where(service => type.Name.Contains(service.GetInterfaceName())).ToArray();
+                var interfaces = type.GetInterfaces()
+                    .Where(service => type.Name.Contains(service.GetInterfaceName()))
+                    .ToArray();
                 return interfaces.Length == 0 ? [type] : interfaces;
             });
         }
@@ -235,11 +238,13 @@ public static partial class ServiceSelectorExtensions
         /// </example>
         public ServiceSelector AsInterfaceOrSelf()
         {
-            return selector.As((type, baseTypes) =>
-            {
-                var interfaces = type.GetTopLevelInterfacesMatchingBaseTypes(baseTypes).ToArray();
-                return interfaces.Length == 0 ? [type] : interfaces;
-            });
+            return selector.As(
+                (type, baseTypes) =>
+                {
+                    var interfaces = type.GetTopLevelInterfacesMatchingBaseTypes(baseTypes).ToArray();
+                    return interfaces.Length == 0 ? [type] : interfaces;
+                }
+            );
         }
 
         /// <summary>

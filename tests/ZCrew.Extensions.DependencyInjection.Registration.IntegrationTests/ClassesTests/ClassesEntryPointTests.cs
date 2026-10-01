@@ -172,7 +172,11 @@ public class ClassesEntryPointTests
     public void FromThisAssembly_WhenCalled_ShouldScanCallingAssembly()
     {
         // Act
-        var result = Classes.FromThisAssembly().Where(t => t == typeof(ClassesEntryPointTests)).AsSelf().ToServiceCollection();
+        var result = Classes
+            .FromThisAssembly()
+            .Where(t => t == typeof(ClassesEntryPointTests))
+            .AsSelf()
+            .ToServiceCollection();
 
         // Assert
         var descriptor = Assert.Single(result);

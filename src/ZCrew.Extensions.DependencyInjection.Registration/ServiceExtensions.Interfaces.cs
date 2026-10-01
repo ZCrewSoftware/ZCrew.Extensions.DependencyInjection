@@ -60,7 +60,9 @@ public static partial class ServiceExtensions
         {
             var implementation = service.ImplementationType;
             return service.As(
-                implementation.GetInterfaces().Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
+                implementation
+                    .GetInterfaces()
+                    .Where(candidate => implementation.Name.Contains(candidate.GetInterfaceName()))
             );
         }
 

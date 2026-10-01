@@ -1,17 +1,24 @@
-<Project>
-  <!-- Import Directory.Build.props from above folder -->
+<Project TreatAsLocalProperty="Configuration">
+  <!-- This makes sure the outer Directory.Build.props file in the root of the solution is read and applied -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"/>
+
+  <!-- Always build benchmarks in Release -->
   <PropertyGroup>
-    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
+    <Configuration>Release</Configuration>
   </PropertyGroup>
-  <ImportGroup>
-    <Import Condition="'$(ParentDirectoryBuildPropsPath)' != ''" Project="$(ParentDirectoryBuildPropsPath)" />
-  </ImportGroup>
 
   <!-- Common properties for all fixture projects -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <!-- Build referenced projects in Release too -->
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <AdditionalProperties>Configuration=Release</AdditionalProperties>
+    </ProjectReference>
+  </ItemDefinitionGroup>
 
   <!-- Exclude benchmark projects from code coverage -->
   <ItemGroup>
